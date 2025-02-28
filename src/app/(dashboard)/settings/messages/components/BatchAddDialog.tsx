@@ -17,9 +17,9 @@ interface BatchAddDialogProps {
   setIsOpen: (isOpen: boolean) => void;
   onSubmit: (data: {
     messages: string[];
-    category: string;
-    isShown: boolean;
-    like: boolean;
+    category?: string;
+    isShown?: boolean;
+    like?: boolean;
   }) => Promise<boolean>;
 }
 
@@ -31,40 +31,38 @@ export default function BatchAddDialog({ isOpen, setIsOpen, onSubmit }: BatchAdd
     setBatchMessages("");
   };
 
- 
-
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    
+    // Split the text by new lines and filter out empty lines
+    const messageLines = batchMessages
+      .split("\n")
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
+    
+    if (messageLines.length === 0) {
+      alert("Будь ласка, введіть хоча б одне повідомлення");
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      const success = await onSubmit({
+        messages: messageLines,
+        category: "unknown",
+        isShown: false,
+        like: false,
+      });
       
-      // Split the text by new lines and filter out empty lines
-      const messageLines = batchMessages
-        .split("\n")
-        .map(line => line.trim())
-        .filter(line => line.length > 0);
-      
-      if (messageLines.length === 0) {
-        alert("Будь ласка, введіть хоча б одне повідомлення");
-        return;
+      if (success) {
+        resetForm();
+        setIsOpen(false);
       }
-      
-      setIsSubmitting(true);
-      
-      try {
-        const success = await onSubmit({
-          messages: messageLines,
-          category: "unknown",
-          isShown: false,
-          like: false,
-        });
-        
-        if (success) {
-          resetForm();
-          setIsOpen(false);
-        }
-      } finally {
-        setIsSubmitting(false);
-      }
-    };
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <Dialog

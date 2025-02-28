@@ -33,7 +33,7 @@ export function LoveMessageCard({
   initialLikeState = false,
   onLikeChange,
 }: LoveMessageCardProps) {
-  const [isLiked, setIsLiked] = useState(initialLikeState);
+  const [isLiked, setIsLiked] = useState<boolean>(initialLikeState);
   
   useEffect(() => {
     setIsLiked(initialLikeState);

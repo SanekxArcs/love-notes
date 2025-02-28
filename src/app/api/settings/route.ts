@@ -2,10 +2,16 @@ import { sanityClient } from "@/lib/sanity";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 
+interface SettingsData {
+  _id?: string;
+  dailyMessageLimit: number;
+  contactNumber: string;
+}
+
 export async function GET() {
   try {
     // Fetch settings from Sanity
-    const settings = await sanityClient.fetch(`*[_type == "settings"][0]{
+    const settings = await sanityClient.fetch<SettingsData | null>(`*[_type == "settings"][0]{
       dailyMessageLimit,
       contactNumber
     }`);
@@ -19,12 +25,13 @@ export async function GET() {
     }
 
     return NextResponse.json(settings);
-  } catch (error) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.error("Error fetching settings:", error);
     return NextResponse.json(
       { 
         error: "Failed to fetch settings", 
-        details: error.message,
+        details: errorMessage,
         // Return default values in case of error
         dailyMessageLimit: 3,
         contactNumber: "+380123456789"
@@ -43,10 +50,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { dailyMessageLimit, contactNumber } = await request.json();
+    const { dailyMessageLimit, contactNumber } = await request.json() as SettingsData;
 
     // Find the settings document ID first
-    const settingsDoc = await sanityClient.fetch(`*[_type == "settings"][0]`);
+    const settingsDoc = await sanityClient.fetch<SettingsData | null>(`*[_type == "settings"][0]`);
 
     if (!settingsDoc) {
       // If no settings document exists, create one
@@ -60,7 +67,7 @@ export async function POST(request: Request) {
     } else {
       // Update existing settings
       const result = await sanityClient
-        .patch(settingsDoc._id)
+        .patch(settingsDoc._id!)
         .set({
           dailyMessageLimit,
           contactNumber,
@@ -69,10 +76,11 @@ export async function POST(request: Request) {
 
       return NextResponse.json({ success: true, data: result });
     }
-  } catch (error) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.error("Error updating settings:", error);
     return NextResponse.json(
-      { error: "Failed to update settings", details: error.message },
+      { error: "Failed to update settings", details: errorMessage },
       { status: 500 }
     );
   }

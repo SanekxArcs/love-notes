@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
+// import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { LoveMessageCard } from "@/components/ui-app/love-message-card";
@@ -10,14 +10,30 @@ import { Heart, Clock, Phone } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 
+// Define types for our message objects
+interface Message {
+  _id: string;
+  text: string;
+  category: "daily" | "extra" | "unknown";
+  like: boolean;
+  lastShownAt: Date;
+  shownAt?: string;
+  isToday?: boolean;
+}
+
+interface Settings {
+  dailyMessageLimit: number;
+  contactNumber: string;
+}
+
 export default function Dashboard() {
-  const { data: session } = useSession({ required: true });
-  const [todayMessages, setTodayMessages] = useState([]);
-  const [previousMessages, setPreviousMessages] = useState([]);
+  // const { data: session } = useSession({ required: true });
+  const [todayMessages, setTodayMessages] = useState<Message[]>([]);
+  const [previousMessages, setPreviousMessages] = useState<Message[]>([]);
   const [remainingTime, setRemainingTime] = useState("");
   const [messageCount, setMessageCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState<Settings>({
     dailyMessageLimit: 1,
     contactNumber: "+380123456789",
   });
@@ -38,7 +54,7 @@ export default function Dashboard() {
       const response = await fetch("/api/settings");
       if (!response.ok) throw new Error("Failed to fetch settings");
       
-      const data = await response.json();
+      const data = await response.json() as Settings;
       
       if (data) {
         setSettings({
@@ -57,7 +73,24 @@ export default function Dashboard() {
       const response = await fetch("/api/messages/history");
       if (!response.ok) throw new Error("Failed to fetch messages");
       
-      const data = await response.json();
+      const data = await response.json() as { 
+        todayMessages: Array<{
+          _id: string;
+          text: string;
+          category: "daily" | "extra" | "unknown";
+          like: boolean;
+          shownAt: string;
+          userName: string;
+        }>,
+        previousMessages: Array<{
+          _id: string;
+          text: string;
+          category: "daily" | "extra" | "unknown";
+          like: boolean;
+          shownAt: string;
+          userName: string;
+        }>
+      };
       
       if (data.todayMessages) {
         setTodayMessages(data.todayMessages.map(msg => ({
@@ -109,10 +142,19 @@ export default function Dashboard() {
       const response = await fetch("/api/messages/random");
       if (!response.ok) throw new Error("Failed to get message");
       
-      const data = await response.json();
+      const data = await response.json() as {
+        message: {
+          _id: string;
+          text: string;
+          category: "daily" | "extra" | "unknown";
+          like: boolean;
+          shownAt: string;
+          isToday: boolean;
+        }
+      };
       
       if (data.message) {
-        const newMessage = {
+        const newMessage: Message = {
           ...data.message,
           lastShownAt: new Date(data.message.shownAt)  // Map shownAt to lastShownAt
         };
@@ -130,7 +172,7 @@ export default function Dashboard() {
     }
   }
 
-  async function handleLikeChange(id, liked) {
+  async function handleLikeChange(id: string, liked: boolean) {
     try {
       console.log(`Sending like update for message ${id} to ${liked}`);
       
@@ -140,7 +182,7 @@ export default function Dashboard() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          historyId: id,  // Changed from historyId to messageId
+          messageId: id,  // Fixed parameter name to match API
           liked,
         }),
       });

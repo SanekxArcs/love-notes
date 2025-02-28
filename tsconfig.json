@@ -22,6 +22,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/iddleware.ts.baks", "src/middleware.ts.bak"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/iddleware.ts.baks", "src/middleware.ts.bak", "src/auth.ts", "src/lib/getToken.js"],
   "exclude": ["node_modules"]
 }

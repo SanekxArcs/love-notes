@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { toast } from "sonner";
@@ -15,17 +15,19 @@ import BatchAddDialog from "./components/BatchAddDialog";
 import { Message, EditMessagePayload } from "./types";
 
 // Define interface for new message input
-
-// Define interface for new message input
 interface NewMessage {
-  title: string;
-  content: string;
-  category?: string;
+  text: string;
+  category: string;
+  isShown?: boolean;
+  like?: boolean;
 }
 
-// Define interface for batch message input
+// Update BatchMessageData interface to match what the API expects
 interface BatchMessageData {
-  messages: NewMessage[];
+  messages: string[];
+  category?: string;
+  isShown?: boolean;
+  like?: boolean;
 }
 
 export default function AdminMessages() {
@@ -81,7 +83,9 @@ export default function AdminMessages() {
         return true;
       } else {
         const errorData = await response.json();
-        toast.error(`Помилка: ${errorData.error || "Не вдалося додати повідомлення"}`);
+        toast.error(
+          `Помилка: ${errorData.error || "Не вдалося додати повідомлення"}`
+        );
         return false;
       }
     } catch (error) {
@@ -91,24 +95,26 @@ export default function AdminMessages() {
     }
   };
 
-  const handleBatchAdd = async (messagesData: BatchMessageData): Promise<boolean> => {
+  const handleBatchAdd = async (data: BatchMessageData): Promise<boolean> => {
     try {
       const response = await fetch("/api/settings/messages/batch", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(messagesData),
+        body: JSON.stringify(data),
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setMessages([...data.messages, ...messages]);
-        toast.success(`Успішно додано ${data.messages.length} повідомлень!`);
+        toast.success(`Успішно додано ${data.count} повідомлень!`);
         //reload component
         fetchMessages();
         return true;
       } else {
         const errorData = await response.json();
-        toast.error(`Помилка: ${errorData.error || "Не вдалося додати повідомлення"}`);
+        toast.error(
+          `Помилка: ${errorData.error || "Не вдалося додати повідомлення"}`
+        );
         return false;
       }
     } catch (error) {
@@ -118,24 +124,33 @@ export default function AdminMessages() {
     }
   };
 
-  const handleEditMessage = async (editedMessage: EditMessagePayload): Promise<boolean> => {
+  const handleEditMessage = async (
+    editedMessage: EditMessagePayload
+  ): Promise<boolean> => {
     try {
-      const response = await fetch(`/api/settings/messages?id=${editedMessage._id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editedMessage),
-      });
+      const response = await fetch(
+        `/api/settings/messages?id=${editedMessage._id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(editedMessage),
+        }
+      );
 
       if (response.ok) {
         const updatedMessage = await response.json();
-        setMessages(messages.map(msg => 
-          msg._id === editedMessage._id ? updatedMessage.message : msg
-        ));
+        setMessages(
+          messages.map((msg) =>
+            msg._id === editedMessage._id ? updatedMessage.message : msg
+          )
+        );
         toast.success("Повідомлення успішно оновлено!");
         return true;
       } else {
         const error = await response.json();
-        toast.error(`Помилка: ${error.error || "Не вдалося оновити повідомлення"}`);
+        toast.error(
+          `Помилка: ${error.error || "Не вдалося оновити повідомлення"}`
+        );
         return false;
       }
     } catch (error) {
@@ -157,7 +172,9 @@ export default function AdminMessages() {
         return true;
       } else {
         const error = await response.json();
-        toast.error(`Помилка: ${error.error || "Не вдалося видалити повідомлення"}`);
+        toast.error(
+          `Помилка: ${error.error || "Не вдалося видалити повідомлення"}`
+        );
         return false;
       }
     } catch (error) {
@@ -168,48 +185,47 @@ export default function AdminMessages() {
   };
 
   return (
-    <div className="container py-6">
-      <div className="mb-6 flex items-center gap-4">
-        <Link href="/dashboard">
-          <Button variant="outline" size="icon">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        </Link>
-        <h1 className="text-2xl font-bold">Керування повідомленнями</h1>
+    <div className="container flex flex-col py-6">
+      <div className="flex flex-row justify-between items-center">
+        <div className="mb-6 flex justify-start items-center gap-4">
+          <Link href="/dashboard">
+            <Button variant="outline" size="icon">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          </Link>
+          <div >
+            <h1 className="text-2xl font-bold">Керування повідомленнями</h1>
+            
+          </div></div>
+          <div className="flex flex-row gap-2">
+            <BatchAddDialog
+              isOpen={isBatchDialogOpen}
+              setIsOpen={setIsBatchDialogOpen}
+              onSubmit={handleBatchAdd}
+            />
+
+            <AddMessageDialog
+              isOpen={isAddDialogOpen}
+              setIsOpen={setIsAddDialogOpen}
+              onSubmit={handleAddMessage}
+            />
+          </div>
+        
       </div>
-
-      <div className="mb-6 flex justify-between">
-        <p className="text-gray-600">
-          Додавайте нові повідомлення, які ваша кохана зможе побачити.
-        </p>
-
-        <div className="flex gap-2">
-          <BatchAddDialog 
-            isOpen={isBatchDialogOpen}
-            setIsOpen={setIsBatchDialogOpen}
-            onSubmit={handleBatchAdd}
-          />
-
-          <AddMessageDialog
-            isOpen={isAddDialogOpen}
-            setIsOpen={setIsAddDialogOpen}
-            onSubmit={handleAddMessage}
-          />
-        </div>
-      </div>
-
-      <MessageList
-        messages={messages}
-        isLoading={isLoading}
-        onEdit={handleEditMessage}
-        onDelete={handleDeleteMessage}
-      />
-      
-      <div className="mt-6">
-        <MessageHistory
+      <div className="mb-6 flex flex-col justify-between">
+        <p className="text-gray-600 py-4 px-2 text-end">
+              Додавайте нові повідомлення, які ваша кохана зможе побачити.
+            </p>
+        <MessageList
           messages={messages}
           isLoading={isLoading}
+          onEdit={handleEditMessage}
+          onDelete={handleDeleteMessage}
         />
+
+        <div className="mt-6">
+          <MessageHistory messages={messages} isLoading={isLoading} />
+        </div>
       </div>
     </div>
   );

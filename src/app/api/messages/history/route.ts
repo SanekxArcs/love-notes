@@ -2,6 +2,16 @@ import { NextResponse } from "next/server";
 import { sanityClient } from "@/lib/sanity";
 import { auth } from "@/auth";
 
+// Define Sanity message types
+interface SanityMessage {
+  _id: string;
+  text: string;
+  category: "daily" | "extra" | "unknown";
+  like: boolean;
+  shownAt: string;
+  userName: string;
+}
+
 export async function GET() {
   try {
     const session = await auth();
@@ -11,12 +21,12 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = session.user.id;
+    // const userName = session.user.name || session.user.email;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     // Fetch today's messages
-    const todayMessages = await sanityClient.fetch(`
+    const todayMessages = await sanityClient.fetch<SanityMessage[]>(`
       *[_type == "message" && 
         isShown == true && 
         dateTime(shownAt) >= dateTime($today)
@@ -32,11 +42,11 @@ export async function GET() {
 
     // Filter messages for this user
     const userTodayMessages = todayMessages.filter(msg => 
-      msg.userName === session.user.name || msg.userName === session.user.email
+      msg.userName === session.user?.name || msg.userName === session.user?.email
     );
 
     // Fetch previous messages (exclude today's)
-    const previousMessages = await sanityClient.fetch(`
+    const previousMessages = await sanityClient.fetch<SanityMessage[]>(`
       *[_type == "message" && 
         isShown == true && 
         dateTime(shownAt) < dateTime($today)
@@ -52,17 +62,18 @@ export async function GET() {
 
     // Filter messages for this user
     const userPreviousMessages = previousMessages.filter(msg => 
-      msg.userName === session.user.name || msg.userName === session.user.email
+      msg.userName === session.user?.name || msg.userName === session.user?.email
     );
 
     return NextResponse.json({
       todayMessages: userTodayMessages,
       previousMessages: userPreviousMessages
     });
-  } catch (error) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.error("Error fetching message history:", error);
     return NextResponse.json(
-      { error: "Failed to fetch message history" },
+      { error: "Failed to fetch message history", details: errorMessage },
       { status: 500 }
     );
   }

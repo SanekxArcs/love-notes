@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-// import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -20,14 +19,14 @@ import {
 } from "@/components/ui/select";
 import { Plus } from "lucide-react";
 
-interface BatchAddDialogProps {
+interface AddMessageDialogProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   onSubmit: (data: {
-    messages: string[];
+    text: string;
     category: string;
-    isShown: boolean;
-    like: boolean;
+    isShown?: boolean;
+    like?: boolean;
   }) => Promise<boolean>;
 }
 
@@ -35,7 +34,7 @@ export default function AddMessageDialog({
   isOpen,
   setIsOpen,
   onSubmit,
-}: BatchAddDialogProps) {
+}: AddMessageDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newMessage, setNewMessage] = useState({
     text: "",
@@ -65,7 +64,7 @@ export default function AddMessageDialog({
 
     try {
       const success = await onSubmit({
-        messages: [newMessage.text],
+        text: newMessage.text,
         category: newMessage.category,
         isShown: newMessage.isShown,
         like: newMessage.like

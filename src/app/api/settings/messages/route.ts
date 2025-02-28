@@ -7,7 +7,7 @@ export async function GET() {
     const session = await auth();
 
     // Check if the user is authenticated and is an admin
-    if (!session || session.user.role !== "admin") {
+    if (!session?.user?.role || session.user.role !== "admin") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -94,7 +94,7 @@ export async function PUT(request: Request) {
     const session = await auth();
 
     // Check if the user is authenticated and is an admin
-    if (!session || session.user.role !== "admin") {
+    if (!session?.user?.role || session.user.role !== "admin") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

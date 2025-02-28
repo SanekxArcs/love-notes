@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import { sanityClient } from "@/lib/sanity";
 import { auth } from "@/auth";
 
+// Define request body interface
+interface LikeRequestBody {
+  messageId: string;
+  liked: boolean;
+}
+
 export async function POST(request: Request) {
   try {
     const session = await auth();
@@ -11,7 +17,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { messageId, liked } = await request.json();
+    const { messageId, liked } = await request.json() as LikeRequestBody;
 
     if (!messageId) {
       return NextResponse.json(
@@ -31,10 +37,11 @@ export async function POST(request: Request) {
     console.log("Updated document:", updatedDoc);
 
     return NextResponse.json({ success: true, liked, updatedDoc });
-  } catch (error) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.error("Error updating like status:", error);
     return NextResponse.json(
-      { error: "Failed to update like status", details: error.message },
+      { error: "Failed to update like status", details: errorMessage },
       { status: 500 }
     );
   }

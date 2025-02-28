@@ -2,6 +2,17 @@ import { NextResponse } from "next/server";
 import { sanityClient } from "@/lib/sanity";
 import { auth } from "@/auth";
 
+// Define Sanity message types
+interface SanityMessage {
+  _id: string;
+  text: string;
+  category?: "daily" | "extra" | "unknown";
+  like?: boolean;
+  shownAt?: string;
+  userName?: string;
+  isShown?: boolean;
+}
+
 export async function GET() {
   try {
     const session = await auth();
@@ -11,13 +22,12 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = session.user.id;
     const userName = session.user.name || session.user.email;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     // Fetch messages shown to this user today
-    const todayMessages = await sanityClient.fetch(`
+    const todayMessages = await sanityClient.fetch<SanityMessage[]>(`
       *[_type == "message" && 
         userName == $userName && 
         dateTime(shownAt) >= dateTime($today)
@@ -32,12 +42,12 @@ export async function GET() {
     console.log(`User ${userName} has ${todayCount} messages today. This will be a ${category} message.`);
 
     // Get messages that haven't been shown yet
-    const unseenMessages = await sanityClient.fetch(`
+    const unseenMessages = await sanityClient.fetch<SanityMessage[]>(`
       *[_type == "message" && isShown == false]
     `);
 
     // Select a random message from JavaScript
-    let selectedMessage;
+    let selectedMessage: SanityMessage | undefined;
     
     if (unseenMessages && unseenMessages.length > 0) {
       // Get a random message from the unseen ones
@@ -45,7 +55,7 @@ export async function GET() {
       selectedMessage = unseenMessages[randomIndex];
     } else {
       // If no unshown messages, get any random message
-      const allMessages = await sanityClient.fetch(`*[_type == "message"]`);
+      const allMessages = await sanityClient.fetch<SanityMessage[]>(`*[_type == "message"]`);
       
       if (allMessages && allMessages.length > 0) {
         const randomIndex = Math.floor(Math.random() * allMessages.length);
@@ -80,10 +90,11 @@ export async function GET() {
     }
 
     return NextResponse.json({ error: "No messages available" }, { status: 404 });
-  } catch (error) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.error("Error fetching random message:", error);
     return NextResponse.json(
-      { error: "Failed to fetch message", details: error.message },
+      { error: "Failed to fetch message", details: errorMessage },
       { status: 500 }
     );
   }
