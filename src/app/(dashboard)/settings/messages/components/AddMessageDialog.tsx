@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
+// import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -20,11 +20,26 @@ import {
 } from "@/components/ui/select";
 import { Plus } from "lucide-react";
 
-export default function AddMessageDialog({ isOpen, setIsOpen, onSubmit }) {
+interface BatchAddDialogProps {
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+  onSubmit: (data: {
+    messages: string[];
+    category: string;
+    isShown: boolean;
+    like: boolean;
+  }) => Promise<boolean>;
+}
+
+export default function AddMessageDialog({
+  isOpen,
+  setIsOpen,
+  onSubmit,
+}: BatchAddDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newMessage, setNewMessage] = useState({
     text: "",
-    category: "daily",
+    category: "unknown",
     isShown: false,
     like: false,
   });
@@ -32,24 +47,29 @@ export default function AddMessageDialog({ isOpen, setIsOpen, onSubmit }) {
   const resetForm = () => {
     setNewMessage({
       text: "",
-      category: "daily",
+      category: "unknown",
       isShown: false,
       like: false,
     });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     if (!newMessage.text.trim()) {
       alert("Будь ласка, введіть текст повідомлення");
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
-      const success = await onSubmit(newMessage);
+      const success = await onSubmit({
+        messages: [newMessage.text],
+        category: newMessage.category,
+        isShown: newMessage.isShown,
+        like: newMessage.like
+      });
       if (success) {
         resetForm();
         setIsOpen(false);
@@ -60,13 +80,16 @@ export default function AddMessageDialog({ isOpen, setIsOpen, onSubmit }) {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => {
-      setIsOpen(open);
-      if (!open) resetForm();
-    }}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        setIsOpen(open);
+        if (!open) resetForm();
+      }}
+    >
       <DialogTrigger asChild>
         <Button>
-          <Plus className="mr-2 h-4 w-4" /> Додати нове повідомлення
+          <Plus className="mr-2 h-4 w-4" /> Додати
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
@@ -91,9 +114,7 @@ export default function AddMessageDialog({ isOpen, setIsOpen, onSubmit }) {
               <SelectContent>
                 <SelectItem value="unknown">Невідома</SelectItem>
                 <SelectItem value="daily">Щоденне повідомлення</SelectItem>
-                <SelectItem value="extra">
-                  Додаткове повідомлення
-                </SelectItem>
+                <SelectItem value="extra">Додаткове повідомлення</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -118,7 +139,7 @@ export default function AddMessageDialog({ isOpen, setIsOpen, onSubmit }) {
             </p>
           </div>
 
-          <div className="grid gap-2">
+          {/* <div className="grid gap-2">
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="isShown"
@@ -149,7 +170,7 @@ export default function AddMessageDialog({ isOpen, setIsOpen, onSubmit }) {
                 Сподобалось
               </label>
             </div>
-          </div>
+          </div> */}
 
           <div className="flex justify-end gap-2 mt-2">
             <Button

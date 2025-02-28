@@ -12,6 +12,21 @@ import MessageList from "./components/MessageList";
 import MessageHistory from "./components/MessageHistory";
 import AddMessageDialog from "./components/AddMessageDialog";
 import BatchAddDialog from "./components/BatchAddDialog";
+import { Message, EditMessagePayload } from "./types";
+
+// Define interface for new message input
+
+// Define interface for new message input
+interface NewMessage {
+  title: string;
+  content: string;
+  category?: string;
+}
+
+// Define interface for batch message input
+interface BatchMessageData {
+  messages: NewMessage[];
+}
 
 export default function AdminMessages() {
   const { data: session, status } = useSession({
@@ -26,18 +41,16 @@ export default function AdminMessages() {
     redirect("/dashboard");
   }
 
-  const [messages, setMessages] = useState([]);
-  const [messageHistory, setMessageHistory] = useState([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isHistoryLoading, setIsHistoryLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isBatchDialogOpen, setIsBatchDialogOpen] = useState(false);
 
   useEffect(() => {
-    fetchData();
+    fetchMessages();
   }, []);
 
-  async function fetchData() {
+  async function fetchMessages() {
     try {
       // Fetch messages
       const messagesResponse = await fetch("/api/settings/messages");
@@ -47,23 +60,13 @@ export default function AdminMessages() {
         setMessages(messagesData.messages);
       }
       setIsLoading(false);
-
-      // Fetch message history
-      const historyResponse = await fetch("/api/settings/history");
-      const historyData = await historyResponse.json();
-
-      if (historyData.history) {
-        setMessageHistory(historyData.history);
-      }
-      setIsHistoryLoading(false);
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error("Error fetching messages:", error);
       setIsLoading(false);
-      setIsHistoryLoading(false);
     }
   }
 
-  const handleAddMessage = async (newMessage) => {
+  const handleAddMessage = async (newMessage: NewMessage): Promise<boolean> => {
     try {
       const response = await fetch("/api/settings/messages", {
         method: "POST",
@@ -88,7 +91,7 @@ export default function AdminMessages() {
     }
   };
 
-  const handleBatchAdd = async (messagesData) => {
+  const handleBatchAdd = async (messagesData: BatchMessageData): Promise<boolean> => {
     try {
       const response = await fetch("/api/settings/messages/batch", {
         method: "POST",
@@ -100,6 +103,8 @@ export default function AdminMessages() {
         const data = await response.json();
         setMessages([...data.messages, ...messages]);
         toast.success(`Успішно додано ${data.messages.length} повідомлень!`);
+        //reload component
+        fetchMessages();
         return true;
       } else {
         const errorData = await response.json();
@@ -113,7 +118,7 @@ export default function AdminMessages() {
     }
   };
 
-  const handleEditMessage = async (editedMessage) => {
+  const handleEditMessage = async (editedMessage: EditMessagePayload): Promise<boolean> => {
     try {
       const response = await fetch(`/api/settings/messages?id=${editedMessage._id}`, {
         method: "PUT",
@@ -140,7 +145,7 @@ export default function AdminMessages() {
     }
   };
 
-  const handleDeleteMessage = async (id) => {
+  const handleDeleteMessage = async (id: string): Promise<boolean> => {
     try {
       const response = await fetch(`/api/settings/messages?id=${id}`, {
         method: "DELETE",
@@ -202,8 +207,8 @@ export default function AdminMessages() {
       
       <div className="mt-6">
         <MessageHistory
-          history={messageHistory}
-          isLoading={isHistoryLoading}
+          messages={messages}
+          isLoading={isLoading}
         />
       </div>
     </div>

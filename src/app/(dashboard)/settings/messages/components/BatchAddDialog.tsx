@@ -12,7 +12,18 @@ import {
 } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
 
-export default function BatchAddDialog({ isOpen, setIsOpen, onSubmit }) {
+interface BatchAddDialogProps {
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+  onSubmit: (data: {
+    messages: string[];
+    category: string;
+    isShown: boolean;
+    like: boolean;
+  }) => Promise<boolean>;
+}
+
+export default function BatchAddDialog({ isOpen, setIsOpen, onSubmit }: BatchAddDialogProps) {
   const [batchMessages, setBatchMessages] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -20,44 +31,49 @@ export default function BatchAddDialog({ isOpen, setIsOpen, onSubmit }) {
     setBatchMessages("");
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    // Split the text by new lines and filter out empty lines
-    const messageLines = batchMessages
-      .split("\n")
-      .map(line => line.trim())
-      .filter(line => line.length > 0);
-    
-    if (messageLines.length === 0) {
-      alert("Будь ласка, введіть хоча б одне повідомлення");
-      return;
-    }
-    
-    setIsSubmitting(true);
-    
-    try {
-      const success = await onSubmit({
-        messages: messageLines,
-        category: "unknown",
-        isShown: false,
-        like: false,
-      });
+ 
+
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
       
-      if (success) {
-        resetForm();
-        setIsOpen(false);
+      // Split the text by new lines and filter out empty lines
+      const messageLines = batchMessages
+        .split("\n")
+        .map(line => line.trim())
+        .filter(line => line.length > 0);
+      
+      if (messageLines.length === 0) {
+        alert("Будь ласка, введіть хоча б одне повідомлення");
+        return;
       }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+      
+      setIsSubmitting(true);
+      
+      try {
+        const success = await onSubmit({
+          messages: messageLines,
+          category: "unknown",
+          isShown: false,
+          like: false,
+        });
+        
+        if (success) {
+          resetForm();
+          setIsOpen(false);
+        }
+      } finally {
+        setIsSubmitting(false);
+      }
+    };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => {
-      setIsOpen(open);
-      if (!open) resetForm();
-    }}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        setIsOpen(open);
+        if (!open) resetForm();
+      }}
+    >
       <DialogTrigger asChild>
         <Button variant="outline">
           <Plus className="mr-2 h-4 w-4" /> Масове додавання
@@ -82,7 +98,7 @@ export default function BatchAddDialog({ isOpen, setIsOpen, onSubmit }) {
               required
             />
             <p className="text-xs text-gray-500">
-              Всі повідомлення будуть додані з категорією "unknown"
+              Всі повідомлення будуть додані з категорією &quot;unknown&quot;
             </p>
           </div>
 

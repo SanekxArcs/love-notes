@@ -1,13 +1,18 @@
 // components/auth-status.tsx
 "use client";
 
+import { LoaderCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 
 export function AuthStatus() {
   const { data: session, status } = useSession();
 
   if (status === "loading") {
-    return <div>Loading...</div>;
+    return (
+      <div>
+        <LoaderCircle className="animate-spin" />
+      </div>
+    );
   }
 
   if (status === "unauthenticated") {
@@ -17,8 +22,8 @@ export function AuthStatus() {
   return (
     <div className="flex flex-col items-start gap-2">
       <p>
-        {" "}
-        Привіт, {session?.user?.name || "Kохана"}! Нові повідомлення щодня ❤️
+        Привіт, {session?.user?.name || "Kохана"}!
+        {session?.user?.role === "admin" ? "" : " Нові повідомлення щодня ❤️" }
       </p>
     </div>
   );

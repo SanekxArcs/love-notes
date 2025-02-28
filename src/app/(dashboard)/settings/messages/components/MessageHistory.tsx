@@ -11,81 +11,103 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Message } from "../types";
+import { LoaderCircle } from "lucide-react";
 
-export default function MessageHistory({ history, isLoading }) {
+interface MessageHistoryProps {
+  messages: Message[];
+  isLoading: boolean;
+}
+
+export default function MessageHistory({ messages, isLoading }: MessageHistoryProps) {
+  // Filter for shown messages only
+  const shownMessages = messages.filter(message => message.isShown);
+
   return (
     <Card>
       <CardHeader>
-        <h2 className="text-xl font-semibold">Історія повідомлень</h2>
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold">Історія повідомлень</h2>
+          <p className="text-sm text-muted-foreground flex items-center">
+            Кількість:{" "}
+            {isLoading ? (
+              <LoaderCircle className="animate-spin" />
+            ) : (
+              `${shownMessages.length}`
+            )}
+          </p>
+        </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <p className="text-center py-4 text-gray-500">
-            Завантаження історії повідомлень...
+          <p className="text-center animate-spin py-4 text-gray-500 flex items-center justify-center">
+            <LoaderCircle />
           </p>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Повідомлення</TableHead>
-                <TableHead>Категорія</TableHead>
-                <TableHead>Користувач</TableHead>
-                <TableHead>Дата показу</TableHead>
-                <TableHead>Реакція</TableHead>
+                <TableHead className="flex-1">Повідомлення</TableHead>
+                <TableHead className="max-w-fit text-center">Імя</TableHead>
+                <TableHead className="max-w-fit text-center">
+                  Категорія
+                </TableHead>
+                <TableHead className="max-w-fit text-center">
+                  Дата показу
+                </TableHead>
+                <TableHead className="text-end w-20">Реакція</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {history.length === 0 ? (
+              {shownMessages.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={5}
+                    colSpan={4}
                     className="text-center py-4 text-gray-500"
                   >
-                    Немає історії повідомлень.
+                    Немає історії показаних повідомлень.
                   </TableCell>
                 </TableRow>
               ) : (
-                history.map((historyItem) => (
-                  <TableRow key={historyItem._id}>
+                shownMessages.map((message) => (
+                  <TableRow key={message._id}>
                     <TableCell className="font-medium max-w-md truncate">
-                      {historyItem.messageId?.text || "—"}
+                      {message.text || "—"}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="text-center">
+                      {message.userName || "---"}
+                    </TableCell>
+                    <TableCell className="text-center">
                       <span
                         className={`px-2 py-1 rounded-full text-xs ${
-                          historyItem.messageId?.category === "daily"
+                          message.category === "daily"
                             ? "bg-blue-100 text-blue-800"
                             : "bg-pink-100 text-pink-800"
                         }`}
                       >
-                        {historyItem.messageId?.category === "daily"
-                          ? "Щоденне"
-                          : "Додаткове"}
+                        {message.category === "daily" ? "Щоденне" : "Додаткове"}
                       </span>
                     </TableCell>
-                    <TableCell>{historyItem.userId}</TableCell>
-                    <TableCell>
-                      {historyItem.shownAt
+                    <TableCell className="text-center">
+                      {message.shownAt
                         ? format(
-                            new Date(historyItem.shownAt),
+                            new Date(message.shownAt),
                             "d MMMM yyyy HH:mm",
                             {
                               locale: uk,
                             }
                           )
-                        : "—"}
+                        : "---"}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="text-center">
                       <span
                         className={`px-2 py-1 rounded-full text-xs ${
-                          historyItem.messageId?.like
+                          message.like
                             ? "bg-red-100 text-red-800"
                             : "bg-gray-100 text-gray-800"
                         }`}
                       >
-                        {historyItem.messageId?.like
-                          ? "❤️ Подобається"
-                          : "🤍 Без реакції"}
+                        {message.like ? "❤️" : "🤍"}
                       </span>
                     </TableCell>
                   </TableRow>

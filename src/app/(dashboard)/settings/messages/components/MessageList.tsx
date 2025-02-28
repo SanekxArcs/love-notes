@@ -3,9 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { format } from "date-fns";
-import { uk } from "date-fns/locale";
-import { Pencil, Trash2 } from "lucide-react";
+import { LoaderCircle, Pencil, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -16,82 +14,78 @@ import {
 } from "@/components/ui/table";
 import EditMessageDialog from "./EditMessageDialog";
 import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
+import { EditMessagePayload, Message } from "../types";
 
-export default function MessageList({ messages, isLoading, onEdit, onDelete }) {
-  const [editingMessage, setEditingMessage] = useState(null);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [messageToDelete, setMessageToDelete] = useState(null);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+interface MessageListProps {
+  messages: Message[];
+  isLoading: boolean;
+  onEdit: (message: EditMessagePayload) => Promise<boolean>;
+  onDelete: (id: string) => Promise<boolean>;
+}
 
-  const handleEditClick = (message) => {
+export default function MessageList({ messages, isLoading, onEdit, onDelete }: MessageListProps) {
+  const [editingMessage, setEditingMessage] = useState<Message | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>(false);
+  const [messageToDelete, setMessageToDelete] = useState<Message | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
+
+  const handleEditClick = (message: Message): void => {
     setEditingMessage(message);
     setIsEditDialogOpen(true);
   };
 
-  const handleDeleteClick = (message) => {
+  const handleDeleteClick = (message: Message): void => {
     setMessageToDelete(message);
     setIsDeleteDialogOpen(true);
   };
 
+  // Filter for unshown messages only
+  const unshownMessages = messages.filter(message => !message.isShown);
+
   return (
     <Card>
       <CardHeader>
-        <h2 className="text-xl font-semibold">Всі повідомлення</h2>
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold">Непоказані повідомлення</h2>
+          <p className="text-sm text-muted-foreground flex items-center">
+            Кількість:{" "}
+            {isLoading ? (
+                <LoaderCircle className="animate-spin" />
+            ) : (
+              `${unshownMessages.length}`
+            )}
+          </p>
+        </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <p className="text-center py-4 text-gray-500">
-            Завантаження повідомлень...
+          <p className="text-center animate-spin py-4 text-gray-500 flex items-center justify-center">
+            <LoaderCircle />
           </p>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Повідомлення</TableHead>
-                <TableHead>Категорія</TableHead>
-                <TableHead>Статус</TableHead>
                 <TableHead className="text-right">Дії</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {messages.length === 0 ? (
+              {unshownMessages.length === 0 ? (
                 <TableRow>
                   <TableCell
                     colSpan={5}
                     className="text-center py-4 text-gray-500"
                   >
-                    Немає повідомлень. Додайте перше повідомлення!
+                    Немає непоказаних повідомлень. Додайте нове повідомлення!
                   </TableCell>
                 </TableRow>
               ) : (
-                messages.map((message) => (
+                unshownMessages.map((message) => (
                   <TableRow key={message._id}>
                     <TableCell className="font-medium max-w-md truncate">
-                      {message.text}
-                    </TableCell>
-                    <TableCell>
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs ${
-                          message.category === "daily"
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-pink-100 text-pink-800"
-                        }`}
-                      >
-                        {message.category === "daily"
-                          ? "Щоденне"
-                          : message.category === "extra"
-                            ? "Додаткове"
-                            : "Ніяка ще"}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      {message.lastShownAt
-                        ? format(
-                            new Date(message.lastShownAt),
-                            "d MMMM yyyy",
-                            { locale: uk }
-                          )
-                        : "—"}
+                      {message.text || <LoaderCircle className="animate-spin" /> }
+
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
@@ -122,7 +116,7 @@ export default function MessageList({ messages, isLoading, onEdit, onDelete }) {
       <EditMessageDialog
         message={editingMessage}
         isOpen={isEditDialogOpen}
-        setIsOpen={setIsEditDialogOpen} 
+        setIsOpen={setIsEditDialogOpen}
         onSubmit={async (editedMessage) => {
           const success = await onEdit(editedMessage);
           if (success) setIsEditDialogOpen(false);

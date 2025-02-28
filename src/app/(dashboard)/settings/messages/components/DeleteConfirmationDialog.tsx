@@ -1,18 +1,35 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Message } from "../types";
+import { useState } from "react";
 
-export default function DeleteConfirmationDialog({ isOpen, setIsOpen, message, onConfirm }) {
-  const [isDeleting, setIsDeleting] = useState(false);
+interface DeleteConfirmationDialogProps {
+  message: Message | null;
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+  onConfirm: () => Promise<boolean>;
+}
+
+export default function DeleteConfirmationDialog({
+  message,
+  isOpen,
+  setIsOpen,
+  onConfirm,
+}: DeleteConfirmationDialogProps) {
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
   const handleDelete = async () => {
+    if (!message) return;
+    
     setIsDeleting(true);
     try {
       await onConfirm();
@@ -23,45 +40,32 @@ export default function DeleteConfirmationDialog({ isOpen, setIsOpen, message, o
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>Підтвердження видалення</DialogTitle>
+          <DialogTitle>Підтвердіть видалення</DialogTitle>
+          <DialogDescription>
+            Ви впевнені, що хочете видалити це повідомлення? Цю дію не можна відмінити.
+          </DialogDescription>
         </DialogHeader>
-        <div className="py-4">
-          <p>Ви впевнені, що хочете видалити це повідомлення?</p>
-          <p className="mt-2 text-sm text-gray-500">Цю дію неможливо скасувати.</p>
-          {message && (
-            <div className="mt-2 p-2 bg-gray-100 rounded-md">
-              <p className="text-sm font-medium">Текст повідомлення:</p>
-              <p className="text-sm italic">{message.text}</p>
-            </div>
-          )}
-        </div>
-        <div className="flex justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setIsOpen(false)}
-            disabled={isDeleting}
-          >
+
+        {message && (
+          <div className="my-4 p-3 bg-gray-100 rounded-md">
+            <p className="font-mono text-sm">{message.text}</p>
+          </div>
+        )}
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setIsOpen(false)} disabled={isDeleting}>
             Скасувати
           </Button>
-          <Button
-            type="button"
-            variant="destructive"
+          <Button 
+            variant="destructive" 
+            onClick={handleDelete} 
             disabled={isDeleting}
-            onClick={handleDelete}
           >
-            {isDeleting ? (
-              <>
-                <span className="mr-2 h-4 w-4 animate-spin">⏳</span>
-                Видалення...
-              </>
-            ) : (
-              "Видалити"
-            )}
+            {isDeleting ? "Видалення..." : "Видалити"}
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

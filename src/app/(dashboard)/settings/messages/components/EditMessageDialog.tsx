@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -16,10 +16,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Message, EditMessagePayload } from "../types";
 
-export default function EditMessageDialog({ message, isOpen, setIsOpen, onSubmit }) {
-  const [editingMessage, setEditingMessage] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+interface EditMessageDialogProps {
+  message: Message | null;
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+  onSubmit: (message: EditMessagePayload) => Promise<boolean>;
+}
+
+export default function EditMessageDialog({ message, isOpen, setIsOpen, onSubmit }: EditMessageDialogProps) {
+  const [editingMessage, setEditingMessage] = useState<Message | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   useEffect(() => {
     if (message) {
@@ -27,7 +35,29 @@ export default function EditMessageDialog({ message, isOpen, setIsOpen, onSubmit
     }
   }, [message]);
 
-  const handleSubmit = async (e) => {
+  // Properly type the category change to match the Message interface
+  const handleCategoryChange = (value: string) => {
+    if (!editingMessage) return;
+    
+    // Only allow valid category values
+    const category = (value as "daily" | "extra" | "unknown");
+    
+    setEditingMessage({
+      ...editingMessage,
+      category
+    });
+  };
+  
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    if (!editingMessage) return;
+    
+    setEditingMessage({
+      ...editingMessage,
+      text: e.target.value
+    });
+  };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     if (!editingMessage?.text?.trim()) {
@@ -38,9 +68,18 @@ export default function EditMessageDialog({ message, isOpen, setIsOpen, onSubmit
     setIsSubmitting(true);
     
     try {
-      const success = await onSubmit(editingMessage);
-      if (success) {
-        setIsOpen(false);
+      if (editingMessage) {
+        // Include the required fields: _id, text, and category
+        const payload: EditMessagePayload = {
+          _id: editingMessage._id,
+          text: editingMessage.text,
+          category: editingMessage.category
+        };
+        
+        const success = await onSubmit(payload);
+        if (success) {
+          setIsOpen(false);
+        }
       }
     } finally {
       setIsSubmitting(false);
@@ -61,10 +100,8 @@ export default function EditMessageDialog({ message, isOpen, setIsOpen, onSubmit
               Категорія повідомлення
             </label>
             <Select
-              value={editingMessage?.category}
-              onValueChange={(value) =>
-                setEditingMessage({ ...editingMessage, category: value })
-              }
+              value={editingMessage?.category || "unknown"}
+              onValueChange={handleCategoryChange}
               required
             >
               <SelectTrigger className="w-full">
@@ -84,10 +121,8 @@ export default function EditMessageDialog({ message, isOpen, setIsOpen, onSubmit
             </label>
             <Textarea
               id="message"
-              value={editingMessage?.text}
-              onChange={(e) =>
-                setEditingMessage({ ...editingMessage, text: e.target.value })
-              }
+              value={editingMessage?.text || ""}
+              onChange={handleTextChange}
               rows={5}
               placeholder="Напишіть текст повідомлення..."
               className="resize-none"

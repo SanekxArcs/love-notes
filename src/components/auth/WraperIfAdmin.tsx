@@ -1,5 +1,6 @@
 "use client";
 
+import { LoaderCircle } from "lucide-react";
 import { useSession,} from "next-auth/react";
 import { ReactNode } from "react";
 
@@ -16,7 +17,11 @@ export function WraperIfAdmin({ children }: WraperIfAdminProps) {
   const { data: session, status } = useSession();
 
   if (status === "loading") {
-    return <div>Loading...</div>;
+    return (
+      <div>
+        <LoaderCircle className="animate-spin" />
+      </div>
+    );
   }
 
   if (status === "unauthenticated") {
@@ -24,7 +29,7 @@ export function WraperIfAdmin({ children }: WraperIfAdminProps) {
   }
 
   return (
-    <div className="flex flex-col items-start gap-2">
+    <div className="flex flex-col md:flex-row items-start gap-2">
       {session?.user?.role === "admin" ? children : null}
     </div>
   );

@@ -8,6 +8,8 @@ import { redirect } from "next/navigation";
 import Logout from "@/components/auth/lodout";
 import { WraperIfAdmin } from "@/components/auth/WraperIfAdmin";
 import { SanityLive } from "@/sanity/lib/live";
+import { Database, MessageCircleHeart, Settings } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default async function DashboardLayout({
   children,
@@ -22,7 +24,6 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen ">
-
       <header>
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 flex justify-between items-center">
           <div>
@@ -31,25 +32,33 @@ export default async function DashboardLayout({
             </h1>
             <AuthStatus />
           </div>
-
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             <WraperIfAdmin>
-              <Link href="/settings/settings">Налаштування</Link>
-              <Link href="/settings/messages">Повідомлення</Link>
-              <Link href="/admin">База</Link>
-
+              <Link href="/settings/settings">
+                <Button size="icon" variant="outline">
+                  <Settings />
+                </Button>
+              </Link>
+              <Link href="/settings/messages">
+                <Button size="icon" variant="outline">
+                  <MessageCircleHeart />
+                </Button>
+                
+              </Link>
+              <Link href="/admin">
+                <Button size="icon" variant="outline">
+                  <Database />
+                </Button>
+              </Link>
             </WraperIfAdmin>
-
-            <Logout />
-
             <ModeToggle />
+            <Logout />
           </div>
         </div>
       </header>
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         {children}
         <SanityLive />
-        
       </main>
     </div>
   );

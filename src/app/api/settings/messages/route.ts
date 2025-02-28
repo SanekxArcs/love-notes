@@ -18,7 +18,9 @@ export async function GET() {
         text,
         category,
         isShown,
-        lastShownAt
+        userName,
+        like,
+        shownAt
       }
     `);
 
