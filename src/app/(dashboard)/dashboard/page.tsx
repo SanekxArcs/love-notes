@@ -220,12 +220,12 @@ export default function Dashboard() {
       >
         <Card className="bg-gradient-to-r from-indigo-500/10 to-pink-500/10 overflow-hidden">
           <div className=" p-6">
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-4 flex items-center flex-col md:flex-row  justify-between">
               <div className="flex items-center gap-2 text-indigo-700">
                 <Clock className="h-5 w-5" />
-                <h3 className="font-medium">Наступне повідомлення через:</h3>
+                <h3 className="font-medium text-sm md:text-base">Наступне повідомлення через:</h3>
               </div>
-              <div className="text-lg font-mono font-semibold text-indigo-700">
+              <div className="text-4xl md:text-lg font-mono font-semibold text-indigo-700">
                 {remainingTime}
               </div>
             </div>
@@ -270,7 +270,7 @@ export default function Dashboard() {
           transition={{ delay: 0.2 }}
           className="mb-8 grid gap-4"
         >
-          <h2 className="text-xl font-semibold text-gray-800">
+          <h2 className="text-xl font-semibold">
             Сьогоднішні повідомлення
           </h2>
           
@@ -303,7 +303,7 @@ export default function Dashboard() {
           transition={{ delay: 0.5 }}
           className="mb-6"
         >
-          <h2 className="mb-4 text-xl font-semibold text-gray-800">
+          <h2 className="mb-4 text-xl font-semibold ">
             Історія повідомлень
           </h2>
           <div className="grid gap-4">

@@ -25,14 +25,14 @@ export default async function DashboardLayout({
   return (
     <div className="min-h-screen ">
       <header>
-        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 flex justify-between items-center">
-          <div>
+        <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 lg:px-8 flex flex-col md:flex-row gap-6 justify-between ">
+          <div className="flex flex-col items-center md:items-start gap-4">
             <h1 className="text-2xl font-bold text-pink-600">
               Щоденні повідомлення кохання
             </h1>
             <AuthStatus />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-end gap-2">
             <WraperIfAdmin>
               <Link href="/settings/settings">
                 <Button size="icon" variant="outline">

@@ -1,7 +1,6 @@
-// components/ui/love-message-card.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Card,
   CardContent,
@@ -9,10 +8,61 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Heart } from "lucide-react";
+import { Heart, Sparkles, Star } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
 import { uk } from "date-fns/locale";
+import confetti from "canvas-confetti";
+
+// Animated floating hearts background element
+const FloatingHearts = ({ count = 8 }: { count?: number }) => {
+  // Create stable positions for hearts using useMemo
+  const hearts = useMemo(() => {
+    return [...Array(count)].map((_, i) => ({
+      id: `heart-${i}`,
+      x: Math.random() * 100 - 50,
+      y: Math.random() * 100 + 50,
+      scale: Math.random() * 0.5 + 0.5,
+      rotate: Math.random() * 30 - 15,
+      left: `${Math.random() * 100}%`,
+      duration: 5 + Math.random() * 7,
+      delay: Math.random() * 5,
+      size: i % 2 ? 16 : 12,
+    }));
+  }, [count]);
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {hearts.map((heart) => (
+        <motion.div
+          key={heart.id}
+          className="absolute text-pink-200 dark:text-pink-800 opacity-60"
+          initial={{
+            x: heart.x,
+            y: heart.y,
+            scale: heart.scale,
+            rotate: heart.rotate,
+          }}
+          animate={{
+            y: [null, -100, -200],
+            opacity: [0.4, 0.7, 0],
+          }}
+          transition={{
+            repeat: Infinity,
+            duration: heart.duration,
+            delay: heart.delay,
+            ease: "easeInOut",
+          }}
+          style={{
+            left: heart.left,
+          }}
+        >
+          <Heart fill="currentColor" size={heart.size} />
+        </motion.div>
+      ))}
+    </div>
+  );
+};
 
 interface LoveMessageCardProps {
   id: string;
@@ -34,7 +84,7 @@ export function LoveMessageCard({
   onLikeChange,
 }: LoveMessageCardProps) {
   const [isLiked, setIsLiked] = useState<boolean>(initialLikeState);
-  
+
   useEffect(() => {
     setIsLiked(initialLikeState);
   }, [initialLikeState]);
@@ -42,7 +92,26 @@ export function LoveMessageCard({
   const handleLikeClick = async () => {
     const newLikedState = !isLiked;
     setIsLiked(newLikedState);
-    
+    const heart = confetti.shapeFromPath({
+      path: "M167 72c19,-38 37,-56 75,-56 42,0 76,33 76,75 0,76 -76,151 -151,227 -76,-76 -151,-151 -151,-227 0,-42 33,-75 75,-75 38,0 57,18 76,56z",
+      matrix: new DOMMatrix([
+        0.03333333333333333, 0, 0, 0.03333333333333333, -5.566666666666666,
+        -5.533333333333333,
+      ]),
+    });
+
+
+    if (newLikedState) {
+      // Trigger heart-shaped confetti when liked
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 1 },
+        shapes: [heart],
+        colors: ["#FF1493", "#FF69B4", "#FFB6C1", "#FFC0CB"],
+      });
+    }
+
     if (onLikeChange) {
       onLikeChange(id, newLikedState);
     }
@@ -53,31 +122,60 @@ export function LoveMessageCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      className="relative"
     >
       <Card
-        className={`overflow-hidden ${isToday ? "border-pink-400 shadow-lg bg-pink-300" : ""}`}
+        className={`overflow-hidden rounded-xl relative py-0 bg-gradient-to-br from-pink-50 to-rose-50 dark:from-pink-900 dark:to-rose-950`}
       >
-        <CardHeader className="bg-gradient-to-r from-pink-400 to-rose-300 text-white">
-          <div className="flex items-center justify-between py-1">
-            <div className="text-sm font-medium">
+        {isLiked && <FloatingHearts />}
+
+        <CardHeader className="bg-gradient-to-r from-pink-400 via-rose-300 to-purple-300 dark:from-pink-400 dark:via-rose-500 dark:to-purple-400 text-white py-3">
+          <div className="relative flex items-center justify-between">
+            <div className="text-sm font-medium flex items-center select-none  pointer-cursor">
+              {isToday && (
+                <Sparkles
+                  size={16}
+                  className="mr-1 text-yellow-100 animate-pulse"
+                />
+              )}
               {isToday
                 ? "Сьогоднішнє повідомлення"
                 : formatDistanceToNow(date, { addSuffix: true, locale: uk })}
             </div>
             {isExtraMessage && (
-              <span className="px-2 py-0.5 text-xs bg-red-500/50 rounded-full uppercase">
-                Додаткове
+              <span className=" absolute  select-none  pointer-cursor -right-4 top-10 px-2 py-0.5 text-xs bg-red-500/50 uppercase scale-80 dark:bg-red-600/50 rounded-full flex items-center">
+                <Star size={10} className="mr-1" /> Додаткове{" "}
+                <Star size={10} className="ml-1" />
               </span>
             )}
           </div>
         </CardHeader>
-        <CardContent className="p-6">
-          <p className="text-lg italic leading-relaxed">
-            &ldquo;{message}&rdquo;
+
+        <CardContent className="p-6 relative ">
+          <div className="absolute -left-1 top-4 text-pink-200 rotate-12 opacity-30 dark:text-pink-900">
+            <Heart size={32} fill="currentColor" />
+          </div>
+          <div className="absolute -right-1 bottom-2 text-pink-200 -rotate-12 opacity-30 dark:text-pink-900">
+            <Heart size={32} fill="currentColor" />
+          </div>
+
+          <p
+            className="text-lg leading-relaxed  select-none  pointer-cursor text-foreground relative z-10 font-medium"
+            style={{
+              fontFamily: "Georgia, serif",
+              textShadow: "0 1px 2px rgba(0,0,0,0.05)",
+            }}
+          >
+            <span className="text-3xl text-pink-400 leading-none mr-1">&quot;</span>
+            {message}
+            <span className="text-3xl text-pink-400 leading-none ml-1">&quot;</span>
           </p>
         </CardContent>
-        <CardFooter className="flex justify-between">
-          <span className="text-xs ">
+
+        <CardFooter className="flex justify-between  py-3 px-6">
+          <span className="text-xs text-muted-foreground  select-none  pointer-cursor">
             {date.toLocaleDateString("uk-UA", {
               year: "numeric",
               month: "long",
@@ -88,18 +186,29 @@ export function LoveMessageCard({
             variant="ghost"
             size="icon"
             onClick={handleLikeClick}
-            className="text-gray-600 hover:text-pink-500 hover:bg-pink-100"
+            className="text-gray-600 cursor-pointer dark:text-gray-300 hover:text-pink-500 dark:hover:text-pink-400 hover:bg-pink-100/50 dark:hover:bg-pink-900/30 rounded-full"
           >
-            <AnimatePresence>
+            <AnimatePresence mode="wait">
               <motion.div
                 key={isLiked ? "liked" : "notLiked"}
                 initial={{ scale: 0.8 }}
-                animate={{ scale: 1 }}
+                animate={{
+                  scale: isLiked ? [1, 1.3, 1] : 1,
+                  rotate: isLiked ? [-5, 5, -5, 5, 0] : 0,
+                }}
+                transition={{
+                  duration: isLiked ? 0.5 : 0.2,
+                  times: isLiked ? [0, 0.2, 0.5, 0.8, 1] : [0, 1],
+                }}
                 exit={{ scale: 0.8 }}
               >
                 <Heart
-                  className={isLiked ? "fill-pink-500 text-pink-500" : ""}
-                  size={18}
+                  className={
+                    isLiked
+                      ? "fill-pink-500 dark:fill-pink-400 text-pink-500 dark:text-pink-400"
+                      : ""
+                  }
+                  size={22}
                 />
               </motion.div>
             </AnimatePresence>

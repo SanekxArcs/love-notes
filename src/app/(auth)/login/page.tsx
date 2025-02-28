@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { HeartIcon } from "lucide-react";
+import { ModeToggle } from "@/components/ModeToggle";
 
 export default function LoginPage() {
   const [login, setLogin] = useState("");
@@ -51,13 +52,16 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-pink-50 to-indigo-50 p-4">
-      <Card className="w-full max-w-md">
+    <div className="relative flex min-h-screen items-center justify-center p-4">
+      <header className="absolute top-0 right-0 p-4">
+        <ModeToggle />
+      </header>
+      <Card className="w-full max-w-md bg-background border border-pink-200 dark:border-pink-900">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-pink-100">
-            <HeartIcon className="h-6 w-6 text-pink-500" />
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-pink-100 dark:bg-pink-950">
+            <HeartIcon className="h-6 w-6 text-pink-500 dark:text-pink-400" />
           </div>
-          <CardTitle className="text-2xl font-bold text-pink-600">
+          <CardTitle className="text-2xl font-bold text-pink-600 dark:text-pink-400">
             Щоденні повідомлення кохання
           </CardTitle>
           <CardDescription>Увійдіть у акаунт</CardDescription>
@@ -87,7 +91,7 @@ export default function LoginPage() {
               />
             </div>
             {error && (
-              <p className="rounded bg-red-50 p-2 text-sm text-red-500">
+              <p className="rounded bg-red-100 dark:bg-red-900/30 p-2 text-sm text-red-600 dark:text-red-400">
                 {error}
               </p>
             )}
@@ -97,10 +101,9 @@ export default function LoginPage() {
           </form>
 
           {/* Test credentials */}
-          <div className="mt-4 rounded border border-dashed border-gray-200 p-2 text-xs text-gray-500">
+          <div className="mt-4 rounded border border-dashed border-gray-200 dark:border-gray-700 p-2 text-xs text-gray-500 dark:text-gray-400">
             <p>Тестові дані:</p>
-            <p>User: girlfriend / lovenotes123</p>
-            <p>Admin: admin / admin123</p>
+            <p>Admin: Tester / tester12</p>
           </div>
         </CardContent>
       </Card>
