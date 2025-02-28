@@ -11,12 +11,28 @@ export const messageType = defineType({
       name: "text",
       title: "Message Text",
       type: "text",
+      description: "The text of the message, limit 500 symbols",
       validation: (Rule) => Rule.required(),
+    }),
+    
+    defineField({
+      name: "isShown",
+      title: "Has Been Shown",
+      type: "boolean",
+      description: "Whether this message has been shown to the user",
+      initialValue: false,
+    }),
+    defineField({
+      name: "userName",
+      title: "User Name",
+      type: "string",
+      description: "The user name who received this message",
     }),
     defineField({
       name: "category",
       title: "Message Type",
       type: "string",
+      description: "The type of message",
       initialValue: "daily",
       options: {
         layout: "radio",
@@ -29,22 +45,17 @@ export const messageType = defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
-      name: "isShown",
-      title: "Has Been Shown",
-      type: "boolean",
-      initialValue: false,
-    }),
-    //like or not
-    defineField({
       name: "like",
       title: "Like",
       type: "boolean",
+      description: "Whether the user liked this message",
       initialValue: false,
     }),
     defineField({
-      name: "lastShownAt",
-      title: "Last Shown At",
+      name: "shownAt",
+      title: "Shown At",
       type: "datetime",
+      description: "The date and time this message was shown"
     }),
   ],
   preview: {

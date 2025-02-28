@@ -2,6 +2,38 @@ import { sanityClient } from "@/lib/sanity";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 
+export async function GET() {
+  try {
+    // Fetch settings from Sanity
+    const settings = await sanityClient.fetch(`*[_type == "settings"][0]{
+      dailyMessageLimit,
+      contactNumber
+    }`);
+
+    // If no settings found, return default values
+    if (!settings) {
+      return NextResponse.json({
+        dailyMessageLimit: 3,
+        contactNumber: "+380123456789"
+      });
+    }
+
+    return NextResponse.json(settings);
+  } catch (error) {
+    console.error("Error fetching settings:", error);
+    return NextResponse.json(
+      { 
+        error: "Failed to fetch settings", 
+        details: error.message,
+        // Return default values in case of error
+        dailyMessageLimit: 3,
+        contactNumber: "+380123456789"
+      },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const session = await auth();
@@ -13,10 +45,10 @@ export async function POST(request: Request) {
 
     const { dailyMessageLimit, contactNumber } = await request.json();
 
-    // Find the settings document ID first (if you don't have a fixed ID)
-    const settings = await sanityClient.fetch(`*[_type == "settings"][0]._id`);
+    // Find the settings document ID first
+    const settingsDoc = await sanityClient.fetch(`*[_type == "settings"][0]`);
 
-    if (!settings) {
+    if (!settingsDoc) {
       // If no settings document exists, create one
       const result = await sanityClient.create({
         _type: "settings",
@@ -28,7 +60,7 @@ export async function POST(request: Request) {
     } else {
       // Update existing settings
       const result = await sanityClient
-        .patch(settings)
+        .patch(settingsDoc._id)
         .set({
           dailyMessageLimit,
           contactNumber,

@@ -1,7 +1,7 @@
 // components/ui/love-message-card.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -15,19 +15,38 @@ import { formatDistanceToNow } from "date-fns";
 import { uk } from "date-fns/locale";
 
 interface LoveMessageCardProps {
+  id: string;
   message: string;
   date: Date;
   isToday: boolean;
   isExtraMessage?: boolean;
+  initialLikeState?: boolean;
+  onLikeChange?: (id: string, liked: boolean) => void;
 }
 
 export function LoveMessageCard({
+  id,
   message,
   date,
   isToday,
   isExtraMessage = false,
+  initialLikeState = false,
+  onLikeChange,
 }: LoveMessageCardProps) {
-  const [isLiked, setIsLiked] = useState(false);
+  const [isLiked, setIsLiked] = useState(initialLikeState);
+  
+  useEffect(() => {
+    setIsLiked(initialLikeState);
+  }, [initialLikeState]);
+
+  const handleLikeClick = async () => {
+    const newLikedState = !isLiked;
+    setIsLiked(newLikedState);
+    
+    if (onLikeChange) {
+      onLikeChange(id, newLikedState);
+    }
+  };
 
   return (
     <motion.div
@@ -68,7 +87,7 @@ export function LoveMessageCard({
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setIsLiked(!isLiked)}
+            onClick={handleLikeClick}
             className="text-gray-600 hover:text-pink-500 hover:bg-pink-100"
           >
             <AnimatePresence>

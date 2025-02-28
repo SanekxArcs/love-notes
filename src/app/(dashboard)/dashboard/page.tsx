@@ -8,58 +8,75 @@ import { Card } from "@/components/ui/card";
 import { LoveMessageCard } from "@/components/ui-app/love-message-card";
 import { Heart, Clock, Phone } from "lucide-react";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 
 export default function Dashboard() {
   const { data: session } = useSession({ required: true });
-  const [todayMessage, setTodayMessage] = useState(null);
-  const [extraMessages, setExtraMessages] = useState([]);
-  const [messageHistory, setMessageHistory] = useState([]);
+  const [todayMessages, setTodayMessages] = useState([]);
+  const [previousMessages, setPreviousMessages] = useState([]);
   const [remainingTime, setRemainingTime] = useState("");
   const [messageCount, setMessageCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
   const [settings, setSettings] = useState({
     dailyMessageLimit: 3,
     contactNumber: "+380123456789",
   });
 
   useEffect(() => {
-    // For now, load sample data, later replace with Sanity API calls
-    fetchSampleData();
+    // Load settings and messages on initial page load
+    fetchSettings();
+    fetchMessages();
 
-    // Set up timer
+    // Set up timer for next message
     updateRemainingTime();
     const timer = setInterval(updateRemainingTime, 1000);
     return () => clearInterval(timer);
   }, []);
 
-  function fetchSampleData() {
-    // Sample data - replace with actual API calls to Sanity
-    setTodayMessage({
-      id: "1",
-      text: "Кожного ранку я прокидаюся вдячний за те, що ти моя. Твоє кохання - найбільший дарунок.",
-      createdAt: new Date(),
-    });
-    setExtraMessages([
-      {
-        id: "2",
-        text: "Ти не просто моє кохання, ти мій найкращий друг і моя найбільша пригода.",
-        createdAt: new Date(Date.now() - 3600000),
-      },
-    ]);
-    setMessageHistory([
-      {
-        id: "3",
-        text: "Моє улюблене місце у світі - поруч з тобою.",
-        createdAt: new Date(Date.now() - 86400000),
-        isExtraMessage: false,
-      },
-      {
-        id: "4",
-        text: "З тобою навіть звичайні моменти стають надзвичайними спогадами.",
-        createdAt: new Date(Date.now() - 172800000),
-        isExtraMessage: true,
-      },
-    ]);
-    setMessageCount(1 + extraMessages.length);
+  async function fetchSettings() {
+    try {
+      const response = await fetch("/api/settings");
+      if (!response.ok) throw new Error("Failed to fetch settings");
+      
+      const data = await response.json();
+      
+      if (data) {
+        setSettings({
+          dailyMessageLimit: data.dailyMessageLimit || 3,
+          contactNumber: data.contactNumber || "+380123456789"
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching settings:", error);
+      // Keep default settings
+    }
+  }
+
+  async function fetchMessages() {
+    try {
+      const response = await fetch("/api/messages/history");
+      if (!response.ok) throw new Error("Failed to fetch messages");
+      
+      const data = await response.json();
+      
+      if (data.todayMessages) {
+        setTodayMessages(data.todayMessages.map(msg => ({
+          ...msg,
+          lastShownAt: new Date(msg.lastShownAt)
+        })));
+        setMessageCount(data.todayMessages.length);
+      }
+      
+      if (data.previousMessages) {
+        setPreviousMessages(data.previousMessages.map(msg => ({
+          ...msg,
+          lastShownAt: new Date(msg.lastShownAt)
+        })));
+      }
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      toast.error("Failed to load messages");
+    }
   }
 
   function updateRemainingTime() {
@@ -81,20 +98,79 @@ export default function Dashboard() {
   }
 
   async function getNewLoveMessage() {
-    if (messageCount >= settings.dailyMessageLimit) return;
+    if (messageCount >= settings.dailyMessageLimit) {
+      toast.info("You've reached your daily message limit");
+      return;
+    }
 
-    const newMessage = {
-      id: `extra-${Date.now()}`,
-      text: "Ти змушуєш моє серце битися частіше, навіть після всього цього часу.",
-      createdAt: new Date(),
-    };
+    setIsLoading(true);
+    
+    try {
+      const response = await fetch("/api/messages/random");
+      if (!response.ok) throw new Error("Failed to get message");
+      
+      const data = await response.json();
+      
+      if (data.message) {
+        const newMessage = {
+          ...data.message,
+          lastShownAt: new Date(data.message.lastShownAt)
+        };
+        
+        // Add to today's messages
+        setTodayMessages(prev => [newMessage, ...prev]);
+        setMessageCount(prev => prev + 1);
+        toast.success("New love message received!");
+      }
+    } catch (error) {
+      console.error("Error getting new message:", error);
+      toast.error("Failed to get a new message");
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
-    setExtraMessages([newMessage, ...extraMessages]);
-    setMessageCount((prev) => prev + 1);
+  async function handleLikeChange(id, liked) {
+    try {
+      console.log(`Sending like update for message ${id} to ${liked}`);
+      
+      const response = await fetch("/api/messages/like", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          historyId: id,
+          liked,
+        }),
+      });
+      
+      const result = await response.json();
+      console.log("Like update response:", result);
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to update like status");
+      }
+
+      // Update local state
+      setTodayMessages(prev => 
+        prev.map(msg => msg._id === id ? { ...msg, like: liked } : msg)
+      );
+      
+      setPreviousMessages(prev => 
+        prev.map(msg => msg._id === id ? { ...msg, like: liked } : msg)
+      );
+      
+      toast.success(liked ? "Message liked!" : "Like removed");
+    } catch (error) {
+      console.error("Error updating like status:", error);
+      toast.error("Failed to update like status");
+    }
   }
 
   return (
-    <div className="container mx-auto max-w-3xl py-6 px-4"><motion.div
+    <div className="container mx-auto max-w-3xl py-6 px-4">
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
@@ -118,8 +194,10 @@ export default function Dashboard() {
                   onClick={getNewLoveMessage}
                   size="lg"
                   className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 transition-all duration-300 shadow-md hover:shadow-lg"
+                  disabled={isLoading}
                 >
-                  <Heart className="mr-2 h-5 w-5" /> Мені потрібне кохання зараз
+                  <Heart className="mr-2 h-5 w-5" /> 
+                  {isLoading ? "Завантаження..." : "Мені потрібне кохання зараз"}
                 </Button>
               ) : (
                 <Button
@@ -142,69 +220,72 @@ export default function Dashboard() {
         </Card>
       </motion.div>
 
-      {todayMessage && (
+      {/* Today's messages */}
+      {todayMessages.length > 0 && (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="mb-8 grid gap-4"
         >
-          <LoveMessageCard
-            message={todayMessage.text}
-            date={todayMessage.createdAt}
-            isToday={true}
-          />
-        </motion.div>
-      )}
-
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 }}
-        className="mb-8 grid gap-4"
-      >
-        {extraMessages.map((msg, index) => (
-          <motion.div
-            key={msg.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 + index * 0.1 }}
-          >
-            <LoveMessageCard
-              message={msg.text}
-              date={msg.createdAt}
-              isToday={true}
-              isExtraMessage={true}
-            />
-          </motion.div>
-        ))}
-      </motion.div>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="mb-6"
-      >
-        <h2 className="mb-4 text-xl font-semibold text-gray-800">
-          Історія повідомлень
-        </h2>
-        <div className="grid gap-4">
-          {messageHistory.map((msg, index) => (
+          <h2 className="text-xl font-semibold text-gray-800">
+            Сьогоднішні повідомлення
+          </h2>
+          
+          {todayMessages.map((msg, index) => (
             <motion.div
-              key={msg.id}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 + index * 0.1 }}
+              key={msg._id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 + index * 0.1 }}
             >
               <LoveMessageCard
+                id={msg._id}
                 message={msg.text}
-                date={msg.createdAt}
-                isToday={false}
-                isExtraMessage={msg.isExtraMessage}
+                date={msg.lastShownAt}
+                isToday={true}
+                isExtraMessage={msg.category === "extra"}
+                initialLikeState={msg.like}
+                onLikeChange={handleLikeChange}
               />
             </motion.div>
           ))}
-        </div>
-      </motion.div>
+        </motion.div>
+      )}
+
+      {/* Previous messages */}
+      {previousMessages.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="mb-6"
+        >
+          <h2 className="mb-4 text-xl font-semibold text-gray-800">
+            Історія повідомлень
+          </h2>
+          <div className="grid gap-4">
+            {previousMessages.map((msg, index) => (
+              <motion.div
+                key={msg._id}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.6 + index * 0.1 }}
+              >
+                <LoveMessageCard
+                  id={msg._id}
+                  message={msg.text}
+                  date={msg.lastShownAt}
+                  isToday={false}
+                  isExtraMessage={msg.category === "extra"}
+                  initialLikeState={msg.like}
+                  onLikeChange={handleLikeChange}
+                />
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 }
