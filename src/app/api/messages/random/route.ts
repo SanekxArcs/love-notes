@@ -12,28 +12,29 @@ export async function GET() {
     }
 
     const userId = session.user.id;
+    const userName = session.user.name || session.user.email;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Fetch daily message count for today
+    // Fetch messages shown to this user today
     const todayMessages = await sanityClient.fetch(`
-      *[_type == "userMessageHistory" && 
-        userId == $userId && 
-        dateTime(lastShownAt) >= dateTime($today)
+      *[_type == "message" && 
+        userName == $userName && 
+        dateTime(shownAt) >= dateTime($today)
       ]
-    `, { userId, today: today.toISOString() });
+    `, { userName, today: today.toISOString() });
 
     const todayCount = todayMessages.length;
     
     // Determine category based on today's count - first message is daily, rest are extra
     const category = todayCount === 0 ? "daily" : "extra";
 
-    console.log(`User ${userId} has ${todayCount} messages today. This will be a ${category} message.`);
+    console.log(`User ${userName} has ${todayCount} messages today. This will be a ${category} message.`);
 
-    // Get messages that haven't been shown to this user yet
+    // Get messages that haven't been shown yet
     const unseenMessages = await sanityClient.fetch(`
-      *[_type == "message" && !(_id in *[_type == "userMessageHistory" && userId == $userId].messageId._ref)]
-    `, { userId });
+      *[_type == "message" && isShown == false]
+    `);
 
     // Select a random message from JavaScript
     let selectedMessage;
@@ -53,37 +54,26 @@ export async function GET() {
     }
 
     if (selectedMessage) {
-      // Create user message history record with proper category
-      const historyRecord = await sanityClient.create({
-        _type: "userMessageHistory",
-        userId,
-        messageId: {
-          _type: "reference",
-          _ref: selectedMessage._id
-        },
-        text: selectedMessage.text,
-        category,  // This will be "daily" for first message, "extra" for others
-        isShown: true,
-        like: false,
-        lastShownAt: new Date().toISOString()
-      });
+      const currentTime = new Date().toISOString();
 
-      // Update message to mark as shown
-      await sanityClient
+      // Update message to mark as shown and associate with this user
+      const updatedMessage = await sanityClient
         .patch(selectedMessage._id)
         .set({
           isShown: true,
-          lastShownAt: new Date().toISOString()
+          shownAt: currentTime,
+          userName: userName,
+          category: category // Set the category based on today's count
         })
         .commit();
 
       return NextResponse.json({
         message: {
-          _id: historyRecord._id, // Use history ID for tracking likes
-          text: selectedMessage.text,
+          _id: updatedMessage._id,
+          text: updatedMessage.text,
           category,
           like: false,
-          lastShownAt: new Date().toISOString(),
+          shownAt: currentTime,
           isToday: true,
         }
       });

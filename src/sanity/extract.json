@@ -908,6 +908,20 @@
         },
         "optional": true
       },
+      "isShown": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "boolean"
+        },
+        "optional": true
+      },
+      "userName": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "string"
+        },
+        "optional": true
+      },
       "category": {
         "type": "objectAttribute",
         "value": {
@@ -929,13 +943,6 @@
         },
         "optional": true
       },
-      "isShown": {
-        "type": "objectAttribute",
-        "value": {
-          "type": "boolean"
-        },
-        "optional": true
-      },
       "like": {
         "type": "objectAttribute",
         "value": {
@@ -943,7 +950,7 @@
         },
         "optional": true
       },
-      "lastShownAt": {
+      "shownAt": {
         "type": "objectAttribute",
         "value": {
           "type": "string"

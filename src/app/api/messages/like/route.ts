@@ -11,20 +11,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { historyId, liked } = await request.json();
+    const { messageId, liked } = await request.json();
 
-    if (!historyId) {
+    if (!messageId) {
       return NextResponse.json(
-        { error: "Message history ID is required" },
+        { error: "Message ID is required" },
         { status: 400 }
       );
     }
 
-    console.log(`Updating message ${historyId} like status to ${liked}`);
+    console.log(`Updating message ${messageId} like status to ${liked}`);
 
-    // Update the like status in the user message history
+    // Update the like status directly in the message document
     const updatedDoc = await sanityClient
-      .patch(historyId)
+      .patch(messageId)
       .set({ like: liked })
       .commit();
 

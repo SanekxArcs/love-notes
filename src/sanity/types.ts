@@ -168,10 +168,11 @@ export type Message = {
   _updatedAt: string;
   _rev: string;
   text?: string;
-  category?: "unknown" | "daily" | "extra";
   isShown?: boolean;
+  userName?: string;
+  category?: "unknown" | "daily" | "extra";
   like?: boolean;
-  lastShownAt?: string;
+  shownAt?: string;
 };
 
 export type AllSanitySchemaTypes = SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityImageHotspot | SanityImageCrop | SanityFileAsset | SanityImageAsset | SanityImageMetadata | Geopoint | Slug | SanityAssetSourceData | UserMessageHistory | Settings | Message;
@@ -192,7 +193,7 @@ export type ALL_MESSAGES_QUERYResult = Array<{
   category: "daily" | "extra" | "unknown" | null;
   isShown: boolean | null;
   like: boolean | null;
-  lastShownAt: string | null;
+  lastShownAt: null;
 }>;
 // Variable: UNSHOWN_MESSAGES_QUERY
 // Query: *[_type == "message" && isShown == false] {  _id,  text,  category}
@@ -208,7 +209,7 @@ export type MESSAGES_BY_CATEGORY_QUERYResult = Array<{
   text: string | null;
   isShown: boolean | null;
   like: boolean | null;
-  lastShownAt: string | null;
+  lastShownAt: null;
 }>;
 // Variable: LIKED_MESSAGES_QUERY
 // Query: *[_type == "message" && like == true] | order(lastShownAt desc) {  _id,  text,  category,  lastShownAt}
@@ -216,7 +217,7 @@ export type LIKED_MESSAGES_QUERYResult = Array<{
   _id: string;
   text: string | null;
   category: "daily" | "extra" | "unknown" | null;
-  lastShownAt: string | null;
+  lastShownAt: null;
 }>;
 // Variable: NEXT_DAILY_MESSAGE_QUERY
 // Query: *[_type == "message" && isShown == false && category == "daily"][0] {  _id,  text,  category}

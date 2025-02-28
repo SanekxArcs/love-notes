@@ -18,7 +18,7 @@ export default function Dashboard() {
   const [messageCount, setMessageCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [settings, setSettings] = useState({
-    dailyMessageLimit: 3,
+    dailyMessageLimit: 1,
     contactNumber: "+380123456789",
   });
 
@@ -62,7 +62,7 @@ export default function Dashboard() {
       if (data.todayMessages) {
         setTodayMessages(data.todayMessages.map(msg => ({
           ...msg,
-          lastShownAt: new Date(msg.lastShownAt)
+          lastShownAt: new Date(msg.shownAt)  // Map shownAt to lastShownAt for component compatibility
         })));
         setMessageCount(data.todayMessages.length);
       }
@@ -70,7 +70,7 @@ export default function Dashboard() {
       if (data.previousMessages) {
         setPreviousMessages(data.previousMessages.map(msg => ({
           ...msg,
-          lastShownAt: new Date(msg.lastShownAt)
+          lastShownAt: new Date(msg.shownAt)  // Map shownAt to lastShownAt for component compatibility
         })));
       }
     } catch (error) {
@@ -114,7 +114,7 @@ export default function Dashboard() {
       if (data.message) {
         const newMessage = {
           ...data.message,
-          lastShownAt: new Date(data.message.lastShownAt)
+          lastShownAt: new Date(data.message.shownAt)  // Map shownAt to lastShownAt
         };
         
         // Add to today's messages
@@ -140,7 +140,7 @@ export default function Dashboard() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          historyId: id,
+          historyId: id,  // Changed from historyId to messageId
           liked,
         }),
       });
