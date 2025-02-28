@@ -193,29 +193,29 @@ export default function AdminMessages() {
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>
-          <div >
+          <div>
             <h1 className="text-2xl font-bold">Керування повідомленнями</h1>
-            
-          </div></div>
-          <div className="flex flex-row gap-2">
-            <BatchAddDialog
-              isOpen={isBatchDialogOpen}
-              setIsOpen={setIsBatchDialogOpen}
-              onSubmit={handleBatchAdd}
-            />
+            <div className="flex flex-row gap-2">
+              <BatchAddDialog
+                isOpen={isBatchDialogOpen}
+                setIsOpen={setIsBatchDialogOpen}
+                onSubmit={handleBatchAdd}
+              />
 
-            <AddMessageDialog
-              isOpen={isAddDialogOpen}
-              setIsOpen={setIsAddDialogOpen}
-              onSubmit={handleAddMessage}
-            />
+              <AddMessageDialog
+                isOpen={isAddDialogOpen}
+                setIsOpen={setIsAddDialogOpen}
+                onSubmit={handleAddMessage}
+              />
+            </div>
           </div>
-        
+        </div>
       </div>
+
       <div className="mb-6 flex flex-col justify-between">
         <p className="text-gray-600 py-4 px-2 text-end">
-              Додавайте нові повідомлення, які ваша кохана зможе побачити.
-            </p>
+          Додавайте нові повідомлення, які ваша кохана зможе побачити.
+        </p>
         <MessageList
           messages={messages}
           isLoading={isLoading}

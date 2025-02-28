@@ -7,8 +7,8 @@ const USERS = [
   {
     id: "1",
     name: "Іруська",
-    login: "girlfriend",
-    password: "lovenotes123",
+    login: "Sweetie",
+    password: "sweetdreams",
     role: "user",
   },
   {
@@ -22,8 +22,8 @@ const USERS = [
     id: "3",
     name: "Tester",
     login: "Tester",
-    password: "Tester123",
-    role: "admin",
+    password: "tester12",
+    role: "user",
   },
 ];
 

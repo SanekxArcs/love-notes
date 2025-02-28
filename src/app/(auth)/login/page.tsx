@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import { HeartIcon } from "lucide-react";
 import { ModeToggle } from "@/components/ModeToggle";
+import { toast } from "sonner";
 
 export default function LoginPage() {
   const [login, setLogin] = useState("");
@@ -39,6 +40,7 @@ export default function LoginPage() {
 
       // We won't reach this code if redirect is true
     } catch (error: unknown) {
+      toast.error("Помилка при вході");
       console.error("Login error:", error);
       
       let errorMessage = "Невідома помилка";
@@ -47,6 +49,7 @@ export default function LoginPage() {
       }
       
       setError(`Помилка при вході: ${errorMessage}`);
+      toast.error(`Помилка при вході: ${errorMessage}`);
       setIsLoading(false);
     }
   };

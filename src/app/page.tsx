@@ -1,9 +1,10 @@
-import { Button } from "@/components/ui/button";
+"use client";
 import { ModeToggle } from "@/components/ModeToggle";
 import { Heart } from "lucide-react";
-import Link from "next/link";
+import { AuthState } from "@/components/auth/auth-state";
 
 export default function LandingPage() {
+  // Only render the landing page if user is not authenticated
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12">
       <header className="absolute top-0 right-0 p-4">
@@ -25,14 +26,7 @@ export default function LandingPage() {
         </p>
 
         <div className="flex justify-center pt-6">
-          <Link href="/login">
-            <Button
-              size="lg"
-              className="bg-pink-600 hover:bg-pink-700 text-white px-8 py-6 text-lg rounded-full"
-            >
-              Увійти
-            </Button>
-          </Link>
+          <AuthState/>
         </div>
 
         <div className="pt-12 text-sm opacity-80">
