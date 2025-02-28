@@ -29,7 +29,7 @@ export function WraperIfAdmin({ children }: WraperIfAdminProps) {
   }
 
   return (
-    <div className="flex flex-col md:flex-row items-start gap-2">
+    <div className="flex flex-row items-start gap-2">
       {session?.user?.role === "admin" ? children : null}
     </div>
   );

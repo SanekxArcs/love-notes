@@ -9,6 +9,7 @@ import { LoveMessageCard } from "@/components/ui-app/love-message-card";
 import { Heart, Clock, Phone } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { SpinnerIcon } from "@sanity/icons";
 
 // Define types for our message objects
 interface Message {
@@ -223,7 +224,9 @@ export default function Dashboard() {
             <div className="mb-4 flex items-center flex-col md:flex-row  justify-between">
               <div className="flex items-center gap-2 text-indigo-700">
                 <Clock className="h-5 w-5" />
-                <h3 className="font-medium text-sm md:text-base">Наступне повідомлення через:</h3>
+                <h3 className="font-medium text-sm md:text-base">
+                  Наступне повідомлення через:
+                </h3>
               </div>
               <div className="text-4xl md:text-lg font-mono font-semibold text-indigo-700">
                 {remainingTime}
@@ -238,8 +241,16 @@ export default function Dashboard() {
                   className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 transition-all duration-300 shadow-md hover:shadow-lg"
                   disabled={isLoading}
                 >
-                  <Heart className="mr-2 h-5 w-5" /> 
-                  {isLoading ? "Завантаження..." : "Мені потрібне кохання зараз"}
+                  <Heart className="mr-1 h-5 w-5" />
+                  {isLoading ? (
+                    <span className="flex items-center">
+                      Завантаження... <SpinnerIcon className="animate-spin ml-1" />
+                    </span>
+                  ) : messageCount < 1 ? (
+                    "Показати повідомлення"
+                  ) : (
+                    "Хочеться ще?"
+                  )}
                 </Button>
               ) : (
                 <Button
@@ -270,10 +281,8 @@ export default function Dashboard() {
           transition={{ delay: 0.2 }}
           className="mb-8 grid gap-4"
         >
-          <h2 className="text-xl font-semibold">
-            Сьогоднішні повідомлення
-          </h2>
-          
+          <h2 className="text-xl font-semibold">Сьогоднішні повідомлення</h2>
+
           {todayMessages.map((msg, index) => (
             <motion.div
               key={msg._id}
@@ -303,9 +312,7 @@ export default function Dashboard() {
           transition={{ delay: 0.5 }}
           className="mb-6"
         >
-          <h2 className="mb-4 text-xl font-semibold ">
-            Історія повідомлень
-          </h2>
+          <h2 className="mb-4 text-xl font-semibold ">Історія повідомлень</h2>
           <div className="grid gap-4">
             {previousMessages.map((msg, index) => (
               <motion.div
