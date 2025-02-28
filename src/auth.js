@@ -18,6 +18,13 @@ const USERS = [
     password: "admin123",
     role: "admin",
   },
+  {
+    id: "3",
+    name: "Tester",
+    login: "Tester",
+    password: "Tester123",
+    role: "admin",
+  },
 ];
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
