@@ -10,6 +10,7 @@ import { Heart, Clock, Phone } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { SpinnerIcon } from "@sanity/icons";
+import confetti from "canvas-confetti";
 
 // Define types for our message objects
 interface Message {
@@ -161,9 +162,15 @@ export default function Dashboard() {
         };
         
         // Add to today's messages
+        confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 1 },
+        colors: ["#FF1493", "#FF69B4", "#FFB6C1", "#FFC0CB"],
+      });
         setTodayMessages(prev => [newMessage, ...prev]);
         setMessageCount(prev => prev + 1);
-        toast.success("New love message received!");
+        // toast.success("New love message received!");
       }
     } catch (error) {
       console.error("Error getting new message:", error);
