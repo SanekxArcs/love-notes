@@ -16,7 +16,7 @@ export default function LandingPage() {
         amplitude={1.0}
         speed={0.5}
       />
-      <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12">
+      <div className="min-h-svh flex flex-col items-center justify-center px-4 py-12">
         <header className="absolute top-0 right-0 p-4">
           <ModeToggle />
         </header>

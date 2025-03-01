@@ -57,7 +57,7 @@ export default function LoginPage() {
 
   return (
     <>
-      <div className="absolute inset-0 -z-10 w-full h-full">
+      <div className="absolute inset-0 -z-10 w-full h-svh">
         <Particles
           particleColors={["#fa00e5", "#fa00e5"]}
           particleCount={200}
@@ -69,7 +69,7 @@ export default function LoginPage() {
           disableRotation={true}
         />
       </div>
-      <div className="relative flex min-h-screen items-center justify-center p-4">
+      <div className="relative flex min-h-svh items-center justify-center p-4">
         <header className="absolute top-0 right-0 p-4">
           <ModeToggle />
         </header>
