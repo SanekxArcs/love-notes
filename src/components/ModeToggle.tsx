@@ -1,7 +1,8 @@
-"use client";
 
+"use client";
+import { signOut } from "next-auth/react";
 import * as React from "react";
-import { Moon, Sun } from "lucide-react";
+import { LogOut, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,9 @@ export function ModeToggle() {
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("system")}>
           System
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => signOut()}>
+          Logout <LogOut/>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
