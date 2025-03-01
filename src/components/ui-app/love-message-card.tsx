@@ -164,13 +164,17 @@ export function LoveMessageCard({
           <p
             className="text-lg leading-relaxed  select-none  pointer-cursor text-foreground relative z-10 font-medium"
             style={{
-              fontFamily: "Georgia, serif",
+              // fontFamily: "Georgia, serif",
               textShadow: "0 1px 2px rgba(0,0,0,0.05)",
             }}
           >
-            <span className="text-3xl text-pink-400 leading-none mr-1">&quot;</span>
-            {message}
-            <span className="text-3xl text-pink-400 leading-none ml-1">&quot;</span>
+            <span className="text-3xl text-pink-400 leading-none mr-1">
+              &quot;
+            </span>{message}
+            
+            <span className="text-3xl text-pink-400 leading-none ml-1">
+              &quot;
+            </span>
           </p>
         </CardContent>
 

@@ -11,7 +11,6 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { SpinnerIcon } from "@sanity/icons";
 import confetti from "canvas-confetti";
-
 // Define types for our message objects
 interface Message {
   _id: string;
@@ -219,129 +218,130 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="container mx-auto max-w-3xl py-6 px-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="mb-8"
-      >
-        <Card className="bg-gradient-to-r from-indigo-500/10 to-pink-500/10 overflow-hidden">
-          <div className=" p-6">
-            <div className="mb-4 flex items-center flex-col md:flex-row  justify-between">
-              <div className="flex items-center gap-2 text-indigo-700">
-                <Clock className="h-5 w-5" />
-                <h3 className="font-medium text-sm md:text-base">
-                  Наступне повідомлення через:
-                </h3>
-              </div>
-              <div className="text-4xl md:text-lg font-mono font-semibold text-indigo-700">
-                {remainingTime}
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-4">
-              {messageCount < settings.dailyMessageLimit ? (
-                <Button
-                  onClick={getNewLoveMessage}
-                  size="lg"
-                  className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 transition-all duration-300 shadow-md hover:shadow-lg"
-                  disabled={isLoading}
-                >
-                  <Heart className="mr-1 h-5 w-5" />
-                  {isLoading ? (
-                    <span className="flex items-center">
-                      Завантаження... <SpinnerIcon className="animate-spin ml-1" />
-                    </span>
-                  ) : messageCount < 1 ? (
-                    "Показати повідомлення"
-                  ) : (
-                    "Хочеться ще?"
-                  )}
-                </Button>
-              ) : (
-                <Button
-                  size="lg"
-                  className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 transition-all duration-300 shadow-md hover:shadow-lg"
-                  onClick={() =>
-                    (window.location.href = `tel:${settings.contactNumber}`)
-                  }
-                >
-                  <Phone className="mr-2 h-5 w-5" /> Подзвонити коханому
-                </Button>
-              )}
-
-              <p className="text-center text-sm text-gray-500">
-                Сьогодні використано: {messageCount}/
-                {settings.dailyMessageLimit}
-              </p>
-            </div>
-          </div>
-        </Card>
-      </motion.div>
-
-      {/* Today's messages */}
-      {todayMessages.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="mb-8 grid gap-4"
-        >
-          <h2 className="text-xl font-semibold">Сьогоднішні повідомлення</h2>
-
-          {todayMessages.map((msg, index) => (
-            <motion.div
-              key={msg._id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 + index * 0.1 }}
-            >
-              <LoveMessageCard
-                id={msg._id}
-                message={msg.text}
-                date={msg.lastShownAt}
-                isToday={true}
-                isExtraMessage={msg.category === "extra"}
-                initialLikeState={msg.like}
-                onLikeChange={handleLikeChange}
-              />
-            </motion.div>
-          ))}
-        </motion.div>
-      )}
-
-      {/* Previous messages */}
-      {previousMessages.length > 0 && (
+    <>
+      <div className="relative container mx-auto max-w-3xl pb-6 px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="mb-6"
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="mb-8"
         >
-          <h2 className="mb-4 text-xl font-semibold ">Історія повідомлень</h2>
-          <div className="grid gap-4">
-            {previousMessages.map((msg, index) => (
+          <Card className="bg-gradient-to-r from-indigo-500/10 to-pink-500/10 overflow-hidden">
+            <div className=" p-6">
+              <div className="mb-4 flex items-center flex-col md:flex-row  justify-between">
+                <div className="flex items-center gap-2 text-indigo-700">
+                  <Clock className="h-5 w-5" />
+                  <h3 className="font-medium text-sm md:text-base">
+                    Наступне повідомлення через:
+                  </h3>
+                </div>
+                <div className="text-4xl md:text-lg font-mono font-semibold text-indigo-700">
+                  {remainingTime}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-4">
+                {messageCount < settings.dailyMessageLimit ? (
+                  <Button
+                    onClick={getNewLoveMessage}
+                    size="lg"
+                    className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 transition-all duration-300 shadow-md hover:shadow-lg"
+                    disabled={isLoading}
+                  >
+                    <Heart className="mr-1 h-5 w-5" />
+                    {isLoading ? (
+                      <span className="flex items-center">
+                        Завантаження...{" "}
+                        <SpinnerIcon className="animate-spin ml-1" />
+                      </span>
+                    ) : messageCount < 1 ? (
+                      "Показати повідомлення"
+                    ) : (
+                      "Хочеться ще?"
+                    )}
+                  </Button>
+                ) : (
+                  <Button
+                    size="lg"
+                    className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 transition-all duration-300 shadow-md hover:shadow-lg"
+                    onClick={() =>
+                      (window.location.href = `tel:${settings.contactNumber}`)
+                    }
+                  >
+                    <Phone className="mr-2 h-5 w-5" /> Подзвонити коханому
+                  </Button>
+                )}
+
+                <p className="text-center text-sm text-gray-500">
+                  Сьогодні використано: {messageCount}/
+                  {settings.dailyMessageLimit}
+                </p>
+              </div>
+            </div>
+          </Card>
+        </motion.div>
+        {/* Today's messages */}
+        {todayMessages.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="mb-8 grid gap-4"
+          >
+            <h2 className="text-xl font-semibold">Сьогоднішні повідомлення</h2>
+
+            {todayMessages.map((msg, index) => (
               <motion.div
                 key={msg._id}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.6 + index * 0.1 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 + index * 0.1 }}
               >
                 <LoveMessageCard
                   id={msg._id}
                   message={msg.text}
                   date={msg.lastShownAt}
-                  isToday={false}
+                  isToday={true}
                   isExtraMessage={msg.category === "extra"}
                   initialLikeState={msg.like}
                   onLikeChange={handleLikeChange}
                 />
               </motion.div>
             ))}
-          </div>
-        </motion.div>
-      )}
-    </div>
+          </motion.div>
+        )}
+        {/* Previous messages */}
+        {previousMessages.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="mb-6"
+          >
+            <h2 className="mb-4 text-xl font-semibold ">Історія повідомлень</h2>
+            <div className="grid gap-4">
+              {previousMessages.map((msg, index) => (
+                <motion.div
+                  key={msg._id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.6 + index * 0.1 }}
+                >
+                  <LoveMessageCard
+                    id={msg._id}
+                    message={msg.text}
+                    date={msg.lastShownAt}
+                    isToday={false}
+                    isExtraMessage={msg.category === "extra"}
+                    initialLikeState={msg.like}
+                    onLikeChange={handleLikeChange}
+                  />
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </div>
+    </>
   );
 }

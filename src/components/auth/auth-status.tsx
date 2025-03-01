@@ -1,8 +1,8 @@
-// components/auth-status.tsx
 "use client";
 
 import { LoaderCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
+import BlurText from "../reactbits/BlurText";
 
 export function AuthStatus() {
   const { data: session, status } = useSession();
@@ -20,11 +20,14 @@ export function AuthStatus() {
   }
 
   return (
-    <div className="flex flex-col items-start gap-2">
-      <p>
-        Привіт, {session?.user?.name || "Kохана"}!
-        {session?.user?.role === "admin" ? "" : " Нові повідомлення щодня ❤️" }
-      </p>
+    <div>
+      <BlurText
+                  text={`${session?.user?.role === "admin" ? "" : "Привіт, "}${session?.user?.name || "Kохана"}!${session?.user?.role === "admin" ? "" : " Нові повідомлення щодня ❤️"}`}
+                  delay={150}
+                  animateBy="words"
+                  direction="top"
+                  className="flex flex-row items-center justify-center"
+                />
     </div>
   );
 }

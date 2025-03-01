@@ -106,7 +106,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="uk" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={`relative ${inter.className}`}>
         <Providers>
           <ThemeProvider
             attribute="class"
@@ -114,8 +114,9 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-              {children}
-              <Toaster />
+              
+            {children}
+            <Toaster />
           </ThemeProvider>
         </Providers>
       </body>
