@@ -187,35 +187,32 @@ export default function AdminMessages() {
   return (
     <div className="container flex flex-col py-6">
       <div className="flex flex-row justify-between items-center">
-        <div className="mb-6 flex justify-start items-center gap-4">
-          <Link href="/dashboard">
-            <Button variant="outline" size="icon">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold">Керування повідомленнями</h1>
-            <div className="flex flex-row gap-2">
-              <BatchAddDialog
-                isOpen={isBatchDialogOpen}
-                setIsOpen={setIsBatchDialogOpen}
-                onSubmit={handleBatchAdd}
-              />
+        <div className="mb-4 flex flex-col w-full md:flex-row justify-start items-start gap-4">
+          <div className="flex flex-row items-center gap-4">
+            <Link href="/dashboard">
+              <Button variant="outline" size="icon">
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            </Link>
+            <h1 className="md:text-2xl font-bold">Керування повідомленнями</h1>
+          </div>
 
-              <AddMessageDialog
-                isOpen={isAddDialogOpen}
-                setIsOpen={setIsAddDialogOpen}
-                onSubmit={handleAddMessage}
-              />
-            </div>
+          <div className="grid grid-cols-2 w-full gap-4">
+            <BatchAddDialog
+              isOpen={isBatchDialogOpen}
+              setIsOpen={setIsBatchDialogOpen}
+              onSubmit={handleBatchAdd}
+            />
+            <AddMessageDialog
+              isOpen={isAddDialogOpen}
+              setIsOpen={setIsAddDialogOpen}
+              onSubmit={handleAddMessage}
+            />
           </div>
         </div>
       </div>
 
       <div className="mb-6 flex flex-col justify-between">
-        <p className="text-gray-600 py-4 px-2 text-end">
-          Додавайте нові повідомлення, які ваша кохана зможе побачити.
-        </p>
         <MessageList
           messages={messages}
           isLoading={isLoading}
