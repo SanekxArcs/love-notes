@@ -18,19 +18,19 @@ export function WraperIfAdmin({ children }: WraperIfAdminProps) {
 
   if (status === "loading") {
     return (
-      <div>
+      <>
         <LoaderCircle className="animate-spin" />
-      </div>
+      </>
     );
   }
 
   if (status === "unauthenticated") {
-    return <div>Not logged in</div>;
+    return <p>Not logged in</p>;
   }
 
   return (
-    <div className="flex flex-row items-start gap-2">
+    <>
       {session?.user?.role === "admin" ? children : null}
-    </div>
+    </>
   );
 }

@@ -38,9 +38,9 @@ export default async function DashboardLayout({
           disableRotation={true}
         />
       </div>
-      <div className="min-h-screen ">
+      <div className="min-h-svh  relative">
         <header>
-          <div className="mx-auto max-w-3xl px-4 pt-6 sm:px-6 lg:px-8 flex flex-col md:flex-row gap-6 justify-between ">
+          <div className=" mx-auto max-w-3xl px-4 pt-6  flex flex-col md:flex-row gap-6 justify-between ">
             <div className="flex flex-col items-center md:items-start gap-4">
               <h1>
                 <BlurText
@@ -53,7 +53,7 @@ export default async function DashboardLayout({
               </h1>
               <AuthStatus />
             </div>
-            <div className="flex items-center flex-row justify-end gap-2">
+            <div className="flex flex-row justify-end items-end gap-2 px-4 md:px-0 lg:px-0">
               <WraperIfAdmin>
                 <Link href="/settings/settings">
                   <Button size="icon" variant="outline">
@@ -72,10 +72,11 @@ export default async function DashboardLayout({
                 </Link>
                 <Logout />
               </WraperIfAdmin>
+            </div>
+              
               <div className=" absolute right-4 top-4">
                 <ModeToggle />
               </div>
-            </div>
           </div>
         </header>
         <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">

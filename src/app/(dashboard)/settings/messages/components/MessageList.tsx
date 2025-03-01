@@ -46,8 +46,8 @@ export default function MessageList({ messages, isLoading, onEdit, onDelete }: M
     <Card>
       <CardHeader>
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold">Непоказані повідомлення</h2>
-          <p className="text-sm text-muted-foreground flex items-center">
+          <h2 className=" md:text-xl font-semibold">Непоказані повідомлення</h2>
+          <p className="text-sm text-muted-foreground flex items-center text-nowrap">
             Кількість:{" "}
             {isLoading ? (
                 <LoaderCircle className="animate-spin" />

@@ -185,7 +185,7 @@ export default function AdminMessages() {
   };
 
   return (
-    <div className="container flex flex-col py-6">
+    <div className="container flex flex-col pb-6">
       <div className="flex flex-row justify-between items-center">
         <div className="mb-4 flex flex-col w-full md:flex-row justify-start items-start gap-4">
           <div className="flex flex-row items-center gap-4">
