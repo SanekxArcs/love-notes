@@ -50,7 +50,7 @@ export default async function DashboardLayout({
                 delay={150}
                 animateBy="words"
                 direction="top"
-                className="text-3xl flex items-center text-nowrap justify-center font-bold mx-auto text-pink-600 md:text-left"
+                className="text-xl flex items-center text-nowrap justify-center font-bold mx-auto text-pink-600 md:text-left"
               />
             </h1>
             <AuthStatus />
