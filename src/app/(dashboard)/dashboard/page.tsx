@@ -240,7 +240,7 @@ export default function Dashboard() {
       );
       
       // toast.success(liked && "Тобі сподобалось ❤️");
-      toast.warning(!liked && "😥😭😨😱");
+      // toast.warning(!liked && "😥😭😨😱");
     } catch (error) {
       console.error("Error updating like status:", error);
       toast.error("Failed to update like status");
