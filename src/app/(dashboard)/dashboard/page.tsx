@@ -131,6 +131,26 @@ export default function Dashboard() {
     );
   }
 
+  function triggerConfetti() {
+    const scalar = 2;
+    const unicorn = confetti.shapeFromText({ text: "😘", scalar });
+
+    confetti({
+      particleCount: 30,
+      spread: 360,
+      ticks: 60,
+      gravity: 0,
+      decay: 0.96,
+      startVelocity: 20,
+      shapes: [unicorn],
+      scalar: scalar,
+      // particleCount: 100,
+      // spread: 70,
+      origin: { y: 1 },
+      // colors: ["#FF1493", "#FF69B4", "#FFB6C1", "#FFC0CB"],
+    });
+  }
+
   async function getNewLoveMessage() {
     if (messageCount >= settings.dailyMessageLimit) {
       toast.info("You've reached your daily message limit");
@@ -160,13 +180,10 @@ export default function Dashboard() {
           lastShownAt: new Date(data.message.shownAt)  // Map shownAt to lastShownAt
         };
         
+        // Trigger confetti effect
+        triggerConfetti();
+        
         // Add to today's messages
-        confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 1 },
-        colors: ["#FF1493", "#FF69B4", "#FFB6C1", "#FFC0CB"],
-      });
         setTodayMessages(prev => [newMessage, ...prev]);
         setMessageCount(prev => prev + 1);
         // toast.success("New love message received!");

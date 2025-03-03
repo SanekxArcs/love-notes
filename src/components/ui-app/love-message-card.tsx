@@ -84,6 +84,25 @@ export function LoveMessageCard({
   onLikeChange,
 }: LoveMessageCardProps) {
   const [isLiked, setIsLiked] = useState<boolean>(initialLikeState);
+  
+  const heart = confetti.shapeFromPath({
+        path: "M167 72c19,-38 37,-56 75,-56 42,0 76,33 76,75 0,76 -76,151 -151,227 -76,-76 -151,-151 -151,-227 0,-42 33,-75 75,-75 38,0 57,18 76,56z",
+        matrix: new DOMMatrix([
+          0.03333333333333333, 0, 0, 0.03333333333333333, -5.566666666666666,
+          -5.533333333333333,
+        ]),
+      });
+    function triggerConfetti() {
+      confetti({
+        scalar: 1,
+        startVelocity: -35,
+        particleCount: 100,
+        spread: 180,
+        origin: { y: 1 },
+        shapes: [heart],
+        colors: ["#FF1493", "#FF69B4", "#FFB6C1", "#FFC0CB"],
+      });
+    }
 
   useEffect(() => {
     setIsLiked(initialLikeState);
@@ -92,24 +111,9 @@ export function LoveMessageCard({
   const handleLikeClick = async () => {
     const newLikedState = !isLiked;
     setIsLiked(newLikedState);
-    const heart = confetti.shapeFromPath({
-      path: "M167 72c19,-38 37,-56 75,-56 42,0 76,33 76,75 0,76 -76,151 -151,227 -76,-76 -151,-151 -151,-227 0,-42 33,-75 75,-75 38,0 57,18 76,56z",
-      matrix: new DOMMatrix([
-        0.03333333333333333, 0, 0, 0.03333333333333333, -5.566666666666666,
-        -5.533333333333333,
-      ]),
-    });
-
 
     if (newLikedState) {
-      // Trigger heart-shaped confetti when liked
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 1 },
-        shapes: [heart],
-        colors: ["#FF1493", "#FF69B4", "#FFB6C1", "#FFC0CB"],
-      });
+      triggerConfetti();
     }
 
     if (onLikeChange) {
