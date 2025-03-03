@@ -132,22 +132,34 @@ export default function Dashboard() {
   }
 
   function triggerConfetti() {
+    // Use emojis directly as confetti
+    const emojis = ['😘', '❤️', '💕', '💖', '💓', '💞'];
     const scalar = 2;
-    const unicorn = confetti.shapeFromText({ text: "😘", scalar });
-
+    const emojishape = confetti.shapeFromText({ text: "😘", scalar });
+    
     confetti({
-      particleCount: 30,
-      spread: 360,
-      ticks: 60,
-      gravity: 0,
-      decay: 0.96,
-      startVelocity: 20,
-      shapes: [unicorn],
-      scalar: scalar,
-      // particleCount: 100,
-      // spread: 70,
+      particleCount: 50,
+      scalar: 2,
+      angle: 90,
+      spread: 40,
       origin: { y: 1 },
-      // colors: ["#FF1493", "#FF69B4", "#FFB6C1", "#FFC0CB"],
+      shapes: [emojishape],
+    });
+    
+    // Add emoji particles separately for better visibility
+    emojis.forEach((emoji, index) => {
+      setTimeout(() => {
+        const scalar = 2;
+        const emojishape = confetti.shapeFromText({ text: emoji, scalar });
+        confetti({
+          particleCount: 50,
+          scalar: 1,
+          angle: 0 + index * 30,
+          spread: 40,
+          origin: { y: 1 },
+          shapes: [emojishape],
+        });
+      }, index * 150);
     });
   }
 
@@ -227,7 +239,8 @@ export default function Dashboard() {
         prev.map(msg => msg._id === id ? { ...msg, like: liked } : msg)
       );
       
-      toast.success(liked ? "Message liked!" : "Like removed");
+      toast.success(liked && "Тобі сподобалось ❤️");
+      toast.warning(!liked && "😥😭😨😱");
     } catch (error) {
       console.error("Error updating like status:", error);
       toast.error("Failed to update like status");
@@ -246,7 +259,10 @@ export default function Dashboard() {
           <Card className="bg-gradient-to-r from-indigo-500/10 to-pink-500/10 overflow-hidden">
             <div className=" p-6">
               <div className="mb-4 flex items-center flex-col md:flex-row  justify-between">
-                <div className="flex items-center gap-2 text-indigo-700">
+                <div
+                  className="flex items-center gap-2 text-indigo-700"
+                  onClick={triggerConfetti}
+                >
                   <Clock className="h-5 w-5" />
                   <h3 className="font-medium text-sm md:text-base">
                     Наступне повідомлення через:

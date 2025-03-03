@@ -114,9 +114,8 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-              
             {children}
-            <Toaster />
+            <Toaster position="top-right" />
           </ThemeProvider>
         </Providers>
       </body>
