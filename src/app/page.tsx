@@ -27,7 +27,7 @@ export default function LandingPage() {
           </div>
 
           <h1 className="text-4xl font-bold text-pink-600 sm:text-5xl">
-            Любовні Вісті
+            Щоденні повідомлення кохання
           </h1>
 
           <p className="text-xl">

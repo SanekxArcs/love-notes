@@ -105,7 +105,13 @@ void main() {
   
   vec3 auroraColor = intensity * rampColor;
   
-  fragColor = vec4(auroraColor * auroraAlpha, auroraAlpha);
+  // Calculate luminance (brightness) using perception-based weights
+  float luminance = dot(auroraColor, vec3(0.299, 0.587, 0.114));
+  
+  // Adjust alpha based on luminance - darker colors become more transparent
+  float finalAlpha = auroraAlpha * smoothstep(0.0, 0.4, luminance);
+  
+  fragColor = vec4(auroraColor, finalAlpha);
 }
 `;
 
@@ -216,5 +222,5 @@ export default function Aurora(props: AuroraProps) {
     };
   }, [amplitude]);
 
-  return <div ref={ctnDom} className="absolute inset-0 -z-10 w-full h-full" />;
+  return <div ref={ctnDom} className="absolute inset-0 -z-10 w-full h-1/2 md:h-full" />;
 }
