@@ -239,7 +239,7 @@ export default function Dashboard() {
         prev.map(msg => msg._id === id ? { ...msg, like: liked } : msg)
       );
       
-      toast.success(liked && "Тобі сподобалось ❤️");
+      // toast.success(liked && "Тобі сподобалось ❤️");
       toast.warning(!liked && "😥😭😨😱");
     } catch (error) {
       console.error("Error updating like status:", error);
@@ -261,7 +261,7 @@ export default function Dashboard() {
               <div className="mb-4 flex items-center flex-col md:flex-row  justify-between">
                 <div
                   className="flex items-center gap-2 text-indigo-700"
-                  onClick={triggerConfetti}
+                  // onClick={triggerConfetti}
                 >
                   <Clock className="h-5 w-5" />
                   <h3 className="font-medium text-sm md:text-base">
