@@ -114,7 +114,7 @@ const BlurText: React.FC<BlurTextProps> = ({
         <AnimatedSpan
           key={index}
           style={props}
-          className="inline-block transition-transform will-change-[transform,filter,opacity]"
+          className=" transition-transform will-change-[transform,filter,opacity]"
         >
           {elements[index] === " " ? "\u00A0" : elements[index]}
           {animateBy === "words" && index < elements.length - 1 ? "\u00A0" : ""}
