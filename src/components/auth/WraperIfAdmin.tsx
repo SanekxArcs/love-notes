@@ -1,6 +1,6 @@
 "use client";
 
-import { LoaderCircle } from "lucide-react";
+// import { LoaderCircle } from "lucide-react";
 import { useSession,} from "next-auth/react";
 import { ReactNode } from "react";
 
@@ -19,7 +19,7 @@ export function WraperIfAdmin({ children }: WraperIfAdminProps) {
   if (status === "loading") {
     return (
       <>
-        <LoaderCircle className="animate-spin" />
+                {/* <LoaderCircle className="animate-spin" /> */}
       </>
     );
   }

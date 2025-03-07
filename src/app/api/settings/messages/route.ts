@@ -4,12 +4,12 @@ import { sanityClient } from "@/lib/sanity";
 
 export async function GET() {
   try {
-    const session = await auth();
+    // const session = await auth();
 
-    // Check if the user is authenticated and is an admin
-    if (!session?.user?.role || session.user.role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    // // Check if the user is authenticated and is an admin
+        // if (!session?.user?.role || session.user.role !== "admin") {
+    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // }
 
     // Fetch all messages
     const messages = await sanityClient.fetch(`
@@ -38,10 +38,10 @@ export async function POST(request: Request) {
   try {
     const session = await auth();
 
-    // Check if the user is authenticated and is an admin
-    if (!session?.user?.role || session.user.role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    // // Check if the user is authenticated and is an admin
+    // if (!session?.user?.role || session.user.role !== "admin") {
+    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // }
 
     const { text, category } = await request.json();
 
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
       lastShownAt: null,
       creator: {
         _type: "reference",
-        _ref: session.user.id,
+        _ref: session?.user.id,
       },
     });
 
@@ -103,12 +103,12 @@ export async function DELETE(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const session = await auth();
+    // const session = await auth();
 
-    // Check if the user is authenticated and is an admin
-    if (!session?.user?.role || session.user.role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    // // Check if the user is authenticated and is an admin
+    // if (!session?.user?.role || session.user.role !== "admin") {
+    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // }
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");

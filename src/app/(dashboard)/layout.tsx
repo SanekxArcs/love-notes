@@ -71,18 +71,19 @@ export default async function DashboardLayout({
                   <MailPlus />
                 </Button>
               </Link>
+              
+            <WraperIfAdmin>
               <Link href="/history">
                 <Button size="icon" variant="outline">
                   <MailCheck />
                 </Button></Link>
-            <WraperIfAdmin>
               <Link href="/admin">
                 <Button size="icon" variant="outline">
                   <Database />
                 </Button>
               </Link>
-              <Logout />
             </WraperIfAdmin>
+            <Logout />
           </div>
         </header>
 
