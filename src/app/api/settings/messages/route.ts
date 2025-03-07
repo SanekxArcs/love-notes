@@ -33,8 +33,16 @@ export async function GET() {
     );
   }
 }
+
 export async function POST(request: Request) {
   try {
+    const session = await auth();
+
+    // Check if the user is authenticated and is an admin
+    if (!session?.user?.role || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { text, category } = await request.json();
 
     // Validate input
@@ -45,7 +53,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create document in Sanity
+    // Create document in Sanity with creator reference from the current user
     const message = await sanityClient.create({
       _type: "message",
       text,
@@ -53,6 +61,10 @@ export async function POST(request: Request) {
       isShown: false,
       like: false,
       lastShownAt: null,
+      creator: {
+        _type: "reference",
+        _ref: session.user.id,
+      },
     });
 
     return NextResponse.json({ message }, { status: 201 });

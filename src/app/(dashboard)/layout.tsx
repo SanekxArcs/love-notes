@@ -8,7 +8,7 @@ import { redirect } from "next/navigation";
 import Logout from "@/components/auth/lodout";
 import { WraperIfAdmin } from "@/components/auth/WraperIfAdmin";
 import { SanityLive } from "@/sanity/lib/live";
-import { Database, MailCheck, MessageCircleHeart, User } from "lucide-react";
+import { Database, MailCheck, MailPlus, MessageCircleHeart, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Particles from "@/components/reactbits/Particles";
 import BlurText from "@/components/reactbits/BlurText";
@@ -61,17 +61,21 @@ export default async function DashboardLayout({
                 <User />
               </Button>
             </Link>
-            <WraperIfAdmin>
-              <Link href="/messages">
+            <Link href="/dashboard">
+              <Button size="icon" variant="outline">
+                <MessageCircleHeart />
+              </Button>
+            </Link>
+            <Link href="/messages">
                 <Button size="icon" variant="outline">
-                  <MessageCircleHeart />
+                  <MailPlus />
                 </Button>
               </Link>
               <Link href="/history">
                 <Button size="icon" variant="outline">
                   <MailCheck />
-                </Button>
-              </Link>
+                </Button></Link>
+            <WraperIfAdmin>
               <Link href="/admin">
                 <Button size="icon" variant="outline">
                   <Database />

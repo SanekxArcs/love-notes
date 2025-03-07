@@ -157,7 +157,7 @@ export function LoveMessageCard({
             </div>
             {isExtraMessage && (
               <span className=" absolute  select-none  pointer-cursor -right-4 top-10 px-2 py-0.5 text-xs bg-red-500/50 uppercase scale-80 dark:bg-red-600/50 rounded-full flex items-center">
-                <Star size={10} className="mr-1" /> Додаткове{" "}
+                <Star size={10} className="mr-1" /> Додаткове
                 <Star size={10} className="ml-1" />
               </span>
             )}

@@ -61,7 +61,12 @@ export const messageType = defineType({
       name: "creator",
       title: "Creator",
       type: "reference",
+      description: "The user who created this message (required for tracking and batch operations)",
       to: [{ type: "user" }],
+      validation: (Rule) => Rule.required().error('Creator is required to track message ownership'),
+      options: {
+        disableNew: false, // Allow creating new users if needed
+      },
     }),
   ],
   preview: {

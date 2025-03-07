@@ -1,84 +1,78 @@
-import { NextResponse } from "next/server";
-import { sanityClient } from "@/lib/sanity";
+import { NextResponse } from 'next/server';
+import { sanityClient } from '@/lib/sanity';
 import { auth } from "@/auth";
 
-// Define Sanity message types
-interface SanityMessage {
-  _id: string;
-  text: string;
-  category: "daily" | "extra" | "unknown";
-  like: boolean;
-  shownAt: string;
-  userName: string;
-}
-
-export async function GET() {
+// GET endpoint to fetch message history
+export async function GET(request: Request) {
   try {
     const session = await auth();
-
-    // Check if the user is authenticated
-    if (!session || !session.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    // Get partnerId from query parameters
+    const { searchParams } = new URL(request.url);
+    const partnerId = searchParams.get('partnerId');
+    
+    if (!partnerId) {
+      return NextResponse.json({ error: 'Partner ID is required' }, { status: 400 });
     }
 
-    // const userName = session.user.name || session.user.phone;
+    // First, find the partner user by their partnerIdToSend
+    const partner = await sanityClient.fetch(
+      `*[_type == "user" && partnerIdToSend == $partnerId][0]._id`,
+      { partnerId }
+    );
+    
+    if (!partner) {
+      return NextResponse.json({ error: 'Partner not found for the provided ID' }, { status: 404 });
+    }
+    
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
-    // Fetch today's messages
-    const todayMessages = await sanityClient.fetch<SanityMessage[]>(`
-      *[_type == "message" && 
-        isShown == true && 
-        dateTime(shownAt) >= dateTime($today)
-      ] | order(shownAt desc) {
-        _id,
-        text,
-        category,
-        like,
-        shownAt,
-        userName
+    
+    // Fetch messages with where creator reference is the partner's _id
+    const messages = await sanityClient.fetch(
+      `{
+        "todayMessages": *[
+          _type == "message" && 
+          isShown == true && 
+          creator._ref == $partnerId && 
+          defined(shownAt) && 
+          dateTime(shownAt) >= dateTime($today)
+        ] | order(shownAt desc) {
+          _id,
+          text,
+          category,
+          like,
+          shownAt,
+          name
+        },
+        "previousMessages": *[
+          _type == "message" && 
+          isShown == true && 
+          creator._ref == $partnerId && 
+          defined(shownAt) && 
+          dateTime(shownAt) < dateTime($today)
+        ] | order(shownAt desc) {
+          _id,
+          text,
+          category,
+          like,
+          shownAt,
+          name
+        }
+      }`,
+      { 
+        partnerId: partner, // Use the actual partner's _id 
+        today: today.toISOString()
       }
-    `, { today: today.toISOString() });
-
-    // Filter messages for this user
-    const userTodayMessages = todayMessages.filter(
-      (msg) =>
-        msg.userName === session.user?.name ||
-        msg.userName === session.user?.phone
     );
-
-    // Fetch previous messages (exclude today's)
-    const previousMessages = await sanityClient.fetch<SanityMessage[]>(`
-      *[_type == "message" && 
-        isShown == true && 
-        dateTime(shownAt) < dateTime($today)
-      ] | order(shownAt desc)[0...20] {
-        _id,
-        text,
-        category,
-        like,
-        shownAt,
-        userName
-      }
-    `, { today: today.toISOString() });
-
-    // Filter messages for this user
-    const userPreviousMessages = previousMessages.filter(
-      (msg) =>
-        msg.userName === session.user?.name ||
-        msg.userName === session.user?.phone
-    );
-
-    return NextResponse.json({
-      todayMessages: userTodayMessages,
-      previousMessages: userPreviousMessages
-    });
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error fetching message history:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch message history", details: errorMessage },
-      { status: 500 }
-    );
+    
+    return NextResponse.json(messages);
+  } catch (error) {
+    console.error('Error fetching message history:', error);
+    return NextResponse.json({ error: 'Failed to fetch message history' }, { status: 500 });
   }
 }

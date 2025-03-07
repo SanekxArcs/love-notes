@@ -55,6 +55,8 @@ export default function UserProfile() {
   const [isSaving, setIsSaving] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [partnerName, setPartnerName] = useState<string | null>(null);
+  const [loadingPartner, setLoadingPartner] = useState(false);
 
   useEffect(() => {
     async function fetchUserData() {
@@ -82,6 +84,38 @@ export default function UserProfile() {
 
     fetchUserData();
   }, [session]);
+
+  // Add effect to fetch partner info when ID changes
+  useEffect(() => {
+    async function fetchPartnerInfo() {
+      const partnerId = userData?.partnerIdToReceiveFrom;
+      
+      // Reset partner name if ID is empty
+      if (!partnerId || partnerId.trim() === '') {
+        setPartnerName(null);
+        return;
+      }
+      
+      try {
+        setLoadingPartner(true);
+        const response = await fetch(`/api/users/partner-info?partnerId=${partnerId}`);
+        
+        if (!response.ok) {
+          throw new Error('Не вдалося отримати інформацію про партнера');
+        }
+        
+        const data = await response.json();
+        setPartnerName(data.name || 'Невідомий партнер');
+      } catch (error) {
+        console.error('Помилка при отриманні інформації про партнера:', error);
+        setPartnerName(null);
+      } finally {
+        setLoadingPartner(false);
+      }
+    }
+
+    fetchPartnerInfo();
+  }, [userData?.partnerIdToReceiveFrom]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -351,6 +385,19 @@ export default function UserProfile() {
                 value={userData?.partnerIdToReceiveFrom || ""}
                 onChange={handleInputChange}
               />
+              {loadingPartner && (
+                <p className="text-xs text-gray-500">Пошук партнера...</p>
+              )}
+              {!loadingPartner && partnerName && (
+                <p className="text-sm font-medium text-green-600 dark:text-green-400">
+                  Партнер: {partnerName}
+                </p>
+              )}
+              {!loadingPartner && userData?.partnerIdToReceiveFrom && !partnerName && (
+                <p className="text-sm text-red-500">
+                  Партнера не знайдено. Перевірте ID.
+                </p>
+              )}
               <p className="text-xs text-gray-500">
                 Введіть ID вашого партнера, щоб надсилати йому повідомлення
               </p>

@@ -26,22 +26,17 @@ export async function POST(request: Request) {
       );
     }
 
-    console.log(`Updating message ${messageId} like status to ${liked}`);
-
     // Update the like status directly in the message document
-    const updatedDoc = await sanityClient
+    await sanityClient
       .patch(messageId)
       .set({ like: liked })
       .commit();
 
-    console.log("Updated document:", updatedDoc);
-
-    return NextResponse.json({ success: true, liked, updatedDoc });
+    return NextResponse.json({ success: true });
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error updating like status:", error);
+    console.error("Error updating message like status:", error);
     return NextResponse.json(
-      { error: "Failed to update like status", details: errorMessage },
+      { error: "Failed to update like status" },
       { status: 500 }
     );
   }

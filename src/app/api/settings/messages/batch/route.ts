@@ -46,7 +46,7 @@ export async function POST(request: Request) {
     // Create a transaction for batch processing
     const transaction = sanityClient.transaction();
     
-    // Add each message to the transaction with correct schema types
+    // Add each message to the transaction with correct schema types including creator
     messages.forEach(text => {
       const newMessage = {
         _type: "message",
@@ -55,6 +55,10 @@ export async function POST(request: Request) {
         isShown: isShown || false,
         like: like || false,
         shownAt: null,
+        creator: {
+          _type: "reference",
+          _ref: session.user.id,
+        },
       };
       transaction.create(newMessage);
     });

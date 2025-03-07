@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus } from "lucide-react";
+import { LoaderCircle, Plus } from "lucide-react";
 
 interface BatchAddDialogProps {
   isOpen: boolean;
@@ -73,11 +73,11 @@ export default function BatchAddDialog({ isOpen, setIsOpen, onSubmit }: BatchAdd
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="col-span-1">
+        <Button variant="outline"className="col-span-1">
           <Plus className="mr-2 h-4 w-4" /> Масове додавання
         </Button>
       </DialogTrigger>
-      <DialogContent className="">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Масове додавання повідомлень</DialogTitle>
         </DialogHeader>
@@ -92,7 +92,7 @@ export default function BatchAddDialog({ isOpen, setIsOpen, onSubmit }: BatchAdd
               onChange={(e) => setBatchMessages(e.target.value)}
               rows={10}
               placeholder="Введіть кожне повідомлення з нового рядка..."
-              className="resize-none"
+              className="resize-none  max-h-[60svh] overflow-y-auto"
               required
             />
             <p className="text-xs text-gray-500">
@@ -114,8 +114,7 @@ export default function BatchAddDialog({ isOpen, setIsOpen, onSubmit }: BatchAdd
             >
               {isSubmitting ? (
                 <>
-                  <span className="mr-2 h-4 w-4 animate-spin">⏳</span>
-                  Збереження...
+                  <LoaderCircle className="animate-spin h-4 w-4" /><span className=" animate-pulse">Збереження...</span>
                 </>
               ) : (
                 "Зберегти повідомлення"

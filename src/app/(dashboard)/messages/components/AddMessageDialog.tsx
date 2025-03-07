@@ -87,7 +87,7 @@ export default function AddMessageDialog({
       }}
     >
       <DialogTrigger asChild>
-        <Button className="col-span-1" size="sm">
+        <Button className="col-span-1">
           <Plus className="mr-2 h-4 w-4" /> Додати
         </Button>
       </DialogTrigger>

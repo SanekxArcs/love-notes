@@ -1,101 +1,128 @@
-import { NextResponse } from "next/server";
-import { sanityClient } from "@/lib/sanity";
+import { NextResponse } from 'next/server';
+import { sanityClient } from '@/lib/sanity';
 import { auth } from "@/auth";
 
-// Define Sanity message types
-interface SanityMessage {
-  _id: string;
-  text: string;
-  category?: "daily" | "extra" | "unknown";
-  like?: boolean;
-  shownAt?: string;
-  userName?: string;
-  isShown?: boolean;
-}
-
-export async function GET() {
+// GET endpoint to fetch a random unshown message
+export async function GET(request: Request) {
   try {
     const session = await auth();
-
-    // Check if the user is authenticated
-    if (!session || !session.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    // Get partnerId from query parameters
+    const { searchParams } = new URL(request.url);
+    const partnerId = searchParams.get('partnerId');
+    
+    if (!partnerId) {
+      return NextResponse.json({ error: 'Partner ID is required' }, { status: 400 });
     }
 
-    const userName = session.user.name || session.user.phone;
+    // Find the partner user by their partnerIdToSend
+    const partner = await sanityClient.fetch(
+      `*[_type == "user" && partnerIdToSend == $partnerId][0]._id`,
+      { partnerId }
+    );
+    
+    if (!partner) {
+      return NextResponse.json({ error: 'Partner not found for the provided ID' }, { status: 404 });
+    }
+    
+    // Get user's login to set as userName in the message
+    const login = session.user.login;
+
+    // Find a random unshown message created by the partner
+    // Prioritize 'daily' category if available
+    const dailyMessage = await sanityClient.fetch(
+      `*[
+        _type == "message" && 
+        isShown == false && 
+        creator._ref == $partnerId && 
+        category == "daily"
+      ][0]`,
+      { partnerId: partner }
+    );
+    
+    // If no daily message is available, try to get any unshown message
+    const randomMessage = dailyMessage || await sanityClient.fetch(
+      `*[
+        _type == "message" && 
+        isShown == false && 
+        creator._ref == $partnerId
+      ][0]`,
+      { partnerId: partner }
+    );
+    
+    if (!randomMessage) {
+      // Specific error message for no unshown messages
+      return NextResponse.json(
+        { error: 'No unshown messages available from partner' }, 
+        { status: 404 }
+      );
+    }
+
+    // Get today's message count to determine if this is the first message (daily) or an extra message
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Fetch messages shown to this user today
-    const todayMessages = await sanityClient.fetch<SanityMessage[]>(`
-      *[_type == "message" && 
-        userName == $userName && 
-        dateTime(shownAt) >= dateTime($today)
-      ]
-    `, { userName, today: today.toISOString() });
-
-    const todayCount = todayMessages.length;
-    
-    // Determine category based on today's count - first message is daily, rest are extra
-    const category = todayCount === 0 ? "daily" : "extra";
-
-    console.log(`User ${userName} has ${todayCount} messages today. This will be a ${category} message.`);
-
-    // Get messages that haven't been shown yet
-    const unseenMessages = await sanityClient.fetch<SanityMessage[]>(`
-      *[_type == "message" && isShown == false]
-    `);
-
-    // Select a random message from JavaScript
-    let selectedMessage: SanityMessage | undefined;
-    
-    if (unseenMessages && unseenMessages.length > 0) {
-      // Get a random message from the unseen ones
-      const randomIndex = Math.floor(Math.random() * unseenMessages.length);
-      selectedMessage = unseenMessages[randomIndex];
-    } else {
-      // If no unshown messages, get any random message
-      const allMessages = await sanityClient.fetch<SanityMessage[]>(`*[_type == "message"]`);
-      
-      if (allMessages && allMessages.length > 0) {
-        const randomIndex = Math.floor(Math.random() * allMessages.length);
-        selectedMessage = allMessages[randomIndex];
+    const todayMessageCount = await sanityClient.fetch(
+      `count(*[
+        _type == "userMessageHistory" && 
+        userId == $userId &&
+        shownAt >= $todayStart && 
+        shownAt <= $todayEnd
+      ])`,
+      {
+        userId: session.user.id,
+        todayStart: today.toISOString(),
+        todayEnd: new Date(today.getTime() + 24 * 60 * 60 * 1000 - 1).toISOString()
       }
-    }
-
-    if (selectedMessage) {
-      const currentTime = new Date().toISOString();
-
-      // Update message to mark as shown and associate with this user
-      const updatedMessage = await sanityClient
-        .patch(selectedMessage._id)
-        .set({
-          isShown: true,
-          shownAt: currentTime,
-          userName: userName,
-          category: category // Set the category based on today's count
-        })
-        .commit();
-
-      return NextResponse.json({
-        message: {
-          _id: updatedMessage._id,
-          text: updatedMessage.text,
-          category,
-          like: false,
-          shownAt: currentTime,
-          isToday: true,
-        }
-      });
-    }
-
-    return NextResponse.json({ error: "No messages available" }, { status: 404 });
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error fetching random message:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch message", details: errorMessage },
-      { status: 500 }
     );
+
+    // Determine message type - first message is daily, others are extra
+    const messageType = todayMessageCount === 0 ? "daily" : "extra";
+    
+    // Update the message as shown with timestamp and user info
+    const now = new Date().toISOString();
+    await sanityClient
+      .patch(randomMessage._id)
+      .set({
+        isShown: true, // Been Shown = true
+        shownAt: now,
+        lastShownAt: now,
+        shownBy: {
+          _type: "reference",
+          _ref: session.user.id
+        },
+        userName: session.user.name || login, // User Name who saw the message
+        messageType: messageType // Daily or Extra based on count
+      })
+      .commit();
+
+    // Create history record
+    await sanityClient.create({
+      _type: "userMessageHistory",
+      userId: session.user.id,
+      messageId: {
+        _ref: randomMessage._id,
+        _type: "reference"
+      },
+      shownAt: now,
+      isExtraMessage: messageType === "extra",
+      userName: session.user.name || login
+    });
+    
+    // Return the message with updated info
+    return NextResponse.json({
+      message: {
+        ...randomMessage,
+        shownAt: now,
+        messageType: messageType
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching random message:', error);
+    return NextResponse.json({ error: 'Failed to fetch random message' }, { status: 500 });
   }
 }
