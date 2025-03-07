@@ -66,13 +66,14 @@ export default async function DashboardLayout({
                 <MessageCircleHeart />
               </Button>
             </Link>
-            <Link href="/messages">
+            
+              
+            <WraperIfAdmin>
+              <Link href="/messages">
                 <Button size="icon" variant="outline">
                   <MailPlus />
                 </Button>
               </Link>
-              
-            <WraperIfAdmin>
               <Link href="/history">
                 <Button size="icon" variant="outline">
                   <MailCheck />
