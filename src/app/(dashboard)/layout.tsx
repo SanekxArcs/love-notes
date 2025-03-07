@@ -8,7 +8,7 @@ import { redirect } from "next/navigation";
 import Logout from "@/components/auth/lodout";
 import { WraperIfAdmin } from "@/components/auth/WraperIfAdmin";
 import { SanityLive } from "@/sanity/lib/live";
-import { Database, MessageCircleHeart, Settings } from "lucide-react";
+import { Database, MailCheck, MessageCircleHeart, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Particles from "@/components/reactbits/Particles";
 import BlurText from "@/components/reactbits/BlurText";
@@ -42,7 +42,7 @@ export default async function DashboardLayout({
         <div className="fixed right-4 bottom-4 z-10">
           <ModeToggle />
         </div>
-        <div className=" mx-auto max-w-3xl px-4 pt-6  flex flex-col md:flex-row gap-6 justify-between ">
+        <header className=" mx-auto lg:px-8 max-w-3xl lg:max-w-7xl px-4 pt-6  flex flex-col md:flex-row gap-6 justify-between ">
           <div className="flex flex-col items-center md:items-start gap-4">
             <h1>
               <BlurText
@@ -56,15 +56,20 @@ export default async function DashboardLayout({
             <AuthStatus />
           </div>
           <div className="flex flex-row justify-end items-end gap-2 px-4 md:px-0 lg:px-0">
+            <Link href="/profile">
+              <Button size="icon" variant="outline">
+                <User />
+              </Button>
+            </Link>
             <WraperIfAdmin>
-              <Link href="/settings/settings">
-                <Button size="icon" variant="outline">
-                  <Settings />
-                </Button>
-              </Link>
-              <Link href="/settings/messages">
+              <Link href="/messages">
                 <Button size="icon" variant="outline">
                   <MessageCircleHeart />
+                </Button>
+              </Link>
+              <Link href="/history">
+                <Button size="icon" variant="outline">
+                  <MailCheck />
                 </Button>
               </Link>
               <Link href="/admin">
@@ -75,9 +80,8 @@ export default async function DashboardLayout({
               <Logout />
             </WraperIfAdmin>
           </div>
-        </div>
+        </header>
 
-        <header></header>
         <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           {children}
           <SanityLive />

@@ -21,4 +21,12 @@ export const structure: StructureResolver = (S) =>
         .title("User Message History")
         .schemaType("userMessageHistory")
         .child(S.documentTypeList("userMessageHistory")),
+        
+      // Users list
+      S.listItem()
+        .title("Users")
+        .schemaType("user")
+        .child(S.documentTypeList("user")),
     ]);
+
+    

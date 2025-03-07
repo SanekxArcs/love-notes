@@ -18,14 +18,28 @@ export function AuthState() {
   }
 
   if (status === "unauthenticated") {
-    return <Link href="/login">
-            <Button
-              size="lg"
-              className="bg-pink-600 hover:bg-pink-700 text-white px-8 py-6 text-lg rounded-full"
-            >
-              Увійти
-            </Button>
-          </Link>;
+    return (
+      <div className="flex items-center gap-2">
+        <Link href="/login">
+          <Button
+            size="lg"
+            className="bg-pink-600 hover:bg-pink-700 text-white px-8 py-6 text-lg rounded-full"
+          >
+            Увійти
+          </Button>
+        </Link>
+          <span className="text-muted-foreground">або</span>
+        <Link href="/register">
+          <Button
+            className=" hover:bg-pink-900 text-white px-8 py-6 text-lg rounded-full"
+            variant="outline"
+            size="lg"
+          >
+            Створити профіль
+          </Button>
+        </Link>
+      </div>
+    );
   }
 
   return (

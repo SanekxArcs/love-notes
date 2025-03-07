@@ -14,7 +14,7 @@ export const messageType = defineType({
       description: "The text of the message, limit 500 symbols",
       validation: (Rule) => Rule.required(),
     }),
-    
+
     defineField({
       name: "isShown",
       title: "Has Been Shown",
@@ -55,7 +55,13 @@ export const messageType = defineType({
       name: "shownAt",
       title: "Shown At",
       type: "datetime",
-      description: "The date and time this message was shown"
+      description: "The date and time this message was shown",
+    }),
+    defineField({
+      name: "creator",
+      title: "Creator",
+      type: "reference",
+      to: [{ type: "user" }],
     }),
   ],
   preview: {
@@ -63,17 +69,19 @@ export const messageType = defineType({
       text: "text",
       category: "category",
       like: "like",
-      isShown: "isShown",
+      userName: "userName",
     },
-    prepare({ text, category, like, isShown }) {
+    prepare({ text, category, like, userName }) {
       const truncatedText =
         text && text.length > 30 ? text.substring(0, 30) + "..." : text;
-      const likeStatus = like ? "❤️ Liked" : "🤍 Not liked";
-      const shown = isShown ? "Вже побачила" : "Ще ні";
+      const likeStatus = like ? "❤️" : "🤍";
+      const shown = userName ? ` ${userName}` : "❔";
+      const categoryShow =
+        category === "daily" ? "📅" : category === "extra" ? "🎁" : "❓";
 
       return {
         title: truncatedText,
-        subtitle: `${likeStatus} | ${shown} | Category: ${category}`,
+        subtitle: `${likeStatus} | ${shown} | ${categoryShow}`,
       };
     },
   },

@@ -87,6 +87,7 @@ export const metadata: Metadata = {
   other: {
     'theme-color': '#FF1493',
     'msapplication-TileColor': '#FF1493',
+    'apple-mobile-web-app-title': 'LoveNotes',
   }
 };
 

@@ -1,8 +1,8 @@
-// app/(dashboard)/dashboard/page.tsx
+
 "use client";
 
 import { useState, useEffect } from "react";
-// import { useSession } from "next-auth/react";
+
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { LoveMessageCard } from "@/components/ui-app/love-message-card";
@@ -11,6 +11,7 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { SpinnerIcon } from "@sanity/icons";
 import confetti from "canvas-confetti";
+
 // Define types for our message objects
 interface Message {
   _id: string;
@@ -28,7 +29,6 @@ interface Settings {
 }
 
 export default function Dashboard() {
-  // const { data: session } = useSession({ required: true });
   const [todayMessages, setTodayMessages] = useState<Message[]>([]);
   const [previousMessages, setPreviousMessages] = useState<Message[]>([]);
   const [remainingTime, setRemainingTime] = useState("");
@@ -40,11 +40,9 @@ export default function Dashboard() {
   });
 
   useEffect(() => {
-    // Load settings and messages on initial page load
     fetchSettings();
     fetchMessages();
 
-    // Set up timer for next message
     updateRemainingTime();
     const timer = setInterval(updateRemainingTime, 1000);
     return () => clearInterval(timer);
@@ -65,7 +63,6 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error("Error fetching settings:", error);
-      // Keep default settings
     }
   }
 
@@ -343,7 +340,6 @@ export default function Dashboard() {
             ))}
           </motion.div>
         )}
-        {/* Previous messages */}
         {previousMessages.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}

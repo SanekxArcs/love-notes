@@ -4,8 +4,6 @@ import { Heart } from "lucide-react";
 import { AuthState } from "@/components/auth/auth-state";
 import Aurora from "@/components/reactbits/Aurora";
 
-
-
 export default function LandingPage() {
   // Only render the landing page if user is not authenticated
   return (
@@ -35,7 +33,7 @@ export default function LandingPage() {
             половинці. Зробіть кожен день особливим!
           </p>
 
-          <div className="flex justify-center pt-6">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6">
             <AuthState />
           </div>
 
