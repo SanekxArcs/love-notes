@@ -1,4 +1,10 @@
-// import NextAuth from "next-auth";
+import NextAuth from "next-auth";
+
+export const { handlers, auth } = NextAuth(async (req) => {
+ console.log(req) 
+ return 
+}
+);
 
 declare module "next-auth" {
   /**
@@ -9,7 +15,7 @@ declare module "next-auth" {
       id?: string;
       login?: string;
       name?: string | null;
-      number?: string | null;
+      phone?: string | null;
       image?: string | null;
       role?: string;
       partnerIdToSend?: string;
@@ -24,7 +30,7 @@ declare module "next-auth" {
     id: string;
     login: string;
     name?: string | null;
-    number?: string | null;
+    phone?: string | null;
     image?: string | null;
     role?: string;
     partnerIdToSend?: string;
@@ -40,6 +46,8 @@ declare module "next-auth/jwt" {
     id?: string;
     login?: string;
     role?: string;
+    phone?: string | null;
+    name?: string | null;
     partnerIdToSend?: string;
     partnerIdToReceiveFrom?: string;
   }

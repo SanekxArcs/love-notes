@@ -21,7 +21,7 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // const userName = session.user.name || session.user.email;
+    // const userName = session.user.name || session.user.phone;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -41,8 +41,10 @@ export async function GET() {
     `, { today: today.toISOString() });
 
     // Filter messages for this user
-    const userTodayMessages = todayMessages.filter(msg => 
-      msg.userName === session.user?.name || msg.userName === session.user?.email
+    const userTodayMessages = todayMessages.filter(
+      (msg) =>
+        msg.userName === session.user?.name ||
+        msg.userName === session.user?.phone
     );
 
     // Fetch previous messages (exclude today's)
@@ -61,8 +63,10 @@ export async function GET() {
     `, { today: today.toISOString() });
 
     // Filter messages for this user
-    const userPreviousMessages = previousMessages.filter(msg => 
-      msg.userName === session.user?.name || msg.userName === session.user?.email
+    const userPreviousMessages = previousMessages.filter(
+      (msg) =>
+        msg.userName === session.user?.name ||
+        msg.userName === session.user?.phone
     );
 
     return NextResponse.json({

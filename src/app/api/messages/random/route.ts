@@ -22,7 +22,7 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userName = session.user.name || session.user.email;
+    const userName = session.user.name || session.user.phone;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
