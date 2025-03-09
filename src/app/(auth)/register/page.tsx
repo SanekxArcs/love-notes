@@ -31,7 +31,7 @@ export default function RegisterPage() {
       generatedPassword += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     setPassword(generatedPassword);
-    toast.info("Password generated!");
+    toast.info("Пароль згенеровано!");
   };
 
   const checkLoginAvailability = async (loginToCheck: string) => {
@@ -128,7 +128,7 @@ export default function RegisterPage() {
         throw new Error(data.message || "Failed to register");
       }
 
-      toast.success("Registration successful!");
+      toast.success("Реєстрація успішна!");
       router.push("/login");
     } catch (error) {
       console.error("Registration error:", error);
@@ -178,21 +178,24 @@ export default function RegisterPage() {
                 placeholder="Твій логін наприклад user123"
                 required
                 className={`transition-colors ${
-                  loginStatus === 'available' ? 'border-green-500 focus-visible:ring-green-500/20' :
-                  loginStatus === 'taken' ? 'border-red-500 focus-visible:ring-red-500/20' : ''
+                  loginStatus === "available"
+                    ? "border-green-500 focus-visible:ring-green-500/20"
+                    : loginStatus === "taken"
+                      ? "border-red-500 focus-visible:ring-red-500/20"
+                      : ""
                 }`}
               />
-              {loginStatus === 'checking' && (
+              {loginStatus === "checking" && (
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
                   <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                 </div>
               )}
-              {loginStatus === 'available' && (
+              {loginStatus === "available" && (
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
                   <CheckCircle className="h-4 w-4 text-green-500" />
                 </div>
               )}
-              {loginStatus === 'taken' && (
+              {loginStatus === "taken" && (
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
                   <XCircle className="h-4 w-4 text-red-500" />
                 </div>
@@ -221,7 +224,7 @@ export default function RegisterPage() {
                 placeholder="••••••••"
                 required
               />
-              <Button 
+              <Button
                 type="button"
                 variant="ghost"
                 size="icon"
@@ -239,7 +242,9 @@ export default function RegisterPage() {
                 </span>
               </Button>
             </div>
-            <p className="text-red-500 pl-2 text-[10px]">Не пиши свой справжній пароль!</p>
+            <p className="text-red-500 pl-2 text-[10px]">
+              Не пиши свій справжній пароль!
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -259,19 +264,29 @@ export default function RegisterPage() {
             </p>
           )}
 
-          <Button type="submit" className="w-full" disabled={isLoading || loginStatus === 'taken'}>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={
+              isLoading ||
+              loginStatus === "taken" ||
+              loginStatus === "checking" ||
+              password === "" ||
+              password.length < 8
+            }
+          >
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Збереження...
               </>
             ) : (
-              "Реєстрація"
+              "Зареєструватися"
             )}
           </Button>
 
           <div className="text-center text-sm">
-            Вже маєш профіль?{" "}
+            Вже маєш профіль?
             <Link href="/login" className="underline text-primary">
               Вхід
             </Link>
