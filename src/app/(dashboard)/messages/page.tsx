@@ -42,7 +42,6 @@ export default function AdminMessages() {
 
   async function fetchMessages() {
     try {
-      // Fetch messages
       const messagesResponse = await fetch("/api/settings/messages");
       const messagesData = await messagesResponse.json();
 
@@ -95,7 +94,6 @@ export default function AdminMessages() {
         const data = await response.json();
         setMessages([...data.messages, ...messages]);
         toast.success(`Успішно додано ${data.count} повідомлень!`);
-        //reload component
         fetchMessages();
         return true;
       } else {
@@ -228,15 +226,7 @@ export default function AdminMessages() {
               setIsOpen={setIsAddDialogOpen}
               onSubmit={handleAddMessage}
             />
-            <Button 
-              variant="destructive" 
-              className="w-full md:w-auto"
-              onClick={() => setIsDeleteDialogOpen(true)}
-              disabled={unshownCount === 0}
-            >
-              <Trash2 className="h-4 w-4" />
-              {unshownCount} шт.
-            </Button>
+            
             <DeleteAllDialog
               isOpen={isDeleteDialogOpen}
               setIsOpen={setIsDeleteDialogOpen}
@@ -255,6 +245,18 @@ export default function AdminMessages() {
             onDelete={handleDeleteMessage}
           />
       </div>
+      <div className="flex flex-row justify-end items-center">
+        <Button 
+              variant="destructive" 
+              className="w-full md:w-auto"
+              onClick={() => setIsDeleteDialogOpen(true)}
+              disabled={unshownCount === 0}
+            >
+              <Trash2 className="h-4 w-4" />
+              {unshownCount} шт.
+            </Button>
+      </div>
+      
     </div>
   );
 }

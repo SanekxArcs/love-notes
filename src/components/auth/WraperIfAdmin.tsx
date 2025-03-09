@@ -25,7 +25,7 @@ export function WraperIfAdmin({ children }: WraperIfAdminProps) {
   }
 
   if (status === "unauthenticated") {
-    return <p>Not logged in</p>;
+    return <p>Помилка завантаження</p>;
   }
 
   return (

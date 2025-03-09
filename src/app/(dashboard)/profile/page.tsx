@@ -3,12 +3,21 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Clipboard, Check, RefreshCw, Eye, EyeOff, RotateCcw } from "lucide-react";
+import {
+  Clipboard,
+  Check,
+  RefreshCw,
+  Eye,
+  EyeOff,
+  RotateCcw,
+} from "lucide-react";
 import { redirect } from "next/navigation";
+import { CustomTooltip } from "@/components/ui/custom-tooltip";
+import { BackButton } from "@/components/ui/back-button";
 
 interface UserData {
   _id: string;
@@ -38,19 +47,21 @@ interface ExtendedSession {
     id?: string;
     partnerIdToSend?: string;
     partnerIdToReceiveFrom?: string;
-  }
+  };
 }
 
 export default function UserProfile() {
   const { data: session } = useSession({
     required: true,
     onUnauthenticated() {
-      redirect('/login');
+      redirect("/login");
     },
   }) as { data: ExtendedSession | null };
 
   const [userData, setUserData] = useState<UserData | null>(null);
-  const [originalUserData, setOriginalUserData] = useState<UserData | null>(null);
+  const [originalUserData, setOriginalUserData] = useState<UserData | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -60,23 +71,24 @@ export default function UserProfile() {
 
   useEffect(() => {
     async function fetchUserData() {
-      if (!session?.user?.login) return ;
+      if (!session?.user?.login) return;
 
-      
       try {
         setIsLoading(true);
-        const response = await fetch(`/api/users/profile?login=${session.user.login}`);
-        
+        const response = await fetch(
+          `/api/users/profile?login=${session.user.login}`
+        );
+
         if (!response.ok) {
-          throw new Error('Не вдалося отримати дані користувача');
+          throw new Error("Не вдалося отримати дані користувача");
         }
-        
+
         const data = await response.json();
         setUserData(data);
         setOriginalUserData(JSON.parse(JSON.stringify(data))); // Create a deep copy of the data
       } catch (error) {
-        console.error('Помилка при отриманні даних користувача:', error);
-        toast.error('Не вдалося завантажити профіль користувача');
+        console.error("Помилка при отриманні даних користувача:", error);
+        toast.error("Не вдалося завантажити профіль користувача");
       } finally {
         setIsLoading(false);
       }
@@ -89,25 +101,27 @@ export default function UserProfile() {
   useEffect(() => {
     async function fetchPartnerInfo() {
       const partnerId = userData?.partnerIdToReceiveFrom;
-      
+
       // Reset partner name if ID is empty
-      if (!partnerId || partnerId.trim() === '') {
+      if (!partnerId || partnerId.trim() === "") {
         setPartnerName(null);
         return;
       }
-      
+
       try {
         setLoadingPartner(true);
-        const response = await fetch(`/api/users/partner-info?partnerId=${partnerId}`);
-        
+        const response = await fetch(
+          `/api/users/partner-info?partnerId=${partnerId}`
+        );
+
         if (!response.ok) {
-          throw new Error('Не вдалося отримати інформацію про партнера');
+          throw new Error("Не вдалося отримати інформацію про партнера");
         }
-        
+
         const data = await response.json();
-        setPartnerName(data.name || 'Невідомий партнер');
+        setPartnerName(data.name || "Невідомий партнер");
       } catch (error) {
-        console.error('Помилка при отриманні інформації про партнера:', error);
+        console.error("Помилка при отриманні інформації про партнера:", error);
         setPartnerName(null);
       } finally {
         setLoadingPartner(false);
@@ -125,29 +139,31 @@ export default function UserProfile() {
   // Check if there are changes in the user data
   const hasChanges = () => {
     if (!userData || !originalUserData) return false;
-    
+
     // Compare each relevant field to detect changes
     return (
       userData.name !== originalUserData.name ||
       userData.password !== originalUserData.password ||
       userData.phone !== originalUserData.phone ||
       userData.partnerIdToSend !== originalUserData.partnerIdToSend ||
-      userData.partnerIdToReceiveFrom !== originalUserData.partnerIdToReceiveFrom ||
+      userData.partnerIdToReceiveFrom !==
+        originalUserData.partnerIdToReceiveFrom ||
       userData.dayMessageLimit !== originalUserData.dayMessageLimit
     );
   };
 
   const copyToClipboard = () => {
     if (!userData?.partnerIdToSend) return;
-    
-    navigator.clipboard.writeText(userData.partnerIdToSend)
+
+    navigator.clipboard
+      .writeText(userData.partnerIdToSend)
       .then(() => {
         setCopied(true);
-        toast.success('ID партнера скопійовано в буфер обміну!');
+        toast.success("ID партнера скопійовано в буфер обміну!");
         setTimeout(() => setCopied(false), 2000);
       })
       .catch(() => {
-        toast.error('Не вдалося скопіювати в буфер обміну');
+        toast.error("Не вдалося скопіювати в буфер обміну");
       });
   };
 
@@ -155,68 +171,70 @@ export default function UserProfile() {
     try {
       // Generate a new UUID
       const newUUID = crypto.randomUUID();
-      
+
       // Update the userData state with the new UUID
-      setUserData((prev) => prev ? { ...prev, partnerIdToSend: newUUID } : null);
-      
-      toast.success('Новий ID згенеровано!');
+      setUserData((prev) =>
+        prev ? { ...prev, partnerIdToSend: newUUID } : null
+      );
+
+      toast.success("Новий ID згенеровано!");
     } catch (error) {
-      console.error('Помилка генерації UUID:', error);
-      toast.error('Не вдалося згенерувати новий ID');
+      console.error("Помилка генерації UUID:", error);
+      toast.error("Не вдалося згенерувати новий ID");
     }
   };
 
   const generatePassword = () => {
     try {
       // Define character sets
-      const lowercase = 'abcdefghijklmnopqrstuvwxyz';
-      const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-      const numbers = '0123456789';
-      const special = '!@#$%^&*()_-+=<>?';
-      
+      const lowercase = "abcdefghijklmnopqrstuvwxyz";
+      const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      const numbers = "0123456789";
+      const special = "!@#$%^&*()_-+=<>?";
+
       const allChars = lowercase + uppercase + numbers + special;
-      let password = '';
-      
+      let password = "";
+
       // Generate a password with 12 characters
       for (let i = 0; i < 12; i++) {
         const randomIndex = Math.floor(Math.random() * allChars.length);
         password += allChars[randomIndex];
       }
-      
+
       // Update the userData state with the new password
-      setUserData((prev) => prev ? { ...prev, password } : null);
-      
-      toast.success('Новий пароль згенеровано!');
+      setUserData((prev) => (prev ? { ...prev, password } : null));
+
+      toast.success("Новий пароль згенеровано!");
     } catch (error) {
-      console.error('Помилка при генерації паролю:', error);
-      toast.error('Не вдалося згенерувати новий пароль');
+      console.error("Помилка при генерації паролю:", error);
+      toast.error("Не вдалося згенерувати новий пароль");
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!userData || !hasChanges()) return;
-    
+
     try {
       setIsSaving(true);
-      const response = await fetch('/api/users/profile', {
-        method: 'PUT',
+      const response = await fetch("/api/users/profile", {
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(userData),
       });
-      
+
       if (!response.ok) {
-        throw new Error('Не вдалося оновити профіль');
+        throw new Error("Не вдалося оновити профіль");
       }
-      
+
       setOriginalUserData(JSON.parse(JSON.stringify(userData))); // Update the original data
-      toast.success('Профіль успішно оновлено!');
+      toast.success("Профіль успішно оновлено!");
     } catch (error) {
-      console.error('Помилка оновлення профілю:', error);
-      toast.error('Не вдалося оновити профіль');
+      console.error("Помилка оновлення профілю:", error);
+      toast.error("Не вдалося оновити профіль");
     } finally {
       setIsSaving(false);
     }
@@ -225,13 +243,14 @@ export default function UserProfile() {
   const resetChanges = () => {
     if (originalUserData) {
       setUserData(JSON.parse(JSON.stringify(originalUserData)));
-      toast.info('Зміни скасовано');
+      toast.info("Зміни скасовано");
     }
   };
 
   if (isLoading) {
     return (
       <div className="container py-10">
+        <BackButton text="Профіль" />
         <Card>
           <CardContent className="pt-6">
             <div className="space-y-2">
@@ -246,10 +265,8 @@ export default function UserProfile() {
 
   return (
     <div className="container py-10">
+      <BackButton text="Профіль" />
       <Card>
-        <CardHeader>
-          <CardTitle>Ваш Профіль</CardTitle>
-        </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
@@ -285,28 +302,36 @@ export default function UserProfile() {
                   onChange={handleInputChange}
                   className="flex-1"
                 />
-                <Button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  variant="outline"
-                  size="icon"
-                  title={showPassword ? "Приховати пароль" : "Показати пароль"}
+                <CustomTooltip
+                  text={showPassword ? "Приховати пароль" : "Показати пароль"}
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </Button>
-                <Button
-                  type="button"
-                  onClick={generatePassword}
-                  variant="outline"
-                  size="icon"
-                  title="Згенерувати новий пароль"
-                >
-                  <RefreshCw className="h-4 w-4" />
-                </Button>
+                  <Button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    variant="outline"
+                    size="icon"
+                    title={
+                      showPassword ? "Приховати пароль" : "Показати пароль"
+                    }
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </Button>
+                </CustomTooltip>
+                <CustomTooltip text="Згенерувати новий пароль">
+                  <Button
+                    type="button"
+                    onClick={generatePassword}
+                    variant="outline"
+                    size="icon"
+                    title="Згенерувати новий пароль"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
+                </CustomTooltip>
               </div>
             </div>
 
@@ -323,7 +348,7 @@ export default function UserProfile() {
                 повідомлення на день кохана людина змогла зателефонувати
               </p>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="dayMessageLimit">Денний ліміт повідомлень</Label>
               <Input
@@ -347,28 +372,32 @@ export default function UserProfile() {
                   onChange={handleInputChange}
                   className="flex-1"
                 />
-                <Button
-                  type="button"
-                  onClick={copyToClipboard}
-                  variant="outline"
-                  size="icon"
-                  title="Копіювати в буфер обміну"
-                >
-                  {copied ? (
-                    <Check className="h-4 w-4" />
-                  ) : (
-                    <Clipboard className="h-4 w-4" />
-                  )}
-                </Button>
-                <Button
-                  type="button"
-                  onClick={generateUUID}
-                  variant="outline"
-                  size="icon"
-                  title="Згенерувати новий ID"
-                >
-                  <RefreshCw className="h-4 w-4" />
-                </Button>
+                <CustomTooltip text="Копіювати">
+                  <Button
+                    type="button"
+                    onClick={copyToClipboard}
+                    variant="outline"
+                    size="icon"
+                    title="Копіювати в буфер обміну"
+                  >
+                    {copied ? (
+                      <Check className="h-4 w-4" />
+                    ) : (
+                      <Clipboard className="h-4 w-4" />
+                    )}
+                  </Button>
+                </CustomTooltip>
+                <CustomTooltip text="Згенерувати новий ID">
+                  <Button
+                    type="button"
+                    onClick={generateUUID}
+                    variant="outline"
+                    size="icon"
+                    title="Згенерувати новий ID"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
+                </CustomTooltip>
               </div>
 
               <p className="text-xs text-gray-500">
@@ -378,43 +407,48 @@ export default function UserProfile() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="partnerIdToReceiveFrom">ID вашого партнера</Label>
+              <Label htmlFor="partnerIdToReceiveFrom">
+                ID вашого партнера
+                {loadingPartner && (
+                  <p className="text-xs text-gray-500">Пошук партнера...</p>
+                )}
+                {!loadingPartner && partnerName && (
+                  <p className="text-sm font-medium text-green-600 dark:text-green-400">
+                    {partnerName}
+                  </p>
+                )}
+              </Label>
               <Input
                 id="partnerIdToReceiveFrom"
                 name="partnerIdToReceiveFrom"
                 value={userData?.partnerIdToReceiveFrom || ""}
                 onChange={handleInputChange}
               />
-              {loadingPartner && (
-                <p className="text-xs text-gray-500">Пошук партнера...</p>
-              )}
-              {!loadingPartner && partnerName && (
-                <p className="text-sm font-medium text-green-600 dark:text-green-400">
-                  Партнер: {partnerName}
-                </p>
-              )}
-              {!loadingPartner && userData?.partnerIdToReceiveFrom && !partnerName && (
-                <p className="text-sm text-red-500">
-                  Партнера не знайдено. Перевірте ID.
-                </p>
-              )}
-              <p className="text-xs text-gray-500">
+              <p className="text-xs select-none text-gray-500">
                 Введіть ID вашого партнера, щоб надсилати йому повідомлення
               </p>
+
+              {!loadingPartner &&
+                userData?.partnerIdToReceiveFrom &&
+                !partnerName && (
+                  <p className="text-sm text-red-500">
+                    Партнера не знайдено. Перевірте ID.
+                  </p>
+                )}
             </div>
 
             <div className="flex gap-4">
-              <Button 
-                type="submit" 
-                disabled={isSaving || !hasChanges()} 
+              <Button
+                type="submit"
+                disabled={isSaving || !hasChanges()}
                 className="flex-1"
               >
                 {isSaving ? "Збереження..." : "Зберегти профіль"}
               </Button>
 
               {hasChanges() && (
-                <Button 
-                  type="button" 
+                <Button
+                  type="button"
                   onClick={resetChanges}
                   variant="outline"
                   className="flex gap-2"

@@ -1,9 +1,7 @@
 import { type SchemaTypeDefinition } from 'sanity'
 import { messageType } from './message'
-import { settingsType } from './settings'
-import { userMessageHistoryType } from './userMessageHistory'
 import { userType } from './user'
 
 export const schema: { types: SchemaTypeDefinition[] } = {
-  types: [messageType, settingsType, userMessageHistoryType, userType],
+  types: [messageType, userType],
 }

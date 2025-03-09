@@ -6,7 +6,10 @@ import { LogOut } from "lucide-react";
 export default function Logout() {
   return (
     <>
-      <Button onClick={() => signOut()}>Вийти<LogOut/> </Button>
+      <Button onClick={() => signOut()}>
+        Вийти
+        <LogOut />
+      </Button>
     </>
   );
 }

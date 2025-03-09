@@ -71,11 +71,11 @@ export async function PUT(request: Request) {
     }
     
     // Fields that users are allowed to update
-    const allowedFields = ['name', 'password', 'phone', 'partnerIdToReceiveFrom', 'dayMessageLimit'];
+    const allowedFields = ['name', 'password', 'phone', 'partnerIdToReceiveFrom', 'dayMessageLimit','partnerIdToSend'];
     // Admin can update more fields
-    if (session.user.role === 'admin') {
-      allowedFields.push('partnerIdToSend', 'role');
-    }
+    // if (session.user.role === 'admin') {
+    //   allowedFields.push('partnerIdToSend', 'role');
+    // }
     
     // Create patch with only allowed fields
     const patch = Object.keys(userData)

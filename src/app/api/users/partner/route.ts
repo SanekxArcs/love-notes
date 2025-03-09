@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { sanityClient } from '@/lib/sanity';
 import { auth } from "@/auth";
 
-// GET endpoint to fetch partner data by partnerId
 export async function GET(request: Request) {
   try {
     const session = await auth();
@@ -11,7 +10,6 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Get partnerId from query parameters
     const { searchParams } = new URL(request.url);
     const partnerId = searchParams.get('partnerId');
     
@@ -19,7 +17,6 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Partner ID is required' }, { status: 400 });
     }
     
-    // Fetch user by partnerIdToSend
     const partnerData = await sanityClient.fetch(
       `
       *[_type == "user" && partnerIdToSend == $partnerId][0] {

@@ -15,6 +15,7 @@ import {
 import { Message } from "../messages/types";
 import { LoaderCircle, ArrowUp, ArrowDown } from "lucide-react";
 
+
 interface MessageHistoryProps {
   messages: Message[];
   isLoading: boolean;
@@ -36,7 +37,6 @@ export default function MessageHistory({ messages, isLoading }: MessageHistoryPr
   
   const shownMessages = messages.filter(message => message.isShown);
 
-  // Sort messages by selected field and direction
   const sortedMessages = [...shownMessages].sort((a, b) => {
     if (sort.field === "date") {
       const dateA = a.shownAt ? new Date(a.shownAt).getTime() : 0;
@@ -60,7 +60,6 @@ export default function MessageHistory({ messages, isLoading }: MessageHistoryPr
     return 0;
   });
 
-  // Generic handler for column header clicks
   const handleHeaderClick = (field: SortField) => {
     setSort(prevSort => ({
       field,
@@ -70,7 +69,6 @@ export default function MessageHistory({ messages, isLoading }: MessageHistoryPr
     }));
   };
 
-  // Function to render sort indicator for a column
   const renderSortIndicator = (field: SortField) => {
     if (sort.field !== field) return null;
     
@@ -82,12 +80,9 @@ export default function MessageHistory({ messages, isLoading }: MessageHistoryPr
   return (
     <Card>
       <CardHeader>
-        <div className="flex justify-between items-center">
-          <h2 className=" md:text-xl font-semibold">
-            Історія повідомлень
-          </h2>
-          <p className="text-sm text-muted-foreground flex items-center text-nowrap">
-            Кількість:{" "}
+        <div className="flex justify-end items-center select-none">
+          <p className="text-sm text-muted-foreground flex justify-end  items-center text-nowrap">
+            Кількість:
             {isLoading ? (
               <LoaderCircle className="animate-spin" />
             ) : (
@@ -105,9 +100,9 @@ export default function MessageHistory({ messages, isLoading }: MessageHistoryPr
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="flex-1">Повідомлення</TableHead>
-                <TableHead 
-                  className="max-w-fit text-center cursor-pointer hover:bg-gray-100 transition-colors"
+                <TableHead className="flex-1 select-none">Повідомлення</TableHead>
+                <TableHead
+                  className="max-w-fit text-center cursor-pointer transition-colors"
                   onClick={() => handleHeaderClick("name")}
                 >
                   <div className="flex items-center justify-center gap-1">
@@ -115,8 +110,8 @@ export default function MessageHistory({ messages, isLoading }: MessageHistoryPr
                     {renderSortIndicator("name")}
                   </div>
                 </TableHead>
-                <TableHead 
-                  className="max-w-fit text-center cursor-pointer hover:bg-gray-100 transition-colors"
+                <TableHead
+                  className="max-w-fit text-center cursor-pointer transition-colors"
                   onClick={() => handleHeaderClick("category")}
                 >
                   <div className="flex items-center justify-center gap-1">
@@ -124,8 +119,8 @@ export default function MessageHistory({ messages, isLoading }: MessageHistoryPr
                     {renderSortIndicator("category")}
                   </div>
                 </TableHead>
-                <TableHead 
-                  className="max-w-fit text-center cursor-pointer hover:bg-gray-100 transition-colors"
+                <TableHead
+                  className="max-w-fit text-center cursor-pointer transition-colors"
                   onClick={() => handleHeaderClick("date")}
                 >
                   <div className="flex items-center justify-center gap-1">
@@ -168,13 +163,9 @@ export default function MessageHistory({ messages, isLoading }: MessageHistoryPr
                     </TableCell>
                     <TableCell className="text-center">
                       {message.shownAt
-                        ? format(
-                            new Date(message.shownAt),
-                            "d MMMM yyyy HH:mm",
-                            {
-                              locale: uk,
-                            }
-                          )
+                        ? format(new Date(message.shownAt), "d.MM HH:mm", {
+                            locale: uk,
+                          })
                         : "---"}
                     </TableCell>
                     <TableCell className="text-center">

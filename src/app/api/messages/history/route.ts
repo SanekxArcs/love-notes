@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { sanityClient } from '@/lib/sanity';
 import { auth } from "@/auth";
 
-// GET endpoint to fetch message history
 export async function GET(request: Request) {
   try {
     const session = await auth();
@@ -32,7 +31,6 @@ export async function GET(request: Request) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    // Fetch messages with where creator reference is the partner's _id
     const messages = await sanityClient.fetch(
       `{
         "todayMessages": *[
@@ -65,7 +63,7 @@ export async function GET(request: Request) {
         }
       }`,
       { 
-        partnerId: partner, // Use the actual partner's _id 
+        partnerId: partner,  
         today: today.toISOString()
       }
     );

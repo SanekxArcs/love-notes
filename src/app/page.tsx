@@ -5,7 +5,6 @@ import { AuthState } from "@/components/auth/auth-state";
 import Aurora from "@/components/reactbits/Aurora";
 
 export default function LandingPage() {
-  // Only render the landing page if user is not authenticated
   return (
     <>
       <Aurora
@@ -38,7 +37,7 @@ export default function LandingPage() {
           </div>
 
           <div className="pt-12 text-sm opacity-80">
-            <p>Створено з любов&apos;ю для того, хто завжди в моєму серці</p>
+            <p>Створено з любов&apos;ю для того, хто завжди в твоєму серці</p>
           </div>
         </div>
       </div>

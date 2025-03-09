@@ -12,11 +12,6 @@ export async function DELETE(request: Request) {
   try {
     const session = await auth();
 
-    // Check if user is authenticated and is an admin
-    if (!session?.user?.role || session.user.role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     // Parse the request body to get the password
     const body = await request.json();
     const { password } = body;
@@ -26,7 +21,7 @@ export async function DELETE(request: Request) {
     }
 
     // Fetch the admin user to compare passwords
-    const userId = session.user.id;
+    const userId = session?.user.id;
     const user = await sanityClient.fetch(
       `*[_type == "user" && _id == $userId][0]{
         password
@@ -34,13 +29,12 @@ export async function DELETE(request: Request) {
       { userId }
     );
 
-    // Validate against the user's actual password
     if (!user || user.password !== password) {
       return NextResponse.json({ error: "Invalid password" }, { status: 403 });
     }
 
-    // Find all unshown messages
-    const query = `*[_type == "message" && isShown != true]`;
+    // Find all unshown messages for this user
+    const query = `*[_type == "message" && isShown != true && creator._ref == $userId]`;
     const unshownMessages = await sanityClient.fetch(query);
 
     if (!unshownMessages || unshownMessages.length === 0) {

@@ -10,7 +10,6 @@ interface BatchMessageRequestBody {
   like?: boolean;
 }
 
-// Define proper Message type according to schema
 interface SanityMessage {
   _id: string;
   _type: 'message';
@@ -19,23 +18,16 @@ interface SanityMessage {
   userName?: string;
   category: string;
   like: boolean;
-  shownAt?: string | null; // ISO datetime string or null
+  shownAt?: string | null;
 }
-
-
 
 export async function POST(request: Request) {
   try {
     const session = await auth();
 
-    // Check if the user is authenticated and is an admin
-    if (!session?.user?.role || session.user.role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { messages, category, isShown, like } = await request.json() as BatchMessageRequestBody;
 
-    // Validate input
+
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json(
         { error: "Message array is required and cannot be empty" },
@@ -43,10 +35,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create a transaction for batch processing
     const transaction = sanityClient.transaction();
-    
-    // Add each message to the transaction with correct schema types including creator
     messages.forEach(text => {
       const newMessage = {
         _type: "message",
@@ -57,19 +46,16 @@ export async function POST(request: Request) {
         shownAt: null,
         creator: {
           _type: "reference",
-          _ref: session.user.id,
+          _ref: session?.user.id,
         },
       };
       transaction.create(newMessage);
     });
 
-    // Commit the transaction
     const result = await transaction.commit();
     
-    // Extract the created documents from the result
     let createdMessages: Partial<SanityMessage>[] = [];
     
-    // Handle different possible result structures
     if (Array.isArray(result)) {
       createdMessages = result.map(res => {
         if ('document' in res && res.document) {
@@ -92,7 +78,6 @@ export async function POST(request: Request) {
       );
       createdMessages = docs.filter((doc): doc is SanityDocument<SanityMessage> => doc !== null);
     } else {
-      // Fallback - just use the messages we intended to create
       createdMessages = messages.map(text => ({
         text,
         category: category || "unknown",

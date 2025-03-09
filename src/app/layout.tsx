@@ -69,16 +69,14 @@ export const metadata: Metadata = {
     ],
     apple: [
       { url: '/apple-icon.png' },
-      { url: '/apple-icon-180.png', sizes: '180x180', type: 'image/png' },
     ],
-    shortcut: '/shortcut-icon.png',
+    // shortcut: '/shortcut-icon.png',
   },
   manifest: '/manifest.json',
   alternates: {
     canonical: 'https://love-notes-three.vercel.app/',
     languages: {
-      'uk-UA': 'https://love-notes-three.vercel.app//uk',
-      'en-US': 'https://love-notes-three.vercel.app//en',
+      'uk-UA': 'https://love-notes-three.vercel.app/',
     },
   },
   verification: {

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import MessageHistory from "./MessageHistory";
 import { Message } from "../messages/types";
 import { LoaderCircle } from "lucide-react";
+import { BackButton } from "@/components/ui/back-button";
 
 export default function HistoryPage() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -32,8 +33,8 @@ export default function HistoryPage() {
 
   return (
     <div className="container mx-auto py-10">
-      <h1 className="text-2xl font-bold mb-6">Історія повідомлень</h1>
-      
+        <BackButton text="Історія повідомлень" />
+
       {isLoading ? (
         <div className="flex justify-center items-center h-40">
           <LoaderCircle className="animate-spin h-8 w-8" />

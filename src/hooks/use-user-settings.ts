@@ -9,8 +9,8 @@ interface Settings {
 
 export function useUserSettings() {
   const [settings, setSettings] = useState<Settings>({
-    dailyMessageLimit: 1,
-    contactNumber: "+380123456789",
+    dailyMessageLimit: 0,
+    contactNumber: "",
     partnerIdToReceiveFrom: "", 
   });
   const [isLoading, setIsLoading] = useState(true);
@@ -18,7 +18,6 @@ export function useUserSettings() {
   useEffect(() => {
     async function fetchSettings() {
       try {
-        // First, get the current user's session data
         const sessionResponse = await fetch("/api/auth/session");
         if (!sessionResponse.ok) {
           throw new Error("Failed to fetch session");
@@ -31,7 +30,6 @@ export function useUserSettings() {
         
         const userLogin = sessionData.user.login;
         
-        // Now fetch current user profile
         const userProfileResponse = await fetch(`/api/users/profile?login=${userLogin}`);
         if (!userProfileResponse.ok) {
           throw new Error("Failed to fetch user profile");
@@ -44,13 +42,12 @@ export function useUserSettings() {
           return;
         }
         
-        // Get partner ID from current user profile
         const partnerIdToReceiveFrom = userData.partnerIdToReceiveFrom;
         
         if (!partnerIdToReceiveFrom) {
           setSettings({
             dailyMessageLimit: 0,
-            contactNumber: userData.phone || "+380123456789",
+            contactNumber: userData.phone || "",
             partnerIdToReceiveFrom: "",
           });
           
@@ -71,7 +68,7 @@ export function useUserSettings() {
           toast.error("Partner not found with the provided ID");
           setSettings({
             dailyMessageLimit: 0,
-            contactNumber: userData.phone || "+380123456789",
+            contactNumber: userData.phone || "",
             partnerIdToReceiveFrom: partnerIdToReceiveFrom,
           });
           setIsLoading(false);
@@ -81,9 +78,9 @@ export function useUserSettings() {
         // Use partner settings for messages
         setSettings({
           // Use the partner's message limit
-          dailyMessageLimit: partnerData.dayMessageLimit || 3,
+          dailyMessageLimit: partnerData.dayMessageLimit || 0,
           // Use the partner's contact number
-          contactNumber: partnerData.phone || "+380123456789",
+          contactNumber: partnerData.phone || "",
           // Keep the partner ID for reference
           partnerIdToReceiveFrom: partnerIdToReceiveFrom,
         });

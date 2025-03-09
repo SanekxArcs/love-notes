@@ -8,10 +8,17 @@ import { redirect } from "next/navigation";
 import Logout from "@/components/auth/lodout";
 import { WraperIfAdmin } from "@/components/auth/WraperIfAdmin";
 import { SanityLive } from "@/sanity/lib/live";
-import { Database, MailCheck, MailPlus, MessageCircleHeart, User } from "lucide-react";
+import {
+  Database,
+  MailCheck,
+  MailPlus,
+  MessageCircleHeart,
+  User,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Particles from "@/components/reactbits/Particles";
 import BlurText from "@/components/reactbits/BlurText";
+import { CustomTooltip } from "@/components/ui/custom-tooltip";
 
 export default async function DashboardLayout({
   children,
@@ -40,10 +47,12 @@ export default async function DashboardLayout({
       </div>
       <div className="min-h-svh relative">
         <div className="fixed right-4 bottom-4 z-10">
-          <ModeToggle />
+          <CustomTooltip text="Змінити тему">
+            <ModeToggle />
+          </CustomTooltip>
         </div>
         <header className=" mx-auto lg:px-8 max-w-3xl lg:max-w-7xl px-4 pt-6  flex flex-col md:flex-row gap-6 justify-between ">
-          <div className="flex flex-col items-center md:items-start gap-4">
+          <div className="flex flex-col items-center md:items-start gap-4 select-none">
             <h1>
               <BlurText
                 text="Щоденні повідомлення кохання"
@@ -56,35 +65,51 @@ export default async function DashboardLayout({
             <AuthStatus />
           </div>
           <div className="flex flex-row justify-end items-end gap-2 px-4 md:px-0 lg:px-0">
-            <Link href="/profile">
-              <Button size="icon" variant="outline">
-                <User />
-              </Button>
-            </Link>
-            <Link href="/dashboard">
-              <Button size="icon" variant="outline">
-                <MessageCircleHeart />
-              </Button>
-            </Link>
+            <CustomTooltip text="Профіль">
+              <Link href="/profile">
+                <Button size="icon" variant="outline">
+                  <User />
+                </Button>
+              </Link>
+            </CustomTooltip>
             
-              
-            <WraperIfAdmin>
+            <CustomTooltip text="Панель управління">
+              <Link href="/dashboard">
+                <Button size="icon" variant="outline">
+                  <MessageCircleHeart />
+                </Button>
+              </Link>
+            </CustomTooltip>
+            
+            <CustomTooltip text="Створити повідомлення">
               <Link href="/messages">
                 <Button size="icon" variant="outline">
                   <MailPlus />
                 </Button>
               </Link>
+            </CustomTooltip>
+            
+            <CustomTooltip text="Історія повідомлень">
               <Link href="/history">
                 <Button size="icon" variant="outline">
                   <MailCheck />
-                </Button></Link>
-              <Link href="/admin">
-                <Button size="icon" variant="outline">
-                  <Database />
                 </Button>
               </Link>
+            </CustomTooltip>
+
+            <WraperIfAdmin>
+              <CustomTooltip text="Адміністрування">
+                <Link href="/admin">
+                  <Button size="icon" variant="outline">
+                    <Database />
+                  </Button>
+                </Link>
+              </CustomTooltip>
             </WraperIfAdmin>
-            <Logout />
+            
+            <CustomTooltip text="Вийти">
+              <Logout />
+            </CustomTooltip>
           </div>
         </header>
 

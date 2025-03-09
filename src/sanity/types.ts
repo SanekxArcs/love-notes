@@ -74,36 +74,6 @@ export type Slug = {
   source?: string;
 };
 
-export type UserMessageHistory = {
-  _id: string;
-  _type: "userMessageHistory";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  userId?: string;
-  messageId?: {
-    _ref: string;
-    _type: "reference";
-    _weak?: boolean;
-    [internalGroqTypeReferenceTo]?: "message";
-  };
-  text?: string;
-  category?: "unknown" | "daily" | "extra";
-  isShown?: boolean;
-  like?: boolean;
-  lastShownAt?: string;
-};
-
-export type Settings = {
-  _id: string;
-  _type: "settings";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  contactNumber?: string;
-  dailyMessageLimit?: number;
-};
-
 export type Message = {
   _id: string;
   _type: "message";
@@ -208,16 +178,12 @@ export type SanityImageMetadata = {
   isOpaque?: boolean;
 };
 
-export type AllSanitySchemaTypes = SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityFileAsset | Geopoint | Slug | UserMessageHistory | Settings | Message | User | SanityImageCrop | SanityImageHotspot | SanityImageAsset | SanityAssetSourceData | SanityImageMetadata;
+export type AllSanitySchemaTypes = SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityFileAsset | Geopoint | Slug | Message | User | SanityImageCrop | SanityImageHotspot | SanityImageAsset | SanityAssetSourceData | SanityImageMetadata;
 export declare const internalGroqTypeReferenceTo: unique symbol;
 // Source: ./src/sanity/lib/queries.ts
 // Variable: SETTINGS_QUERY
 // Query: *[_type == "settings"][0]{  _id,  contactNumber,  dailyMessageLimit}
-export type SETTINGS_QUERYResult = {
-  _id: string;
-  contactNumber: string | null;
-  dailyMessageLimit: number | null;
-} | null;
+export type SETTINGS_QUERYResult = null;
 // Variable: ALL_MESSAGES_QUERY
 // Query: *[_type == "message"] | order(lastShownAt desc) {  _id,  text,  category,  isShown,  like,  lastShownAt}
 export type ALL_MESSAGES_QUERYResult = Array<{
@@ -266,35 +232,6 @@ export type NEXT_EXTRA_MESSAGE_QUERYResult = {
   text: string | null;
   category: "daily" | "extra" | "unknown" | null;
 } | null;
-// Variable: USER_MESSAGE_HISTORY_QUERY
-// Query: *[_type == "userMessageHistory" && userId == $userId] | order(shownAt desc) {  _id,  messageId->{    _id,    text,    category,    like  },  shownAt,  isExtraMessage}
-export type USER_MESSAGE_HISTORY_QUERYResult = Array<{
-  _id: string;
-  messageId: {
-    _id: string;
-    text: string | null;
-    category: "daily" | "extra" | "unknown" | null;
-    like: boolean | null;
-  } | null;
-  shownAt: null;
-  isExtraMessage: null;
-}>;
-// Variable: USER_MESSAGES_BY_DATE_QUERY
-// Query: *[_type == "userMessageHistory" && userId == $userId && shownAt >= $startDate && shownAt <= $endDate] | order(shownAt desc) {  _id,  messageId->{    _id,    text,    category,    like  },  shownAt,  isExtraMessage}
-export type USER_MESSAGES_BY_DATE_QUERYResult = Array<{
-  _id: string;
-  messageId: {
-    _id: string;
-    text: string | null;
-    category: "daily" | "extra" | "unknown" | null;
-    like: boolean | null;
-  } | null;
-  shownAt: null;
-  isExtraMessage: null;
-}>;
-// Variable: TODAY_MESSAGE_COUNT_QUERY
-// Query: count(*[_type == "userMessageHistory"   && userId == $userId   && shownAt >= $todayStart   && shownAt <= $todayEnd   && isExtraMessage == false])
-export type TODAY_MESSAGE_COUNT_QUERYResult = number;
 
 // Query TypeMap
 import "@sanity/client";
@@ -307,8 +244,5 @@ declare module "@sanity/client" {
     "*[_type == \"message\" && like == true] | order(lastShownAt desc) {\n  _id,\n  text,\n  category,\n  lastShownAt\n}": LIKED_MESSAGES_QUERYResult;
     "*[_type == \"message\" && isShown == false && category == \"daily\"][0] {\n  _id,\n  text,\n  category\n}": NEXT_DAILY_MESSAGE_QUERYResult;
     "*[_type == \"message\" && isShown == false && category == \"extra\"][0] {\n  _id,\n  text,\n  category\n}": NEXT_EXTRA_MESSAGE_QUERYResult;
-    "*[_type == \"userMessageHistory\" && userId == $userId] | order(shownAt desc) {\n  _id,\n  messageId->{\n    _id,\n    text,\n    category,\n    like\n  },\n  shownAt,\n  isExtraMessage\n}": USER_MESSAGE_HISTORY_QUERYResult;
-    "*[_type == \"userMessageHistory\" && userId == $userId && shownAt >= $startDate && shownAt <= $endDate] | order(shownAt desc) {\n  _id,\n  messageId->{\n    _id,\n    text,\n    category,\n    like\n  },\n  shownAt,\n  isExtraMessage\n}": USER_MESSAGES_BY_DATE_QUERYResult;
-    "count(*[_type == \"userMessageHistory\" \n  && userId == $userId \n  && shownAt >= $todayStart \n  && shownAt <= $todayEnd \n  && isExtraMessage == false])": TODAY_MESSAGE_COUNT_QUERYResult;
   }
 }

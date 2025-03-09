@@ -29,23 +29,43 @@ export default function LoginPage() {
     setError("");
 
     try {
-      await signIn("credentials", {
+      const result = await signIn("credentials", {
         login,
         password,
         callbackUrl: "/dashboard",
-        redirect: true,
+        redirect: false, 
       });
-    } catch (error: unknown) {
-      toast.error("Помилка при вході");
-      console.error("Login error:", error);
 
-      let errorMessage = "Невідома помилка";
+      if (!result?.ok) {
+        let errorMessage = "Помилка входу";
+        
+        // Check for specific error types from NextAuth
+        if (result?.error === "CredentialsSignin") {
+          toast.error("Неправильний логін або пароль");
+          errorMessage = "Неправильний логін або пароль";
+        } else if (result?.error) {
+          toast.error(`Помилка: ${result.error}`);
+          errorMessage = `Помилка: ${result.error}`;
+        }
+        
+        setError(errorMessage);
+        toast.error(errorMessage);
+      } else {
+        // Successful login - redirect manually
+        window.location.href = result.url || "/dashboard";
+      }
+    } catch (error: unknown) {
+      // Handle unexpected errors
+      console.error("Login error:", error);
+      
+      let errorMessage = "Невідома помилка сервера";
       if (error instanceof Error) {
         errorMessage = error.message;
       }
 
-      setError(`Помилка при вході: ${errorMessage}`);
-      toast.error(`Помилка при вході: ${errorMessage}`);
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
       setIsLoading(false);
     }
   };

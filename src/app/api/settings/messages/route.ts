@@ -4,16 +4,17 @@ import { sanityClient } from "@/lib/sanity";
 
 export async function GET() {
   try {
-    // const session = await auth();
+    const session = await auth();
+    
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
+    }
 
-    // // Check if the user is authenticated and is an admin
-        // if (!session?.user?.role || session.user.role !== "admin") {
-    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    // }
-
-    // Fetch all messages
     const messages = await sanityClient.fetch(`
-      *[_type == "message"] | order(_createdAt desc) {
+      *[_type == "message" && creator._ref == $userId] | order(_createdAt desc) {
         _id,
         text,
         category,
@@ -22,7 +23,9 @@ export async function GET() {
         like,
         shownAt
       }
-    `);
+    `, {
+      userId: session.user.id
+    });
 
     return NextResponse.json({ messages });
   } catch (error) {
@@ -38,14 +41,8 @@ export async function POST(request: Request) {
   try {
     const session = await auth();
 
-    // // Check if the user is authenticated and is an admin
-    // if (!session?.user?.role || session.user.role !== "admin") {
-    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    // }
-
     const { text, category } = await request.json();
 
-    // Validate input
     if (!text || !category) {
       return NextResponse.json(
         { error: "Message text and category are required" },
@@ -53,14 +50,13 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create document in Sanity with creator reference from the current user
     const message = await sanityClient.create({
       _type: "message",
       text,
       category,
       isShown: false,
       like: false,
-      lastShownAt: null,
+      shownAt: null,
       creator: {
         _type: "reference",
         _ref: session?.user.id,
@@ -103,12 +99,6 @@ export async function DELETE(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    // const session = await auth();
-
-    // // Check if the user is authenticated and is an admin
-    // if (!session?.user?.role || session.user.role !== "admin") {
-    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    // }
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
@@ -122,7 +112,6 @@ export async function PUT(request: Request) {
 
     const { text, category, isShown, like } = await request.json();
 
-    // Validate input
     if (!text || !category) {
       return NextResponse.json(
         { error: "Message text and category are required" },
@@ -130,7 +119,6 @@ export async function PUT(request: Request) {
       );
     }
 
-    // Update document in Sanity
     const message = await sanityClient
       .patch(id)
       .set({

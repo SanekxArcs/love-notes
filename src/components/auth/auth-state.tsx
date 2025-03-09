@@ -19,21 +19,20 @@ export function AuthState() {
 
   if (status === "unauthenticated") {
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex items-center flex-col md:flex-row gap-2 md:gap-4">
         <Link href="/login">
           <Button
             size="lg"
-            className="bg-pink-600 hover:bg-pink-700 text-white px-8 py-6 text-lg rounded-full"
+            className="bg-pink-600 hover:bg-pink-700 text-white px-8 py-6 text-lg rounded-md"
           >
             Увійти
           </Button>
         </Link>
-          <span className="text-muted-foreground">або</span>
+        <span className="text-muted-foreground">або</span>
         <Link href="/register">
           <Button
-            className=" hover:bg-pink-900 text-white px-8 py-6 text-lg rounded-full"
+            className=" hover:bg-pink-900 text-white px-4 py-3 text-lg rounded-md md:px-8 md:py-6"
             variant="outline"
-            size="lg"
           >
             Створити профіль
           </Button>
