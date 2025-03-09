@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
-import { HeartIcon, Loader2, Eye, EyeOff } from "lucide-react";
+import { HeartIcon, Loader2, Eye, EyeOff, CheckCircle, XCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -20,6 +20,9 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [loginStatus, setLoginStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
+  
+  const loginInputRef = useRef<HTMLInputElement>(null);
 
   const generatePassword = () => {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
@@ -29,6 +32,56 @@ export default function RegisterPage() {
     }
     setPassword(generatedPassword);
     toast.info("Password generated!");
+  };
+
+  const checkLoginAvailability = async (loginToCheck: string) => {
+    if (!loginToCheck.trim()) {
+      setLoginStatus('idle');
+      return true;
+    }
+    
+    setLoginStatus('checking');
+    try {
+      // This endpoint needs to be implemented on the backend
+      const response = await fetch(`/api/users/check-login?login=${encodeURIComponent(loginToCheck)}`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        if (data.available) {
+          setLoginStatus('available');
+          return true;
+        } else {
+          setLoginStatus('taken');
+          toast.error("Цей логін вже зайнятий. Будь ласка, оберіть інший.");
+          return false;
+        }
+      } else {
+        setLoginStatus('idle');
+        return true;
+      }
+    } catch (error) {
+      console.error("Error checking login availability:", error);
+      setLoginStatus('idle');
+      return true; // On error, we'll let the form submission handle validation
+    }
+  };
+
+  const handleLoginBlur = async () => {
+    if (login.trim()) {
+      const isAvailable = await checkLoginAvailability(login);
+      if (!isAvailable && loginInputRef.current) {
+        // Focus back on login input if the login is taken
+        loginInputRef.current.focus();
+      }
+    }
+  };
+
+  const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLogin(e.target.value);
+    // Reset login status when the user types
+    if (loginStatus !== 'idle') {
+      setLoginStatus('idle');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -41,6 +94,18 @@ export default function RegisterPage() {
       setError("Name, login, and password are required.");
       setIsLoading(false);
       return;
+    }
+
+    // Check login availability before submitting
+    if (loginStatus !== 'available') {
+      const isAvailable = await checkLoginAvailability(login);
+      if (!isAvailable) {
+        setIsLoading(false);
+        if (loginInputRef.current) {
+          loginInputRef.current.focus();
+        }
+        return;
+      }
     }
 
     try {
@@ -102,14 +167,37 @@ export default function RegisterPage() {
 
           <div className="space-y-2">
             <Label htmlFor="login">Логін</Label>
-            <Input
-              id="login"
-              type="text"
-              value={login}
-              onChange={(e) => setLogin(e.target.value)}
-              placeholder="Твій логін наприклад user123"
-              required
-            />
+            <div className="relative">
+              <Input
+                id="login"
+                type="text"
+                ref={loginInputRef}
+                value={login}
+                onChange={handleLoginChange}
+                onBlur={handleLoginBlur}
+                placeholder="Твій логін наприклад user123"
+                required
+                className={`transition-colors ${
+                  loginStatus === 'available' ? 'border-green-500 focus-visible:ring-green-500/20' :
+                  loginStatus === 'taken' ? 'border-red-500 focus-visible:ring-red-500/20' : ''
+                }`}
+              />
+              {loginStatus === 'checking' && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                </div>
+              )}
+              {loginStatus === 'available' && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                </div>
+              )}
+              {loginStatus === 'taken' && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <XCircle className="h-4 w-4 text-red-500" />
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -121,7 +209,7 @@ export default function RegisterPage() {
                 size="sm"
                 onClick={generatePassword}
               >
-                Generate
+                Згенерувати
               </Button>
             </div>
             <div className="relative">
@@ -151,6 +239,7 @@ export default function RegisterPage() {
                 </span>
               </Button>
             </div>
+            <p className="text-red-500 pl-2 text-[10px]">Не пиши свой справжній пароль!</p>
           </div>
 
           <div className="space-y-2">
@@ -170,7 +259,7 @@ export default function RegisterPage() {
             </p>
           )}
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button type="submit" className="w-full" disabled={isLoading || loginStatus === 'taken'}>
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

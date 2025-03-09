@@ -31,7 +31,7 @@ export function AuthState() {
         <span className="text-muted-foreground">або</span>
         <Link href="/register">
           <Button
-            className=" hover:bg-pink-900 text-white px-4 py-3 text-lg rounded-md md:px-8 md:py-6"
+            className=" hover:bg-pink-900 px-4 py-3 text-lg rounded-md md:px-8 md:py-6"
             variant="outline"
           >
             Створити профіль

@@ -92,6 +92,12 @@ export type Message = {
     _weak?: boolean;
     [internalGroqTypeReferenceTo]?: "user";
   };
+  shownBy?: {
+    _ref: string;
+    _type: "reference";
+    _weak?: boolean;
+    [internalGroqTypeReferenceTo]?: "user";
+  };
 };
 
 export type User = {
