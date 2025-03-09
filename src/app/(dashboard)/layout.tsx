@@ -65,15 +65,9 @@ export default async function DashboardLayout({
             <AuthStatus />
           </div>
           <div className="flex flex-row justify-end items-end gap-2 px-4 md:px-0 lg:px-0">
-            <CustomTooltip text="Профіль">
-              <Link href="/profile">
-                <Button size="icon" variant="outline">
-                  <User />
-                </Button>
-              </Link>
-            </CustomTooltip>
             
-            <CustomTooltip text="Панель управління">
+            
+            <CustomTooltip text="Панель повідомлень">
               <Link href="/dashboard">
                 <Button size="icon" variant="outline">
                   <MessageCircleHeart />
@@ -98,7 +92,7 @@ export default async function DashboardLayout({
             </CustomTooltip>
 
             <WraperIfAdmin>
-              <CustomTooltip text="Адміністрування">
+              <CustomTooltip text="База даних">
                 <Link href="/admin">
                   <Button size="icon" variant="outline">
                     <Database />
@@ -106,6 +100,13 @@ export default async function DashboardLayout({
                 </Link>
               </CustomTooltip>
             </WraperIfAdmin>
+            <CustomTooltip text="Профіль">
+              <Link href="/profile">
+                <Button size="icon" variant="outline">
+                  <User />
+                </Button>
+              </Link>
+            </CustomTooltip>
             
             <CustomTooltip text="Вийти">
               <Logout />

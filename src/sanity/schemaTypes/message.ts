@@ -28,6 +28,7 @@ export const messageType = defineType({
       type: "string",
       description: "The user name who received this message",
     }),
+
     defineField({
       name: "category",
       title: "Message Type",
@@ -61,11 +62,23 @@ export const messageType = defineType({
       name: "creator",
       title: "Creator",
       type: "reference",
-      description: "The user who created this message (required for tracking and batch operations)",
+      description:
+        "The user who created this message (required for tracking and batch operations)",
       to: [{ type: "user" }],
-      validation: (Rule) => Rule.required().error('Creator is required to track message ownership'),
+      validation: (Rule) =>
+        Rule.required().error("Creator is required to track message ownership"),
       options: {
-        disableNew: false, // Allow creating new users if needed
+        disableNew: true,
+      },
+    }),
+    defineField({
+      name: "shownBy",
+      title: "Shown By",
+      type: "reference",
+      description: "The user who received this message",
+      to: [{ type: "user" }],
+      options: {
+        disableNew: true,
       },
     }),
   ],
@@ -86,7 +99,7 @@ export const messageType = defineType({
 
       return {
         title: truncatedText,
-        subtitle: `${likeStatus} | ${shown} | ${categoryShow}`,
+        subtitle: `${likeStatus} | ${shown} | ${categoryShow} `,
       };
     },
   },
