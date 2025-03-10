@@ -14,6 +14,7 @@ import {
   MailPlus,
   MessageCircleHeart,
   User,
+  HelpCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Particles from "@/components/reactbits/Particles";
@@ -65,8 +66,6 @@ export default async function DashboardLayout({
             <AuthStatus />
           </div>
           <div className="flex flex-row justify-end items-end gap-2 px-4 md:px-0 lg:px-0">
-            
-            
             <CustomTooltip text="Панель повідомлень">
               <Link href="/dashboard">
                 <Button size="icon" variant="outline">
@@ -74,7 +73,7 @@ export default async function DashboardLayout({
                 </Button>
               </Link>
             </CustomTooltip>
-            
+
             <CustomTooltip text="Створити повідомлення">
               <Link href="/messages">
                 <Button size="icon" variant="outline">
@@ -82,7 +81,7 @@ export default async function DashboardLayout({
                 </Button>
               </Link>
             </CustomTooltip>
-            
+
             <CustomTooltip text="Історія повідомлень">
               <Link href="/history">
                 <Button size="icon" variant="outline">
@@ -107,7 +106,17 @@ export default async function DashboardLayout({
                 </Button>
               </Link>
             </CustomTooltip>
-            
+
+            <CustomTooltip text="Допомога">
+              <Link
+                href="/help"
+              >
+                <Button size="icon" variant="outline">
+                  <HelpCircle className="h-4 w-4" />
+                </Button>
+              </Link>
+            </CustomTooltip>
+
             <CustomTooltip text="Вийти">
               <Logout />
             </CustomTooltip>

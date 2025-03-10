@@ -129,7 +129,8 @@ export default function RegisterPage() {
       }
 
       toast.success("Реєстрація успішна!");
-      router.push("/login");
+      // Change redirect from login to help page
+      router.push("/help");
     } catch (error) {
       console.error("Registration error:", error);
       let errorMessage = "Failed to register";
