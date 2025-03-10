@@ -15,7 +15,7 @@ interface MessageListProps {
   isToday: boolean;
   onLikeChange: (id: string, liked: boolean) => void;
   animationDelay: number;
-  loading?: boolean; // Added loading prop
+  loading?: boolean; 
 }
 
 export function MessageList({
@@ -24,7 +24,7 @@ export function MessageList({
   isToday,
   onLikeChange,
   animationDelay,
-  loading = false // Default to false
+  loading = false, 
 }: MessageListProps) {
   return (
     <motion.div
@@ -33,10 +33,24 @@ export function MessageList({
       transition={{ delay: animationDelay }}
       className={`${isToday ? "mb-8" : "mb-6"} grid gap-4`}
     >
-      <h2 className={`${isToday ? "" : "mb-4"} text-xl font-semibold`}>
-        {title}
-      </h2>
-
+      {loading ? (
+        <h2
+          className={`${isToday ? "" : "mb-4"} text-xl text-transparent h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-3 font-semibold`}
+        >
+          {title}
+        </h2>
+      ) : (
+        messages.length > 0 && (
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: animationDelay }}
+            className={`${isToday ? "" : "mb-4"} text-xl font-semibold`}
+          >
+            {title}
+          </motion.h2>
+        )
+      )}
       <div className={isToday ? "grid gap-4" : "grid gap-4"}>
         {loading
           ? Array(1)
