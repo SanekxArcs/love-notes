@@ -233,7 +233,7 @@ export default function HelpPage() {
       ),
     },
     {
-      title: "Зв&apos;язок з партнером",
+      title: "Зв'язок з партнером",
       icon: <Phone className="h-8 w-8 text-green-500" />,
       content: (
         <div className="space-y-4">
