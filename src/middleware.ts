@@ -3,12 +3,12 @@ import { NextResponse } from "next/server"
  
 export default auth((req) => {
   // Add debug logging
-  console.log(
-    "Middleware running, auth:",
-    !!req.auth,
-    "path:",
-    req.nextUrl.pathname
-  );
+//   console.log(
+//     "Middleware running, auth:",
+//     !!req.auth,
+//     "path:",
+//     req.nextUrl.pathname
+//   );
 
   const isLoggedIn = !!req.auth;
   const isAuthPage =
