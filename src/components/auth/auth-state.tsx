@@ -47,7 +47,7 @@ export function AuthState() {
         size="lg"
         className="bg-pink-600 hover:bg-pink-700 text-white px-8 py-6 text-lg rounded-full"
       >
-        Перейти до дашборду
+        Перейти до повідомлень
       </Button>
     </Link>
   );
