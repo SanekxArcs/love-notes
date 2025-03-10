@@ -68,7 +68,9 @@ export function useMessages(partnerId: string, dailyLimit: number) {
 
     // Check if partner ID exists
     if (!partnerId) {
-      toast.error("Partner ID not set. Please go to profile settings to set your partner ID.");
+      toast.error(
+        "ID партнера не встановлено. Відвідайте сторінку допомоги, щоб дізнатися, як встановити ID партнера."
+      );
       return;
     }
 

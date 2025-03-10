@@ -42,7 +42,6 @@ export default function RegisterPage() {
     
     setLoginStatus('checking');
     try {
-      // This endpoint needs to be implemented on the backend
       const response = await fetch(`/api/users/check-login?login=${encodeURIComponent(loginToCheck)}`);
       const data = await response.json();
       
@@ -62,7 +61,7 @@ export default function RegisterPage() {
     } catch (error) {
       console.error("Error checking login availability:", error);
       setLoginStatus('idle');
-      return true; // On error, we'll let the form submission handle validation
+      return true; 
     }
   };
 
@@ -70,7 +69,6 @@ export default function RegisterPage() {
     if (login.trim()) {
       const isAvailable = await checkLoginAvailability(login);
       if (!isAvailable && loginInputRef.current) {
-        // Focus back on login input if the login is taken
         loginInputRef.current.focus();
       }
     }
@@ -78,7 +76,6 @@ export default function RegisterPage() {
 
   const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLogin(e.target.value);
-    // Reset login status when the user types
     if (loginStatus !== 'idle') {
       setLoginStatus('idle');
     }
@@ -89,14 +86,12 @@ export default function RegisterPage() {
     setIsLoading(true);
     setError("");
 
-    // Basic validation
     if (!name.trim() || !login.trim() || !password.trim()) {
       setError("Name, login, and password are required.");
       setIsLoading(false);
       return;
     }
 
-    // Check login availability before submitting
     if (loginStatus !== 'available') {
       const isAvailable = await checkLoginAvailability(login);
       if (!isAvailable) {
@@ -129,7 +124,6 @@ export default function RegisterPage() {
       }
 
       toast.success("Реєстрація успішна!");
-      // Change redirect from login to help page
       router.push("/help");
     } catch (error) {
       console.error("Registration error:", error);
