@@ -121,6 +121,7 @@ export default function UserProfile() {
         const data = await response.json();
         setPartnerName(data.name || "Невідомий партнер");
       } catch (error) {
+        toast.error("Не вдалося отримати інформацію про партнера");
         console.error("Помилка при отриманні інформації про партнера:", error);
         setPartnerName(null);
       } finally {
@@ -357,9 +358,12 @@ export default function UserProfile() {
                 type="number"
                 min="1"
                 max="10"
-                value={userData?.dayMessageLimit || 2}
+                value={userData?.dayMessageLimit}
                 onChange={handleInputChange}
               />
+              <p className="text-xs text-gray-500">
+                Денний ліміт для твого партнера
+              </p>
             </div>
 
             <div className="space-y-2">
