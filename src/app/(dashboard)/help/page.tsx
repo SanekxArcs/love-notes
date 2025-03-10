@@ -271,6 +271,9 @@ export default function HelpPage() {
   const nextStep = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
+      setTimeout(() => {
+        document.getElementById("HELP")?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
     }
   };
 
@@ -281,7 +284,7 @@ export default function HelpPage() {
   };
 
   return (
-    <div className="container py-10 max-w-3xl mx-auto">
+    <div id="HELP" className="container py-10 max-w-3xl mx-auto">
       <div className="flex justify-between items-center mb-8">
         <BackButton text="Допомога" />
         <Link href="/dashboard">
