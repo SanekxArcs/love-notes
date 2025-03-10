@@ -38,7 +38,7 @@ export function useUserSettings() {
         const userData = await userProfileResponse.json();
         
         if (!userData) {
-          toast.error("Failed to load user data");
+          toast.error("Не вдалося завантажити дані користувача");
           return;
         }
         
@@ -51,7 +51,9 @@ export function useUserSettings() {
             partnerIdToReceiveFrom: "",
           });
           
-          toast.warning("Partner ID not set. Please go to profile settings to set your partner ID.");
+          toast.warning(
+            "ID партнера не встановлено. Будь ласка, перейдіть до налаштувань профілю, щоб ввести ідентифікатор партнера."
+          );
           setIsLoading(false);
           return;
         }
@@ -65,7 +67,7 @@ export function useUserSettings() {
         const partnerData = await partnerResponse.json();
         
         if (!partnerData) {
-          toast.error("Partner not found with the provided ID");
+          toast.error("Партнера з наданим ідентифікатором не знайдено");
           setSettings({
             dailyMessageLimit: 0,
             contactNumber: userData.phone || "",

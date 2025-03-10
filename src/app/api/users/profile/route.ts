@@ -70,6 +70,11 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
     
+    // Convert dayMessageLimit to number if it exists
+    if (userData.dayMessageLimit !== undefined) {
+      userData.dayMessageLimit = Number(userData.dayMessageLimit);
+    }
+    
     // Fields that users are allowed to update
     const allowedFields = ['name', 'password', 'phone', 'partnerIdToReceiveFrom', 'dayMessageLimit','partnerIdToSend'];
     // Admin can update more fields

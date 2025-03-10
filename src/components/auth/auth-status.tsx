@@ -1,6 +1,5 @@
 "use client";
 
-import { LoaderCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import BlurText from "../reactbits/BlurText";
 
@@ -10,7 +9,9 @@ export function AuthStatus() {
   if (status === "loading") {
     return (
       <div>
-        <LoaderCircle className="animate-spin" />
+        <p className=" animate-pulse bg-gray-500 rounded-md min-w-2/3 w-full text-gray-500">
+          Нові повідомлення щодня
+        </p>
       </div>
     );
   }

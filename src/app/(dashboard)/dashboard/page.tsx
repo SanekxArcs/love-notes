@@ -51,26 +51,24 @@ export default function Dashboard() {
       />
 
       {/* Today's messages */}
-      {todayMessages.length > 0 && (
         <MessageList
           title="Сьогоднішні повідомлення"
           messages={todayMessages}
           isToday={true}
           onLikeChange={handleLikeChange}
           animationDelay={0.2}
-        />
-      )}
+          loading={isLoading}
+                  />
 
       {/* Previous messages */}
-      {previousMessages.length > 0 && (
         <MessageList
           title="Історія повідомлень"
           messages={previousMessages}
           isToday={false}
           onLikeChange={handleLikeChange}
           animationDelay={0.5}
+          loading={isLoading}
         />
-      )}
     </div>
   );
 }
@@ -95,7 +93,6 @@ function ControlPanel({
   isLoading,
   noMessagesAvailable,
 }: ControlPanelProps) {
-  // Show call button when daily limit reached OR no more messages available
   const showCallButton = messageCount >= dailyLimit || noMessagesAvailable;
 
   return (
@@ -150,19 +147,34 @@ function ControlPanel({
                 size="lg"
                 className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 transition-all duration-300 shadow-md hover:shadow-lg"
                 onClick={() => (window.location.href = `tel:${contactNumber}`)}
+                disabled={isLoading}
               >
-                <Phone className="mr-2 h-5 w-5" />
-                {noMessagesAvailable
-                  ? "Повідомлення закінчились, подзвоніть!"
-                  : "Подзвонити коханому"}
+                {isLoading ? (
+                  <span className="flex items-center animate-pulse">
+                    <SpinnerIcon className="animate-spin mr-1" />
+                    Завантаження...
+                  </span>
+                ) : (
+                  <>
+                    <Phone className="mr-2 h-5 w-5" />
+                    {noMessagesAvailable
+                      ? "Повідомлення закінчились"
+                      : "Зателефонувати партнеру"}
+                  </>
+                )}
               </Button>
             )}
-
-            <p className="text-center text-sm text-gray-500">
-              {noMessagesAvailable
-                ? "Всі повідомлення переглянуто 😱"
-                : `Сьогодні використано: ${messageCount}/${dailyLimit}`}
-            </p>
+            {isLoading ? (
+              <p className="text-center bg-gray-500 rounded-md animate-pulse text-sm text-gray-500">
+                Завантаження...
+              </p>
+            ) : noMessagesAvailable ? (
+              <p className="text-center text-sm text-gray-500">
+                Всі повідомлення переглянуто 😱
+              </p>
+            ) : (
+              <p className="text-center text-sm text-gray-500">Сьогодні використано: {messageCount}/{dailyLimit}</p>
+            )}
           </div>
         </div>
       </Card>
