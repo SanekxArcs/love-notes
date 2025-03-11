@@ -303,7 +303,7 @@ export default function HelpPage() {
 
   return (
     <div
-      id="HELP"
+      
       className="container py-10 max-w-3xl mx-auto overflow-hidden"
     >
       <ViewTransition name="buttons-top">
@@ -332,7 +332,7 @@ export default function HelpPage() {
             );
           }}
         >
-      <div className="flex justify-between mb-8 relative">
+      <div id="HELP" className="flex justify-between mb-8 relative">
         <div className="absolute top-4 left-0 right-0 h-0.5 bg-gray-200 dark:bg-gray-700 -z-10"></div>
         
           {steps.map((step, index) => (
