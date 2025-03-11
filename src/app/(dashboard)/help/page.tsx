@@ -284,12 +284,9 @@ export default function HelpPage() {
   };
 
   return (
-    <div id="HELP" className="container py-10 max-w-3xl mx-auto">
+    <div id="HELP" className="container py-10 max-w-3xl mx-auto overflow-hidden">
       <div className="flex justify-between items-center mb-8">
-        <BackButton text="Допомога" />
-        <Link href="/dashboard">
-          <Button variant="outline">На головну</Button>
-        </Link>
+        <BackButton text="Початок користування" />
       </div>
 
       {/* Progress steps */}

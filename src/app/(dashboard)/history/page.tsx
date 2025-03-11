@@ -33,7 +33,7 @@ export default function HistoryPage() {
 
   return (
     <div className="container mx-auto py-10">
-        <BackButton text="Історія повідомлень" />
+      <BackButton text="Історія повідомлень" />
 
       {isLoading ? (
         <div className="flex justify-center items-center h-40">

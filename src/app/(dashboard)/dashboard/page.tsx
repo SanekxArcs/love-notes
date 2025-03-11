@@ -165,7 +165,7 @@ function ControlPanel({
               </Button>
             )}
             {isLoading ? (
-              <p className="text-center bg-gray-500 rounded-md animate-pulse text-sm text-gray-500">
+              <p className="text-center bg-pink-500/40 rounded-md animate-pulse text-sm text-transparent">
                 Завантаження...
               </p>
             ) : noMessagesAvailable ? (

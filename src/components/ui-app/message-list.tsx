@@ -35,7 +35,7 @@ export function MessageList({
     >
       {loading ? (
         <h2
-          className={`${isToday ? "" : "mb-4"} text-xl text-transparent h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-3 font-semibold`}
+          className={`${isToday ? "" : "mb-4"} text-xl text-transparent h-6 bg-pink-500/40  rounded w-3/4 mb-3 font-semibold`}
         >
           {title}
         </h2>
@@ -64,14 +64,14 @@ export function MessageList({
                   className="animate-pulse"
                 >
                   <div
-                    className={`bg-gray-100 dark:bg-gray-800 rounded-lg p-4 ${isToday ? "h-60" : "h-60"}`}
+                    className={`bg-pink-500/40  rounded-lg p-4 ${isToday ? "h-60" : "h-60"}`}
                   >
-                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-3"></div>
-                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full mb-2"></div>
-                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
+                    <div className="h-4 bg-pink-500/40  rounded w-3/4 mb-3"></div>
+                    <div className="h-3 bg-pink-500/40  rounded w-full mb-2"></div>
+                    <div className="h-3 bg-pink-500/40  rounded w-5/6"></div>
                     {isToday && (
                       <div className="flex justify-end mt-4">
-                        <div className="h-6 w-6 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+                        <div className="h-6 w-6 bg-pink-500/40  rounded-full"></div>
                       </div>
                     )}
                   </div>
