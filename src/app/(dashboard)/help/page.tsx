@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { startTransition, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
@@ -17,63 +17,75 @@ import {
   Info,
 } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
+import { unstable_ViewTransition as ViewTransition } from "react";
 
 export default function HelpPage() {
   const [currentStep, setCurrentStep] = useState(0);
-  
+
   const steps = [
     {
       title: "Про Love Notes",
       icon: <Info className="h-8 w-8 text-purple-500" />,
       content: (
         <div className="space-y-4">
-          <p className="text-lg font-medium">Що таке Love Notes і для чого це потрібно?</p>
-          
+          <p className="text-lg font-medium">
+            Що таке Love Notes і для чого це потрібно?
+          </p>
+
           <div className="space-y-2">
             <p>
-              <strong>Love Notes</strong> - це особливий простір для пар, який перетворює обмін 
-              повідомленнями на приємний ритуал і справжню подію дня.
+              <strong>Love Notes</strong> - це особливий простір для пар, який
+              перетворює обмін повідомленнями на приємний ритуал і справжню
+              подію дня.
             </p>
-            
-            <h3 className="text-md font-medium mt-4">Чому не просто месенджер?</h3>
+
+            <h3 className="text-md font-medium mt-4">
+              Чому не просто месенджер?
+            </h3>
             <ul className="list-disc pl-5 space-y-1">
               <li>
-                <strong>Очікування і сюрприз</strong> - обмежена кількість повідомлень на день 
-                створює відчуття передчуття та робить кожне повідомлення особливим
+                <strong>Очікування і сюрприз</strong> - обмежена кількість
+                повідомлень на день створює відчуття передчуття та робить кожне
+                повідомлення особливим
               </li>
               <li>
-                <strong>Зручне планування</strong> - створіть запас приємних слів заздалегідь, 
-                щоб вони доставлялись навіть у ваш найзайнятіший день
+                <strong>Зручне планування</strong> - створіть запас приємних
+                слів заздалегідь, щоб вони доставлялись навіть у ваш
+                найзайнятіший день
               </li>
               <li>
-                <strong>Зберігання історії</strong> - всі ваші теплі слова залишаються в одному 
-                місці, створюючи літопис ваших почуттів
+                <strong>Зберігання історії</strong> - всі ваші теплі слова
+                залишаються в одному місці, створюючи літопис ваших почуттів
               </li>
               <li>
-                <strong>Свідома комунікація</strong> - додаток заохочує вас писати осмислені, 
-                щирі повідомлення замість побутових повсякденних повідомлень
+                <strong>Свідома комунікація</strong> - додаток заохочує вас
+                писати осмислені, щирі повідомлення замість побутових
+                повсякденних повідомлень
               </li>
             </ul>
           </div>
-          
+
           <div className="p-4 bg-purple-50 dark:bg-purple-950/20 rounded-lg">
             <h4 className="font-medium text-purple-700 dark:text-purple-300 flex items-center gap-2">
               <Heart className="h-4 w-4" /> Як це працює
             </h4>
             <p className="text-sm mt-1">
-              Ви створюєте повідомлення для коханої людини, встановлюєте ліміт їх показу в день, 
-              а ваш партнер отримує їх як теплі сюрпризи протягом дня у зручний час. Час смутку,
-              радості, втоми або просто вільний час - кожен момент може стати особливим. 
-              Це створює приємний ритуал і особливий момент у повсякденному житті. 
-              Так як повідомлення вибираються рандомно, то кожен день може бути справжнім сюрпризом.
-              А на цей додаток надихнула мане моя кохана яка подарувала мені баночку з записками б щоб я дивився кожного дня і згадував про неї.
-              Тож і ви не забувайте про своїх коханих. І зробіль їм приємний сюрприз.
+              Ви створюєте повідомлення для коханої людини, встановлюєте ліміт
+              їх показу в день, а ваш партнер отримує їх як теплі сюрпризи
+              протягом дня у зручний час. Час смутку, радості, втоми або просто
+              вільний час - кожен момент може стати особливим. Це створює
+              приємний ритуал і особливий момент у повсякденному житті. Так як
+              повідомлення вибираються рандомно, то кожен день може бути
+              справжнім сюрпризом. А на цей додаток надихнула мане моя кохана
+              яка подарувала мені баночку з записками б щоб я дивився кожного
+              дня і згадував про неї. Тож і ви не забувайте про своїх коханих. І
+              зробіль їм приємний сюрприз.
             </p>
           </div>
         </div>
-      ),},
+      ),
+    },
 
-    
     {
       title: "Початок",
       icon: <User className="h-8 w-8 text-pink-500" />,
@@ -90,7 +102,8 @@ export default function HelpPage() {
             </li>
             <li>
               Попросіть партнера поділитися своїм ID і введіть його в поле{" "}
-              <strong>&quot;ID вашого партнера&quot;</strong> Якщо ваш партнер правильно вказав ID то ви побачите його ім&apos;я
+              <strong>&quot;ID вашого партнера&quot;</strong> Якщо ваш партнер
+              правильно вказав ID то ви побачите його ім&apos;я
             </li>
             <li>
               Введіть свій номер телефону, щоб партнер міг зв&apos;язатися з
@@ -187,7 +200,8 @@ export default function HelpPage() {
             <p className="text-sm mt-1">
               Створіть запас повідомлень заздалегідь, щоб вашому партнеру завжди
               було що отримати. Можна підготувати різні повідомлення для різних
-              настроїв та ситуацій. Скоро буде можливість згенерувати повідомлення автоматично.
+              настроїв та ситуацій. Скоро буде можливість згенерувати
+              повідомлення автоматично.
             </p>
           </div>
         </div>
@@ -268,55 +282,88 @@ export default function HelpPage() {
     },
   ];
 
-  const nextStep = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
-      setTimeout(() => {
-        document.getElementById("HELP")?.scrollIntoView({ behavior: "smooth" });
-      }, 100);
-    }
-  };
+  const nextStep = () =>
+    startTransition(() => {
+      if (currentStep < steps.length - 1) {
+        setCurrentStep(currentStep + 1);
+        setTimeout(() => {
+          document
+            .getElementById("HELP")
+            ?.scrollIntoView({ behavior: "smooth" });
+        }, 100);
+      }
+    });
 
-  const prevStep = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
+  const prevStep = () =>
+    startTransition(() => {
+      if (currentStep > 0) {
+        setCurrentStep(currentStep - 1);
+      }
+    });
 
   return (
-    <div id="HELP" className="container py-10 max-w-3xl mx-auto overflow-hidden">
+    <div
+      id="HELP"
+      className="container py-10 max-w-3xl mx-auto overflow-hidden"
+    >
+      <ViewTransition name="buttons-top">
       <div className="flex justify-between items-center mb-8">
         <BackButton text="Початок користування" />
       </div>
+      </ViewTransition>
 
       {/* Progress steps */}
+      <ViewTransition
+          onUpdate={(instance) => {
+            instance.old.animate(
+              {
+                // transform: ["scale(1)", "scale(0)"],
+                opacity: [1, 0],
+              },
+              { duration: 500 }
+            );
+
+            instance.new.animate(
+              {
+                // transform: ["scale(0)", "scale(1)"],
+                opacity: [0, 1],
+              },
+              { duration: 300 }
+            );
+          }}
+        >
       <div className="flex justify-between mb-8 relative">
         <div className="absolute top-4 left-0 right-0 h-0.5 bg-gray-200 dark:bg-gray-700 -z-10"></div>
-        {steps.map((step, index) => (
-          <motion.div
-            key={index}
-            className={`flex flex-col items-center cursor-pointer`}
-            onClick={() => setCurrentStep(index)}
-            whileHover={{ scale: 1.05 }}
-            transition={{ duration: 0.2 }}
-          >
-            <div
-              className={`flex items-center justify-center w-8 h-8 rounded-full z-10 ${
-                index <= currentStep
-                  ? "bg-pink-500 text-white"
-                  : "bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-300"
-              }`}
+        
+          {steps.map((step, index) => (
+            <motion.div
+              key={index}
+              className={`flex flex-col items-center cursor-pointer`}
+              onClick={() => setCurrentStep(index)}
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.2 }}
             >
-              {index + 1}
-            </div>
-            <span className={`text-xs mt-2 hidden md:inline-block ${
-              index === currentStep ? "font-semibold text-pink-500" : ""
-            }`}>
-              {step.title}
-            </span>
-          </motion.div>
-        ))}
+              <div
+                className={`flex items-center justify-center w-8 h-8 rounded-full z-10 ${
+                  index <= currentStep
+                    ? "bg-pink-500 text-white"
+                    : "bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-300"
+                }`}
+              >
+                {index + 1}
+              </div>
+              <span
+                className={`text-xs mt-2 hidden md:inline-block ${
+                  index === currentStep ? "font-semibold text-pink-500" : ""
+                }`}
+              >
+                {step.title}
+              </span>
+            </motion.div>
+          ))}
+        
       </div>
+      </ViewTransition>
 
       <motion.div
         key={currentStep}
@@ -330,15 +377,15 @@ export default function HelpPage() {
               <div className="bg-gradient-to-br from-pink-100 to-indigo-100 dark:from-pink-900/30 dark:to-indigo-900/30 p-3 rounded-full">
                 {steps[currentStep].icon}
               </div>
-              <h2 className="text-2xl font-semibold">{steps[currentStep].title}</h2>
+              <h2 className="text-2xl font-semibold">
+                {steps[currentStep].title}
+              </h2>
             </div>
-            <div className="py-4">
-              {steps[currentStep].content}
-            </div>
+            <div className="py-4">{steps[currentStep].content}</div>
           </CardContent>
         </Card>
       </motion.div>
-
+  <ViewTransition name="buttons">
       <div className="flex justify-between mt-8 gap-4">
         <Button
           variant="outline"
@@ -354,6 +401,7 @@ export default function HelpPage() {
             Крок {currentStep + 1} з {steps.length}
           </span>
         </div>
+       
 
         {currentStep < steps.length - 1 ? (
           <Button onClick={nextStep}>
@@ -366,7 +414,9 @@ export default function HelpPage() {
             </Button>
           </Link>
         )}
+        
       </div>
+      </ViewTransition>
     </div>
   );
 }

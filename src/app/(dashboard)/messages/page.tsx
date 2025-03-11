@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Trash2 } from "lucide-react";
-import Link from "next/link";
+import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import MessageList from "./components/MessageList";
@@ -11,6 +10,8 @@ import AddMessageDialog from "./components/AddMessageDialog";
 import BatchAddDialog from "./components/BatchAddDialog";
 import DeleteAllDialog from "./components/DeleteAllDialog";
 import { Message, EditMessagePayload } from "./types";
+import { unstable_ViewTransition as ViewTransition } from "react";
+import { BackButton } from "@/components/ui/back-button";
 
 // Define interface for new message input
 interface NewMessage {
@@ -205,17 +206,11 @@ export default function AdminMessages() {
     <div className="container flex flex-col pb-6">
       <div className="flex flex-row justify-between items-center">
         <div className="mb-4 flex flex-col w-full md:flex-row justify-start items-start gap-4">
-          <div className="flex flex-row w-full items-center gap-4">
-            <Link href="/dashboard">
-              <Button variant="outline" size="icon">
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-            </Link>
-            <h1 className="md:text-2xl font-bold text-nowrap">Керування повідомленнями</h1>
-          </div>
+          <ViewTransition name="buttons-top">
+            <BackButton text="Керування повідомленнями" />
+          </ViewTransition>
 
           <div className="grid grid-cols-2 w-full md:flex justify-end gap-4">
-            
             <BatchAddDialog
               isOpen={isBatchDialogOpen}
               setIsOpen={setIsBatchDialogOpen}
@@ -226,7 +221,7 @@ export default function AdminMessages() {
               setIsOpen={setIsAddDialogOpen}
               onSubmit={handleAddMessage}
             />
-            
+
             <DeleteAllDialog
               isOpen={isDeleteDialogOpen}
               setIsOpen={setIsDeleteDialogOpen}
@@ -238,25 +233,24 @@ export default function AdminMessages() {
       </div>
 
       <div className="mb-6 flex flex-col justify-between">
-          <MessageList
-            messages={messages}
-            isLoading={isLoading}
-            onEdit={handleEditMessage}
-            onDelete={handleDeleteMessage}
-          />
+        <MessageList
+          messages={messages}
+          isLoading={isLoading}
+          onEdit={handleEditMessage}
+          onDelete={handleDeleteMessage}
+        />
       </div>
       <div className="flex flex-row justify-end items-center">
-        <Button 
-              variant="destructive" 
-              className="w-full md:w-auto"
-              onClick={() => setIsDeleteDialogOpen(true)}
-              disabled={unshownCount === 0}
-            >
-              <Trash2 className="h-4 w-4" />
-              {unshownCount} шт.
-            </Button>
+        <Button
+          variant="destructive"
+          className="w-full md:w-auto"
+          onClick={() => setIsDeleteDialogOpen(true)}
+          disabled={unshownCount === 0}
+        >
+          <Trash2 className="h-4 w-4" />
+          {unshownCount} шт.
+        </Button>
       </div>
-      
     </div>
   );
 }

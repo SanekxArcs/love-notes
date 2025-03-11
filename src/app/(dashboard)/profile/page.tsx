@@ -18,6 +18,7 @@ import {
 import { redirect } from "next/navigation";
 import { CustomTooltip } from "@/components/ui/custom-tooltip";
 import { BackButton } from "@/components/ui/back-button";
+import { unstable_ViewTransition as ViewTransition } from "react";
 
 interface UserData {
   _id: string;
@@ -36,7 +37,6 @@ interface UserData {
   };
 }
 
-// This ensures the user property is correctly typed
 interface ExtendedSession {
   user: {
     login?: string;
@@ -85,7 +85,7 @@ export default function UserProfile() {
 
         const data = await response.json();
         setUserData(data);
-        setOriginalUserData(JSON.parse(JSON.stringify(data))); // Create a deep copy of the data
+        setOriginalUserData(JSON.parse(JSON.stringify(data))); 
       } catch (error) {
         console.error("Помилка при отриманні даних користувача:", error);
         toast.error("Не вдалося завантажити профіль користувача");
@@ -97,7 +97,6 @@ export default function UserProfile() {
     fetchUserData();
   }, [session]);
 
-  // Add effect to fetch partner info when ID changes
   useEffect(() => {
     async function fetchPartnerInfo() {
       const partnerId = userData?.partnerIdToReceiveFrom;
@@ -137,11 +136,9 @@ export default function UserProfile() {
     setUserData((prev) => (prev ? { ...prev, [name]: value } : null));
   };
 
-  // Check if there are changes in the user data
   const hasChanges = () => {
     if (!userData || !originalUserData) return false;
 
-    // Compare each relevant field to detect changes
     return (
       userData.name !== originalUserData.name ||
       userData.password !== originalUserData.password ||
@@ -170,10 +167,8 @@ export default function UserProfile() {
 
   const generateUUID = () => {
     try {
-      // Generate a new UUID
       const newUUID = crypto.randomUUID();
 
-      // Update the userData state with the new UUID
       setUserData((prev) =>
         prev ? { ...prev, partnerIdToSend: newUUID } : null
       );
@@ -202,7 +197,6 @@ export default function UserProfile() {
         password += allChars[randomIndex];
       }
 
-      // Update the userData state with the new password
       setUserData((prev) => (prev ? { ...prev, password } : null));
 
       toast.success("Новий пароль згенеровано!");
@@ -231,7 +225,7 @@ export default function UserProfile() {
         throw new Error("Не вдалося оновити профіль");
       }
 
-      setOriginalUserData(JSON.parse(JSON.stringify(userData))); // Update the original data
+      setOriginalUserData(JSON.parse(JSON.stringify(userData)));
       toast.success("Профіль успішно оновлено!");
     } catch (error) {
       console.error("Помилка оновлення профілю:", error);
@@ -251,7 +245,9 @@ export default function UserProfile() {
   if (isLoading) {
     return (
       <div className="container py-10">
+        <ViewTransition name="buttons-top">
         <BackButton text="Профіль" />
+        </ViewTransition>
         <Card>
           <CardContent className="pt-6">
             <div className="space-y-2">
@@ -266,7 +262,9 @@ export default function UserProfile() {
 
   return (
     <div className="container py-10">
+      <ViewTransition name="buttons-top">
       <BackButton text="Профіль" />
+      </ViewTransition>
       <Card>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">

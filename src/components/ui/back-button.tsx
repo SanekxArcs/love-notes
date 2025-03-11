@@ -21,11 +21,11 @@ export function BackButton({ href, text }: BackButtonProps) {
   };
 
   return (
-    <div className="flex items-center justify-start gap-4 mb-2">
-      <Button variant="outline" size="icon" onClick={handleBack}>
+    <div className="flex items-center justify-start gap-4 mb-4">
+      <Button variant="outline" size="icon" onClick={handleBack} >
         <ArrowLeft className="h-4 w-4" />
       </Button>
-      <h1 className="text-2xl self-center font-bold">{text}</h1>
+      <h1 className="text-2xl text-nowrap font-bold">{text}</h1>
     </div>
   );
 }
