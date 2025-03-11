@@ -33,7 +33,7 @@ export default function HistoryPage() {
   }, []);
 
   return (
-    <div className="container mx-auto py-10">
+    <div className="container max-w-3xl mx-auto py-10">
       <ViewTransition name="buttons-top">
       <BackButton text="Історія повідомлень" />
 </ViewTransition>

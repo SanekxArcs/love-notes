@@ -244,9 +244,9 @@ export default function UserProfile() {
 
   if (isLoading) {
     return (
-      <div className="container py-10">
+      <div className="container  max-w-3xl mx-auto  py-10">
         <ViewTransition name="buttons-top">
-        <BackButton text="Профіль" />
+          <BackButton text="Профіль" />
         </ViewTransition>
         <Card>
           <CardContent className="pt-6">
@@ -261,7 +261,7 @@ export default function UserProfile() {
   }
 
   return (
-    <div className="container py-10">
+    <div className="container max-w-3xl mx-auto py-10">
       <ViewTransition name="buttons-top">
       <BackButton text="Профіль" />
       </ViewTransition>

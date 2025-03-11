@@ -115,7 +115,9 @@ export default function MessageHistory({ messages, isLoading }: MessageHistoryPr
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="flex-1 select-none">Повідомлення</TableHead>
+                  <TableHead className="flex-1 select-none max-w-80">
+                    Повідомлення
+                  </TableHead>
                   <TableHead
                     className="max-w-fit text-center cursor-pointer transition-colors"
                     onClick={() => handleHeaderClick("name")}
@@ -158,12 +160,12 @@ export default function MessageHistory({ messages, isLoading }: MessageHistoryPr
                   </TableRow>
                 ) : (
                   sortedMessages.map((message) => (
-                    <TableRow 
-                      key={message._id} 
+                    <TableRow
+                      key={message._id}
                       onClick={() => handleRowClick(message)}
                       className="cursor-pointer hover:bg-muted/50"
                     >
-                      <TableCell className="font-medium max-w-md truncate">
+                      <TableCell className="font-medium max-w-80 truncate">
                         {message.text || "—"}
                       </TableCell>
                       <TableCell className="text-center">
@@ -177,7 +179,9 @@ export default function MessageHistory({ messages, isLoading }: MessageHistoryPr
                               : "bg-pink-100 text-pink-800"
                           }`}
                         >
-                          {message.category === "daily" ? "Щоденне" : "Додаткове"}
+                          {message.category === "daily"
+                            ? "Щоденне"
+                            : "Додаткове"}
                         </span>
                       </TableCell>
                       <TableCell className="text-center">
@@ -217,22 +221,28 @@ export default function MessageHistory({ messages, isLoading }: MessageHistoryPr
               </DialogClose>
             </DialogTitle>
           </DialogHeader>
-          
+
           {selectedMessage && (
             <div className="space-y-4 py-2">
               <div className="space-y-2">
-                <h3 className="font-medium text-sm text-muted-foreground">Текст повідомлення:</h3>
+                <h3 className="font-medium text-sm text-muted-foreground">
+                  Текст повідомлення:
+                </h3>
                 <p className="text-base">{selectedMessage.text || "—"}</p>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h3 className="font-medium text-sm text-muted-foreground">Від кого:</h3>
+                  <h3 className="font-medium text-sm text-muted-foreground">
+                    Від кого:
+                  </h3>
                   <p>{selectedMessage.userName || "Не вказано"}</p>
                 </div>
-                
+
                 <div>
-                  <h3 className="font-medium text-sm text-muted-foreground">Категорія:</h3>
+                  <h3 className="font-medium text-sm text-muted-foreground">
+                    Категорія:
+                  </h3>
                   <span
                     className={`px-2 py-1 rounded-full text-xs ${
                       selectedMessage.category === "daily"
@@ -240,23 +250,33 @@ export default function MessageHistory({ messages, isLoading }: MessageHistoryPr
                         : "bg-pink-100 text-pink-800"
                     }`}
                   >
-                    {selectedMessage.category === "daily" ? "Щоденне" : "Додаткове"}
+                    {selectedMessage.category === "daily"
+                      ? "Щоденне"
+                      : "Додаткове"}
                   </span>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h3 className="font-medium text-sm text-muted-foreground">Дата показу:</h3>
+                  <h3 className="font-medium text-sm text-muted-foreground">
+                    Дата показу:
+                  </h3>
                   <p>
                     {selectedMessage.shownAt
-                      ? format(new Date(selectedMessage.shownAt), "d MMMM yyyy, HH:mm", { locale: uk })
+                      ? format(
+                          new Date(selectedMessage.shownAt),
+                          "d MMMM yyyy, HH:mm",
+                          { locale: uk }
+                        )
                       : "Не показано"}
                   </p>
                 </div>
-                
+
                 <div>
-                  <h3 className="font-medium text-sm text-muted-foreground">Реакція:</h3>
+                  <h3 className="font-medium text-sm text-muted-foreground">
+                    Реакція:
+                  </h3>
                   <span
                     className={`px-2 py-1 rounded-full text-xs ${
                       selectedMessage.like

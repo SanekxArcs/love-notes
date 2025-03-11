@@ -203,7 +203,7 @@ export default function AdminMessages() {
   const unshownCount = messages.filter(msg => !msg.isShown).length;
 
   return (
-    <div className="container flex flex-col pb-6">
+    <div className="container mx-auto flex max-w-3xl flex-col py-10">
       <div className="flex flex-row justify-between items-center">
         <div className="mb-4 flex flex-col w-full md:flex-row justify-start items-start gap-4">
           <ViewTransition name="buttons-top">
