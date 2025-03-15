@@ -34,7 +34,7 @@ export function useMessages(partnerId: string, dailyLimit: number) {
           data.todayMessages.map(
             (msg: Message): Message => ({
               ...msg,
-              shownAt: msg.shownAt ? new Date(msg.shownAt) : new Date(),
+              shownAt: msg.shownAt ? new Date(msg.shownAt).toISOString() : new Date().toISOString(),
             })
           )
         );
@@ -46,7 +46,7 @@ export function useMessages(partnerId: string, dailyLimit: number) {
           data.previousMessages.map(
             (msg: Message): Message => ({
               ...msg,
-              shownAt: msg.shownAt ? new Date(msg.shownAt) : new Date(),
+              shownAt: msg.shownAt ? new Date(msg.shownAt).toISOString() : new Date().toISOString(),
             })
           )
         );
@@ -91,7 +91,7 @@ export function useMessages(partnerId: string, dailyLimit: number) {
       if (data.message) {
         const newMessage: Message = {
           ...data.message,
-          shownAt: new Date(data.message.shownAt)
+          shownAt: new Date(data.message.shownAt).toISOString()
         };
         
         triggerConfetti();

@@ -85,7 +85,7 @@ export type Message = {
   userName?: string;
   category?: "unknown" | "daily" | "extra";
   like?: boolean;
-  shownAt?: Date;
+  shownAt?: string;
   creator?: {
     _ref: string;
     _type: "reference";

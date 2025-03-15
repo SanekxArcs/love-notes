@@ -80,7 +80,7 @@ export function MessageList({
                 <LoveMessageCard
                   id={msg._id}
                   message={msg.text}
-                  date={msg.shownAt}
+                  date={msg.shownAt ? new Date(msg.shownAt) : undefined}
                   isToday={isToday}
                   isExtraMessage={msg.category === "extra"}
                   initialLikeState={msg.like}
