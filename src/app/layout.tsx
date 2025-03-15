@@ -1,9 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
-import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 import { Providers } from "./providers";
-import { Toaster } from "sonner";
 
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
 
@@ -107,15 +105,7 @@ export default function RootLayout({
     <html lang="uk" suppressHydrationWarning>
       <body className={`relative ${inter.className}`}>
         <Providers>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
             {children}
-            <Toaster position="top-right" />
-          </ThemeProvider>
         </Providers>
       </body>
     </html>

@@ -66,8 +66,8 @@ const FloatingHearts = ({ count = 8 }: { count?: number }) => {
 
 interface LoveMessageCardProps {
   id: string;
-  message: string;
-  date: Date;
+  message?: string;
+  date?: Date;
   isToday: boolean;
   isExtraMessage?: boolean;
   initialLikeState?: boolean;
@@ -152,8 +152,8 @@ export function LoveMessageCard({
                 />
               )}
               {isToday
-                ? "Сьогоднішнє повідомлення"
-                : formatDistanceToNow(date, { addSuffix: true, locale: uk })}
+                  ? "Сьогоднішнє повідомлення"
+                  : date ? formatDistanceToNow(date, { addSuffix: true, locale: uk }) : ""}
             </div>
             {isExtraMessage && (
               <span className=" absolute  select-none  pointer-cursor -right-4 top-10 px-2 py-0.5 text-xs bg-red-500/50 uppercase scale-80 dark:bg-red-600/50 rounded-full flex items-center">
@@ -190,8 +190,8 @@ export function LoveMessageCard({
         </CardContent>
 
         <CardFooter className="flex justify-between  py-3 px-6">
-          <span className="text-xs text-muted-foreground  select-none  pointer-cursor">
-            {date.toLocaleDateString("uk-UA", {
+          <span className="text-xs text-muted-foreground select-none pointer-cursor">
+            {date?.toLocaleDateString("uk-UA", {
               year: "numeric",
               month: "long",
               day: "numeric",

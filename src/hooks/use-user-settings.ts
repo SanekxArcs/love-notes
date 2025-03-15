@@ -9,7 +9,7 @@ interface Settings {
 
 export function useUserSettings() {
   const [settings, setSettings] = useState<Settings>({
-    dailyMessageLimit: 0,
+    dailyMessageLimit: 1,
     contactNumber: "",
     partnerIdToReceiveFrom: "", 
   });
@@ -22,50 +22,53 @@ export function useUserSettings() {
         if (!sessionResponse.ok) {
           throw new Error("Failed to fetch session");
         }
-        
+
         const sessionData = await sessionResponse.json();
         if (!sessionData?.user?.login) {
           throw new Error("No user login found in session");
         }
-        
+
         const userLogin = sessionData.user.login;
-        
-        const userProfileResponse = await fetch(`/api/users/profile?login=${userLogin}`);
+
+        const userProfileResponse = await fetch(
+          `/api/users/profile?login=${userLogin}`
+        );
         if (!userProfileResponse.ok) {
-          throw new Error("Failed to fetch user profile");
+          throw new Error("Не вдалося отримати профіль користувача");
         }
-        
+
         const userData = await userProfileResponse.json();
-        
+
         if (!userData) {
           toast.error("Не вдалося завантажити дані користувача");
           return;
         }
-        
+
         const partnerIdToReceiveFrom = userData.partnerIdToReceiveFrom;
-        
+
         if (!partnerIdToReceiveFrom) {
           setSettings({
             dailyMessageLimit: 0,
             contactNumber: userData.phone || "",
             partnerIdToReceiveFrom: "",
           });
-          
+
           toast.warning(
             "ID партнера не встановлено. Відвідайте сторінку допомоги, щоб дізнатися, як встановити ID партнера."
           );
           setIsLoading(false);
           return;
         }
-        
-        // Fetch partner data using partnerIdToSend
-        const partnerResponse = await fetch(`/api/users/partner?partnerId=${partnerIdToReceiveFrom}`);
+
+        const partnerResponse = await fetch(
+          `/api/users/partner?partnerId=${partnerIdToReceiveFrom}`
+        );
         if (!partnerResponse.ok) {
-          throw new Error("Failed to fetch partner data");
+          throw new Error("Не вдалося отримати профіль користувача");
         }
-        
+
         const partnerData = await partnerResponse.json();
-        
+
         if (!partnerData) {
           toast.error("Партнера з наданим ідентифікатором не знайдено");
           setSettings({
@@ -76,17 +79,13 @@ export function useUserSettings() {
           setIsLoading(false);
           return;
         }
-        
-        // Use partner settings for messages
+
         setSettings({
-          // Use the partner's message limit
-          dailyMessageLimit: partnerData.dayMessageLimit || 0,
-          // Use the partner's contact number
-          contactNumber: partnerData.phone || "",
-          // Keep the partner ID for reference
+          dailyMessageLimit:
+            partnerData.dayMessageLimit || settings.dailyMessageLimit,
+          contactNumber: partnerData.phone || settings.contactNumber,
           partnerIdToReceiveFrom: partnerIdToReceiveFrom,
         });
-        
       } catch (error) {
         console.error("Error fetching user settings:", error);
         toast.error("Failed to load settings");
@@ -96,7 +95,7 @@ export function useUserSettings() {
     }
 
     fetchSettings();
-  }, []);
+  }, [settings.contactNumber, settings.dailyMessageLimit]);
 
   return { settings, isLoading };
 }
