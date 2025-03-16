@@ -145,7 +145,7 @@ export default function RegisterPage() {
         <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-pink-100 dark:bg-pink-950">
           <HeartIcon className="h-6 w-6 text-pink-500 dark:text-pink-400" />
         </div>
-        <CardTitle> <ViewTransition name="create-profile">Створити профіль</ViewTransition></CardTitle>
+        <CardTitle> Створити профіль</CardTitle>
         <CardDescription>Введи необхідні дані для реєстрації</CardDescription>
       </CardHeader>
       <CardContent>
@@ -201,6 +201,7 @@ export default function RegisterPage() {
 
           <div className="space-y-2">
             <div className="flex justify-between items-center">
+              
               <Label htmlFor="password">Пароль</Label>
               <Button
                 type="button"
@@ -259,7 +260,7 @@ export default function RegisterPage() {
               {error}
             </p>
           )}
-
+<ViewTransition name="create-profile">
           <Button
             type="submit"
             className="w-full"
@@ -279,10 +280,10 @@ export default function RegisterPage() {
             ) : (
               "Зареєструватися"
             )}
-          </Button>
+          </Button></ViewTransition>
 
           <div className="text-center text-sm">
-            Вже маєш профіль?
+            Вже маєш профіль? {""} 
             <Link href="/login" className="underline text-primary">
               Вхід
             </Link>

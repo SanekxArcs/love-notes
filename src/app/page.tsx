@@ -3,6 +3,7 @@ import { ModeToggle } from "@/components/ModeToggle";
 import { Heart } from "lucide-react";
 import { AuthState } from "@/components/auth/auth-state";
 import Aurora from "@/components/reactbits/Aurora";
+import { HelpDialog } from "@/components/HelpDialog";
 
 export default function LandingPage() {
   return (
@@ -35,9 +36,14 @@ export default function LandingPage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6">
             <AuthState />
           </div>
+          
+          
 
           <div className="pt-12 text-sm opacity-80">
             <p>Створено з любов&apos;ю для того, хто завжди в твоєму серці</p>
+          </div>
+          <div className="fixed bottom-4 right-4">
+            <HelpDialog />
           </div>
         </div>
       </div>

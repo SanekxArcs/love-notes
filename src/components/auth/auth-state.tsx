@@ -20,26 +20,27 @@ export function AuthState() {
 
   if (status === "unauthenticated") {
     return (
-      <div className="flex items-center flex-col md:flex-row gap-2 md:gap-4">
+      <div className="flex max-w-80 mx-auto justify-between items-center flex-row gap-2 md:gap-4">
         <Link href="/login">
-          <Button
-            size="lg"
-            className="bg-pink-600 hover:bg-pink-700 text-white px-8 py-6 text-lg rounded-md"
-          >
-            Увійти
-          </Button>
+          <ViewTransition name="login">
+            <Button
+              id="login"
+              className="bg-pink-600 transition-all hover:bg-pink-700 text-white"
+            >
+              Увійти
+            </Button>
+          </ViewTransition>
         </Link>
         <span className="text-muted-foreground">або</span>
         <Link href="/register">
-          <Button
-            className=" hover:bg-pink-900 px-4 py-3 text-lg rounded-md md:px-8 md:py-6"
-            variant="outline"
-          >
-            <ViewTransition name="create-profile">
-              Створити профіль
-            </ViewTransition>
-              
-          </Button>
+          <ViewTransition name="create-profile">
+            <Button
+              className=" hover:bg-pink-900 rounded-md transition-all"
+              variant="outline"
+            >
+              Зареєструватися
+            </Button>
+          </ViewTransition>
         </Link>
       </div>
     );
@@ -51,7 +52,7 @@ export function AuthState() {
         size="lg"
         className="bg-pink-600 hover:bg-pink-700 text-white px-8 py-6 text-lg rounded-full"
       >
-        Перейти до повідомлень
+        Перейти до додатку
       </Button>
     </Link>
   );
