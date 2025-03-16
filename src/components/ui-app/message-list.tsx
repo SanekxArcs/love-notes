@@ -1,13 +1,6 @@
 import { motion } from "framer-motion";
 import { LoveMessageCard } from "./love-message-card";
-
-interface Message {
-  _id: string;
-  text: string;
-  category: "daily" | "extra" | "unknown";
-  like: boolean;
-  lastShownAt: Date;
-}
+import type { Message } from "@/sanity/types";
 
 interface MessageListProps {
   title: string;
@@ -15,7 +8,7 @@ interface MessageListProps {
   isToday: boolean;
   onLikeChange: (id: string, liked: boolean) => void;
   animationDelay: number;
-  loading?: boolean; 
+  isSettingsLoading?: boolean;
 }
 
 export function MessageList({
@@ -24,7 +17,7 @@ export function MessageList({
   isToday,
   onLikeChange,
   animationDelay,
-  loading = false, 
+  isSettingsLoading,
 }: MessageListProps) {
   return (
     <motion.div
@@ -33,7 +26,7 @@ export function MessageList({
       transition={{ delay: animationDelay }}
       className={`${isToday ? "mb-8" : "mb-6"} grid gap-4`}
     >
-      {loading ? (
+      {isSettingsLoading ? (
         <h2
           className={`${isToday ? "" : "mb-4"} text-xl text-transparent h-6 bg-pink-500/40  rounded w-3/4 mb-3 font-semibold`}
         >
@@ -52,7 +45,7 @@ export function MessageList({
         )
       )}
       <div className={isToday ? "grid gap-4" : "grid gap-4"}>
-        {loading
+        {isSettingsLoading
           ? Array(1)
               .fill(0)
               .map((_, index) => (
@@ -87,7 +80,7 @@ export function MessageList({
                 <LoveMessageCard
                   id={msg._id}
                   message={msg.text}
-                  date={msg.lastShownAt}
+                  date={msg.shownAt ? new Date(msg.shownAt) : undefined}
                   isToday={isToday}
                   isExtraMessage={msg.category === "extra"}
                   initialLikeState={msg.like}

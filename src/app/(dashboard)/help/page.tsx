@@ -23,6 +23,7 @@ export default function HelpPage() {
   const [currentStep, setCurrentStep] = useState(0);
 
   const steps = [
+    // Про Love Notes
     {
       title: "Про Love Notes",
       icon: <Info className="h-8 w-8 text-purple-500" />,
@@ -85,7 +86,7 @@ export default function HelpPage() {
         </div>
       ),
     },
-
+    // Початок
     {
       title: "Початок",
       icon: <User className="h-8 w-8 text-pink-500" />,
@@ -122,6 +123,7 @@ export default function HelpPage() {
         </div>
       ),
     },
+    // Налаштування лімітів
     {
       title: "Налаштування лімітів",
       icon: <Settings className="h-8 w-8 text-indigo-500" />,
@@ -157,6 +159,7 @@ export default function HelpPage() {
         </div>
       ),
     },
+    // Створення повідомлень
     {
       title: "Створення повідомлень",
       icon: <MessageSquare className="h-8 w-8 text-blue-500" />,
@@ -207,6 +210,7 @@ export default function HelpPage() {
         </div>
       ),
     },
+    // Перегляд повідомлень
     {
       title: "Перегляд повідомлень",
       icon: <Heart className="h-8 w-8 text-rose-500" />,
@@ -246,6 +250,7 @@ export default function HelpPage() {
         </div>
       ),
     },
+    // Зв'язок з партнером
     {
       title: "Зв'язок з партнером",
       icon: <Phone className="h-8 w-8 text-green-500" />,
@@ -317,7 +322,6 @@ export default function HelpPage() {
           onUpdate={(instance) => {
             instance.old.animate(
               {
-                // transform: ["scale(1)", "scale(0)"],
                 opacity: [1, 0],
               },
               { duration: 500 }
@@ -325,7 +329,6 @@ export default function HelpPage() {
 
             instance.new.animate(
               {
-                // transform: ["scale(0)", "scale(1)"],
                 opacity: [0, 1],
               },
               { duration: 300 }

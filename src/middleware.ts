@@ -2,22 +2,16 @@ import { auth } from "@/auth"
 import { NextResponse } from "next/server"
  
 export default auth((req) => {
-  // Add debug logging
-//   console.log(
-//     "Middleware running, auth:",
-//     !!req.auth,
-//     "path:",
-//     req.nextUrl.pathname
-//   );
 
   const isLoggedIn = !!req.auth;
   const isAuthPage =
     req.nextUrl.pathname === "/login" || req.nextUrl.pathname === "/register";
+  const isHomePage = req.nextUrl.pathname === "/";
   const isAdminPage = req.nextUrl.pathname.startsWith("/admin");
   const isAdminUser = req.auth?.user?.role === "admin";
 
   // Redirect unauthenticated users to login
-  if (!isLoggedIn && !isAuthPage) {
+  if (!isLoggedIn && !isAuthPage && !isHomePage) {
     console.log("Not logged in, redirecting to login");
     return NextResponse.redirect(new URL("/login", req.nextUrl.origin));
   }

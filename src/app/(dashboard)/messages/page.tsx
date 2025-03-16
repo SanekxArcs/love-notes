@@ -30,6 +30,7 @@ interface BatchMessageData {
 }
 
 export default function AdminMessages() {
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);

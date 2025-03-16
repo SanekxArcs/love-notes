@@ -27,10 +27,6 @@ export default function Dashboard() {
 
   const remainingTime = useCountdown();
 
-  // Combined loading state
-  const isLoading = isMessageLoading || isSettingsLoading;
-
-  // Fetch messages when partner ID is available
   useEffect(() => {
     if (settings.partnerIdToReceiveFrom) {
       fetchMessages();
@@ -39,48 +35,46 @@ export default function Dashboard() {
 
   return (
     <div className="relative container mx-auto max-w-3xl pb-6 px-4">
-      {/* Message control panel */}
       <ControlPanel
         remainingTime={remainingTime}
         messageCount={messageCount}
         dailyLimit={settings.dailyMessageLimit}
         contactNumber={settings.contactNumber}
         onGetNewMessage={getNewMessage}
-        isLoading={isLoading}
+        isSettingsLoading={isSettingsLoading}
+        isMessageLoading={isMessageLoading}
         noMessagesAvailable={noMessagesAvailable}
       />
 
-      {/* Today's messages */}
-        <MessageList
-          title="Сьогоднішні повідомлення"
-          messages={todayMessages}
-          isToday={true}
-          onLikeChange={handleLikeChange}
-          animationDelay={0.2}
-          loading={isLoading}
-                  />
+      <MessageList
+        title="Сьогоднішні повідомлення"
+        messages={todayMessages}
+        isToday={true}
+        onLikeChange={handleLikeChange}
+        animationDelay={0.2}
+        isSettingsLoading={isSettingsLoading}
+      />
 
-      {/* Previous messages */}
-        <MessageList
-          title="Історія повідомлень"
-          messages={previousMessages}
-          isToday={false}
-          onLikeChange={handleLikeChange}
-          animationDelay={0.5}
-          loading={isLoading}
-        />
+      <MessageList
+        title="Історія повідомлень"
+        messages={previousMessages}
+        isToday={false}
+        onLikeChange={handleLikeChange}
+        animationDelay={0.5}
+        isSettingsLoading={isSettingsLoading}
+      />
     </div>
   );
 }
 
-// Control panel component for message controls and countdown
 interface ControlPanelProps {
   remainingTime: string;
   messageCount: number;
   dailyLimit: number;
   contactNumber: string;
+  isSettingsLoading?: boolean;
+  isMessageLoading?: boolean;
   onGetNewMessage: () => void;
-  isLoading: boolean;
   noMessagesAvailable: boolean;
 }
 
@@ -90,7 +84,8 @@ function ControlPanel({
   dailyLimit,
   contactNumber,
   onGetNewMessage,
-  isLoading,
+  isSettingsLoading,
+  isMessageLoading,
   noMessagesAvailable,
 }: ControlPanelProps) {
   const showCallButton = messageCount >= dailyLimit || noMessagesAvailable;
@@ -122,9 +117,9 @@ function ControlPanel({
                 onClick={onGetNewMessage}
                 size="lg"
                 className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 transition-all duration-300 shadow-md hover:shadow-lg"
-                disabled={isLoading}
+                disabled={isMessageLoading}
               >
-                {isLoading ? (
+                {isSettingsLoading || isMessageLoading ? (
                   <span className="flex items-center animate-pulse">
                     <SpinnerIcon className="animate-spin mr-1" />
                     Завантаження...
@@ -147,9 +142,9 @@ function ControlPanel({
                 size="lg"
                 className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 transition-all duration-300 shadow-md hover:shadow-lg"
                 onClick={() => (window.location.href = `tel:${contactNumber}`)}
-                disabled={isLoading}
+                disabled={isMessageLoading}
               >
-                {isLoading ? (
+                {isSettingsLoading ? (
                   <span className="flex items-center animate-pulse">
                     <SpinnerIcon className="animate-spin mr-1" />
                     Завантаження...
@@ -164,7 +159,7 @@ function ControlPanel({
                 )}
               </Button>
             )}
-            {isLoading ? (
+            {isSettingsLoading ? (
               <p className="text-center bg-pink-500/40 rounded-md animate-pulse text-sm text-transparent">
                 Завантаження...
               </p>
@@ -173,7 +168,17 @@ function ControlPanel({
                 Всі повідомлення переглянуто 😱
               </p>
             ) : (
-              <p className="text-center text-sm text-gray-500">Сьогодні використано: {messageCount}/{dailyLimit}</p>
+              <p className="text-center text-sm text-gray-500">
+                Сьогодні використано:{" "}
+                {isMessageLoading ? (
+                  <span className="w-5 h-5 animate-pulse bg-pink-500/40 rounded-md text-transparent">
+                    1
+                  </span>
+                ) : (
+                  messageCount
+                )}
+                /{dailyLimit}
+              </p>
             )}
           </div>
         </div>
