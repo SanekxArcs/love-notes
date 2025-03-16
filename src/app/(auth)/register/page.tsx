@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { unstable_ViewTransition as ViewTransition } from "react";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -144,7 +145,7 @@ export default function RegisterPage() {
         <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-pink-100 dark:bg-pink-950">
           <HeartIcon className="h-6 w-6 text-pink-500 dark:text-pink-400" />
         </div>
-        <CardTitle>Створити профіль</CardTitle>
+        <CardTitle> <ViewTransition name="create-profile">Створити профіль</ViewTransition></CardTitle>
         <CardDescription>Введи необхідні дані для реєстрації</CardDescription>
       </CardHeader>
       <CardContent>

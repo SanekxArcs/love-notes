@@ -5,6 +5,7 @@ import { LoaderCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "../ui/button";
+import { unstable_ViewTransition as ViewTransition } from "react";
 
 export function AuthState() {
   const { status } = useSession();
@@ -34,7 +35,10 @@ export function AuthState() {
             className=" hover:bg-pink-900 px-4 py-3 text-lg rounded-md md:px-8 md:py-6"
             variant="outline"
           >
-            Створити профіль
+            <ViewTransition name="create-profile">
+              Створити профіль
+            </ViewTransition>
+              
           </Button>
         </Link>
       </div>
