@@ -15,7 +15,7 @@ import {
 import { HeartIcon, Loader2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
-import { unstable_ViewTransition as ViewTransition } from "react";
+import { ViewTransition } from "react";
 
 export default function LoginPage() {
   const [login, setLogin] = useState("");
@@ -40,7 +40,6 @@ export default function LoginPage() {
       if (!result?.ok) {
         let errorMessage = "Помилка входу";
         
-        // Check for specific error types from NextAuth
         if (result?.error === "CredentialsSignin") {
           toast.error("Неправильний логін або пароль");
           errorMessage = "Неправильний логін або пароль";
@@ -52,11 +51,9 @@ export default function LoginPage() {
         setError(errorMessage);
         toast.error(errorMessage);
       } else {
-        // Successful login - redirect manually
         window.location.href = result.url || "/dashboard";
       }
     } catch (error: unknown) {
-      // Handle unexpected errors
       console.error("Login error:", error);
       
       let errorMessage = "Невідома помилка сервера";

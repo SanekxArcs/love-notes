@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { sanityClient } from "@/lib/sanity";
 import { auth } from "@/auth";
 
-// Define request body interface
 interface LikeRequestBody {
   messageId: string;
   liked: boolean;
@@ -12,7 +11,6 @@ export async function POST(request: Request) {
   try {
     const session = await auth();
 
-    // Check if the user is authenticated
     if (!session || !session.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -26,7 +24,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Update the like status directly in the message document
     await sanityClient
       .patch(messageId)
       .set({ like: liked })

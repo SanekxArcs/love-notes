@@ -34,7 +34,6 @@ export default function BatchAddDialog({ isOpen, setIsOpen, onSubmit }: BatchAdd
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    // Split the text by new lines and filter out empty lines
     const messageLines = batchMessages
       .split("\n")
       .map(line => line.trim())

@@ -35,11 +35,9 @@ export default function EditMessageDialog({ message, isOpen, setIsOpen, onSubmit
     }
   }, [message]);
 
-  // Properly type the category change to match the Message interface
   const handleCategoryChange = (value: string) => {
     if (!editingMessage) return;
     
-    // Only allow valid category values
     const category = (value as "daily" | "extra" | "unknown");
     
     setEditingMessage({

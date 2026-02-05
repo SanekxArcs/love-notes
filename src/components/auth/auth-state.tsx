@@ -5,7 +5,7 @@ import { LoaderCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "../ui/button";
-import { unstable_ViewTransition as ViewTransition } from "react";
+import { ViewTransition } from "react";
 
 export function AuthState() {
   const { status } = useSession();

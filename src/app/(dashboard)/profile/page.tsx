@@ -18,7 +18,7 @@ import {
 import { redirect } from "next/navigation";
 import { CustomTooltip } from "@/components/ui/custom-tooltip";
 import { BackButton } from "@/components/ui/back-button";
-import { unstable_ViewTransition as ViewTransition } from "react";
+import { ViewTransition } from "react";
 
 interface UserData {
   _id: string;
@@ -101,7 +101,6 @@ export default function UserProfile() {
     async function fetchPartnerInfo() {
       const partnerId = userData?.partnerIdToReceiveFrom;
 
-      // Reset partner name if ID is empty
       if (!partnerId || partnerId.trim() === "") {
         setPartnerName(null);
         return;
@@ -191,7 +190,6 @@ export default function UserProfile() {
       const allChars = lowercase + uppercase + numbers + special;
       let password = "";
 
-      // Generate a password with 12 characters
       for (let i = 0; i < 12; i++) {
         const randomIndex = Math.floor(Math.random() * allChars.length);
         password += allChars[randomIndex];

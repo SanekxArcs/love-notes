@@ -39,7 +39,6 @@ export default function MessageList({ messages, isLoading, onEdit, onDelete }: M
     setIsDeleteDialogOpen(true);
   };
 
-  // Filter for unshown messages only
   const unshownMessages = messages.filter(message => !message.isShown);
 
   return (

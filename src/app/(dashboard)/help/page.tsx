@@ -17,7 +17,7 @@ import {
   Info,
 } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
-import { unstable_ViewTransition as ViewTransition } from "react";
+import { ViewTransition } from "react";
 
 export default function HelpPage() {
   const [currentStep, setCurrentStep] = useState(0);
@@ -316,8 +316,6 @@ export default function HelpPage() {
         <BackButton text="Початок користування" />
       </div>
       </ViewTransition>
-
-      {/* Progress steps */}
       <ViewTransition
           onUpdate={(instance) => {
             instance.old.animate(
@@ -377,7 +375,7 @@ export default function HelpPage() {
         <Card className="overflow-hidden border-pink-200 dark:border-pink-900">
           <CardContent className="pt-6">
             <div className="flex items-center mb-4 gap-3">
-              <div className="bg-gradient-to-br from-pink-100 to-indigo-100 dark:from-pink-900/30 dark:to-indigo-900/30 p-3 rounded-full">
+              <div className="bg-linear-to-br from-pink-100 to-indigo-100 dark:from-pink-900/30 dark:to-indigo-900/30 p-3 rounded-full">
                 {steps[currentStep].icon}
               </div>
               <h2 className="text-2xl font-semibold">
@@ -399,7 +397,7 @@ export default function HelpPage() {
           <ArrowLeft className="mr-2 h-4 w-4" /> Назад
         </Button>
 
-        <div className="flex-grow text-center self-center">
+        <div className="grow text-center self-center">
           <span className="text-sm text-gray-500">
             Крок {currentStep + 1} з {steps.length}
           </span>

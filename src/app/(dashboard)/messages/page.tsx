@@ -10,10 +10,9 @@ import AddMessageDialog from "./components/AddMessageDialog";
 import BatchAddDialog from "./components/BatchAddDialog";
 import DeleteAllDialog from "./components/DeleteAllDialog";
 import { Message, EditMessagePayload } from "./types";
-import { unstable_ViewTransition as ViewTransition } from "react";
+import { ViewTransition } from "react";
 import { BackButton } from "@/components/ui/back-button";
 
-// Define interface for new message input
 interface NewMessage {
   text: string;
   category: string;
@@ -21,7 +20,6 @@ interface NewMessage {
   like?: boolean;
 }
 
-// Update BatchMessageData interface to match what the API expects
 interface BatchMessageData {
   messages: string[];
   category?: string;

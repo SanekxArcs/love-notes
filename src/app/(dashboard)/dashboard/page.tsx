@@ -97,7 +97,7 @@ function ControlPanel({
       transition={{ delay: 0.4 }}
       className="mb-8"
     >
-      <Card className="bg-gradient-to-r from-indigo-500/10 to-pink-500/10 overflow-hidden">
+      <Card className="bg-linear-to-r from-indigo-500/10 to-pink-500/10 overflow-hidden">
         <div className="p-6">
           <div className="mb-4 flex items-center flex-col md:flex-row justify-between">
             <div className="flex items-center gap-2 text-indigo-700">
@@ -116,7 +116,7 @@ function ControlPanel({
               <Button
                 onClick={onGetNewMessage}
                 size="lg"
-                className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 transition-all duration-300 shadow-md hover:shadow-lg"
+                className="bg-linear-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 transition-all duration-300 shadow-md hover:shadow-lg"
                 disabled={isMessageLoading}
               >
                 {isSettingsLoading || isMessageLoading ? (
@@ -140,7 +140,7 @@ function ControlPanel({
             ) : (
               <Button
                 size="lg"
-                className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 transition-all duration-300 shadow-md hover:shadow-lg"
+                className="bg-linear-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 transition-all duration-300 shadow-md hover:shadow-lg"
                 onClick={() => (window.location.href = `tel:${contactNumber}`)}
                 disabled={isMessageLoading}
               >

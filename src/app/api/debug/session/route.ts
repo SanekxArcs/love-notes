@@ -1,4 +1,3 @@
-// app/api/debug/session/route.ts
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 

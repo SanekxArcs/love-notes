@@ -68,7 +68,6 @@ export const metadata: Metadata = {
     apple: [
       { url: '/apple-icon.png' },
     ],
-    // shortcut: '/shortcut-icon.png',
   },
   manifest: '/manifest.json',
   alternates: {

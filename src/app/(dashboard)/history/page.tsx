@@ -6,7 +6,7 @@ import MessageHistory from "./MessageHistory";
 import { Message } from "../messages/types";
 import { LoaderCircle } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
-import { unstable_ViewTransition as ViewTransition } from "react";
+import { ViewTransition } from "react";
 
 export default function HistoryPage() {
   const [messages, setMessages] = useState<Message[]>([]);

@@ -7,7 +7,6 @@ export async function POST(request: Request) {
   try {
     const { name, login, password, phone } = await request.json();
 
-    // Basic validation
     if (!name || !login || !password) {
       return NextResponse.json(
         { message: "Name, login, and password are required" },
@@ -15,7 +14,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if user with this login already exists
     const existingUser = await sanityClient.fetch(
       `*[_type == "user" && login == $login][0]`,
       { login }
@@ -28,10 +26,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create a new user with a unique ID for partner communication
     const partnerIdToSend = uuidv4();
     
-    // Create new user document
     const result: SanityDocument<{
       _type: string;
       name: string;
