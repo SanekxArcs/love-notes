@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* biome-ignore-all lint/suspicious/noExplicitAny: legacy vendored animation logic */
 "use client";
 import { useEffect, useState, useRef } from "react";
 

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { PortableTextComponents } from "next-sanity";
+import type { PortableTextComponents } from "next-sanity";
 import { urlFor } from "@/sanity/lib/image";
 
 export const components: PortableTextComponents = {

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 import { sanityClient } from "@/lib/sanity";
-import { SanityDocument } from "next-sanity";
+import type { SanityDocument } from "next-sanity";
 
 export async function POST(request: Request) {
   try {

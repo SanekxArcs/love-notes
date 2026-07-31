@@ -2,7 +2,7 @@
 
 // import { LoaderCircle } from "lucide-react";
 import { useSession,} from "next-auth/react";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 interface WraperIfAdminProps {
   children: ReactNode;

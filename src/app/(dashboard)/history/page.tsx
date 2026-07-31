@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import MessageHistory from "./MessageHistory";
-import { Message } from "../messages/types";
+import type { Message } from "../messages/types";
 import { LoaderCircle } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
 import { ViewTransition } from "react";

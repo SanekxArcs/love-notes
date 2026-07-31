@@ -13,6 +13,7 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     viewTransition: true,
+    useTypeScriptCli: true,
   },
   turbopack: {
     root: path.join(__dirname),

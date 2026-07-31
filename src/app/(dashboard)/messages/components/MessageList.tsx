@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/table";
 import EditMessageDialog from "./EditMessageDialog";
 import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
-import { EditMessagePayload, Message } from "../types";
+import type { EditMessagePayload, Message } from "../types";
 
 interface MessageListProps {
   messages: Message[];

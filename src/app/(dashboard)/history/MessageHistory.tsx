@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Message } from "../messages/types";
+import type { Message } from "../messages/types";
 import { LoaderCircle, ArrowUp, ArrowDown } from "lucide-react";
 import {
   Dialog,

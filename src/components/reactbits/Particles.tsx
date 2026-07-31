@@ -1,6 +1,7 @@
-/* eslint-disable react-hooks/exhaustive-deps */
+/* biome-ignore-all lint/correctness/useExhaustiveDependencies: legacy vendored effect logic */
 "use client";
-import React, { useEffect, useRef } from "react";
+import type React from "react";
+import { useEffect, useRef } from "react";
 import { Renderer, Camera, Geometry, Program, Mesh } from "ogl";
 
 interface ParticlesProps {

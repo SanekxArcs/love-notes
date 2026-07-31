@@ -9,7 +9,7 @@ import MessageList from "./components/MessageList";
 import AddMessageDialog from "./components/AddMessageDialog";
 import BatchAddDialog from "./components/BatchAddDialog";
 import DeleteAllDialog from "./components/DeleteAllDialog";
-import { Message, EditMessagePayload } from "./types";
+import type { Message, EditMessagePayload } from "./types";
 import { ViewTransition } from "react";
 import { BackButton } from "@/components/ui/back-button";
 

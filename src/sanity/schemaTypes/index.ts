@@ -1,4 +1,4 @@
-import { type SchemaTypeDefinition } from 'sanity'
+import type { SchemaTypeDefinition } from 'sanity'
 import { messageType } from './message'
 import { userType } from './user'
 

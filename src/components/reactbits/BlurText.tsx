@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* biome-ignore-all lint/suspicious/noExplicitAny: legacy vendored animation logic */
 "use client";
 import { useRef, useEffect, useState } from "react";
 
-import { useSprings, animated, SpringValue } from "@react-spring/web";
+import { useSprings, animated, type SpringValue } from "@react-spring/web";
 
 interface BlurTextProps {
   text?: string;

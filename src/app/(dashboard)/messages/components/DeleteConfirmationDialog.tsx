@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Message } from "../types";
+import type { Message } from "../types";
 import { useState } from "react";
 import { LoaderCircle } from "lucide-react";
 

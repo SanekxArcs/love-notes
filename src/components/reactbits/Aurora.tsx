@@ -1,4 +1,4 @@
-/* eslint-disable react-hooks/exhaustive-deps */
+/* biome-ignore-all lint/correctness/useExhaustiveDependencies: legacy vendored effect logic */
 "use client"
 import { useEffect, useRef } from "react";
 import { Renderer, Program, Mesh, Color, Triangle } from "ogl";
@@ -149,7 +149,7 @@ export default function Aurora(props: AuroraProps) {
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     gl.canvas.style.backgroundColor = "transparent";
 
-    let program: Program | undefined = undefined;
+    let program: Program | undefined ;
 
     function resize() {
       if (!ctn) return;
