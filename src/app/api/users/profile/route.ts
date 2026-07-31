@@ -67,7 +67,7 @@ export async function PUT(request: Request) {
       userData.dayMessageLimit = Number(userData.dayMessageLimit);
     }
     
-    const allowedFields = ['name', 'password', 'phone', 'partnerIdToReceiveFrom', 'dayMessageLimit','partnerIdToSend'];
+    const allowedFields = ['name', 'password', 'phone', 'partnerIdToReceiveFrom', 'dayMessageLimit','partnerIdToSend', 'geminiApiKey', 'partnerInfo'];
     const patch = Object.keys(userData)
       .filter(key => allowedFields.includes(key))
       .reduce((obj: Record<string, unknown>, key) => {

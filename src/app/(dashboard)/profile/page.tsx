@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import {
   Clipboard,
@@ -30,6 +31,8 @@ interface UserData {
   partnerIdToSend: string;
   partnerIdToReceiveFrom: string;
   dayMessageLimit: number;
+  geminiApiKey: string;
+  partnerInfo: string;
   image?: {
     asset?: {
       _ref: string;
@@ -66,6 +69,7 @@ export default function UserProfile() {
   const [isSaving, setIsSaving] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showGeminiApiKey, setShowGeminiApiKey] = useState(false);
   const [partnerName, setPartnerName] = useState<string | null>(null);
   const [loadingPartner, setLoadingPartner] = useState(false);
 
@@ -130,7 +134,9 @@ export default function UserProfile() {
     fetchPartnerInfo();
   }, [userData?.partnerIdToReceiveFrom]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setUserData((prev) => (prev ? { ...prev, [name]: value } : null));
   };
@@ -145,7 +151,9 @@ export default function UserProfile() {
       userData.partnerIdToSend !== originalUserData.partnerIdToSend ||
       userData.partnerIdToReceiveFrom !==
         originalUserData.partnerIdToReceiveFrom ||
-      userData.dayMessageLimit !== originalUserData.dayMessageLimit
+      userData.dayMessageLimit !== originalUserData.dayMessageLimit ||
+      userData.geminiApiKey !== originalUserData.geminiApiKey ||
+      userData.partnerInfo !== originalUserData.partnerInfo
     );
   };
 
@@ -359,6 +367,69 @@ export default function UserProfile() {
               />
               <p className="text-xs text-gray-500">
                 Денний ліміт для твого партнера
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="geminiApiKey">Gemini API ключ</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="geminiApiKey"
+                  name="geminiApiKey"
+                  type={showGeminiApiKey ? "text" : "password"}
+                  value={userData?.geminiApiKey || ""}
+                  onChange={handleInputChange}
+                  className="flex-1"
+                />
+                <CustomTooltip
+                  text={showGeminiApiKey ? "Приховати ключ" : "Показати ключ"}
+                >
+                  <Button
+                    type="button"
+                    onClick={() => setShowGeminiApiKey(!showGeminiApiKey)}
+                    variant="outline"
+                    size="icon"
+                    title={
+                      showGeminiApiKey ? "Приховати ключ" : "Показати ключ"
+                    }
+                  >
+                    {showGeminiApiKey ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </Button>
+                </CustomTooltip>
+              </div>
+              <p className="text-xs text-gray-500">
+                Потрібен для генерації повідомлень через AI. Отримати ключ
+                можна на{" "}
+                <a
+                  href="https://aistudio.google.com/app/apikey"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline"
+                >
+                  aistudio.google.com
+                </a>
+                .
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="partnerInfo">Інформація про партнера (для AI)</Label>
+              <Textarea
+                id="partnerInfo"
+                name="partnerInfo"
+                value={userData?.partnerInfo || ""}
+                onChange={handleInputChange}
+                rows={4}
+                placeholder="Інтереси, спільні жарти, як ви познайомились..."
+                className="resize-none"
+              />
+              <p className="text-xs text-gray-500">
+                Використовується для персоналізації AI-згенерованих
+                повідомлень
               </p>
             </div>
 

@@ -17,7 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus } from "lucide-react";
+import { Plus, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 
 interface AddMessageDialogProps {
   isOpen: boolean;
@@ -36,6 +37,8 @@ export default function AddMessageDialog({
   onSubmit,
 }: AddMessageDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [uniquenessScore, setUniquenessScore] = useState<number | null>(null);
   const [newMessage, setNewMessage] = useState({
     text: "",
     category: "unknown",
@@ -50,6 +53,30 @@ export default function AddMessageDialog({
       isShown: false,
       like: false,
     });
+    setUniquenessScore(null);
+  };
+
+  const handleGenerate = async () => {
+    setIsGenerating(true);
+    try {
+      const response = await fetch("/api/messages/generate", {
+        method: "POST",
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.error || "Не вдалося згенерувати повідомлення");
+        return;
+      }
+
+      setNewMessage((prev) => ({ ...prev, text: data.text }));
+      setUniquenessScore(data.uniquenessScore);
+    } catch (error) {
+      console.error("Error generating AI message:", error);
+      toast.error("Не вдалося згенерувати повідомлення");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -119,23 +146,51 @@ export default function AddMessageDialog({
           </div>
 
           <div className="grid gap-2">
-            <label htmlFor="message" className="text-sm font-medium">
-              Текст повідомлення
-            </label>
+            <div className="flex items-center justify-between">
+              <label htmlFor="message" className="text-sm font-medium">
+                Текст повідомлення
+              </label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleGenerate}
+                disabled={isGenerating}
+              >
+                <Sparkles className="mr-1 h-3.5 w-3.5" />
+                {isGenerating ? "Генерація..." : "Згенерувати AI"}
+              </Button>
+            </div>
             <Textarea
               id="message"
               value={newMessage.text}
-              onChange={(e) =>
-                setNewMessage({ ...newMessage, text: e.target.value })
-              }
+              onChange={(e) => {
+                setNewMessage({ ...newMessage, text: e.target.value });
+                setUniquenessScore(null);
+              }}
               rows={5}
               placeholder="Напишіть текст повідомлення..."
               className="resize-none"
               required
             />
-            <p className="text-xs text-gray-500">
-              {newMessage.text.length}/500 символів
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-gray-500">
+                {newMessage.text.length}/500 символів
+              </p>
+              {uniquenessScore !== null && (
+                <p
+                  className={`text-xs font-medium ${
+                    uniquenessScore >= 70
+                      ? "text-green-600"
+                      : uniquenessScore >= 40
+                        ? "text-amber-600"
+                        : "text-red-600"
+                  }`}
+                >
+                  Унікальність: {uniquenessScore}%
+                </p>
+              )}
+            </div>
           </div>
 
           {/* <div className="grid gap-2">
