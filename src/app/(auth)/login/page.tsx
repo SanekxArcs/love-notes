@@ -15,7 +15,6 @@ import {
 import { HeartIcon, Loader2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
-import { ViewTransition } from "react";
 
 export default function LoginPage() {
   const [login, setLogin] = useState("");
@@ -127,23 +126,21 @@ export default function LoginPage() {
               {error}
             </p>
           )}
-          <ViewTransition name="login">
-            <Button
-              id="login"
-              type="submit"
-              className="w-full bg-pink-600 transition-all hover:bg-pink-700 text-white"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Вхід
-                </>
-              ) : (
-                "Увійти"
-              )}
-            </Button>
-          </ViewTransition>
+          <Button
+            id="login"
+            type="submit"
+            className="w-full bg-pink-600 transition-all hover:bg-pink-700 text-white"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Вхід
+              </>
+            ) : (
+              "Увійти"
+            )}
+          </Button>
 
           <div className="text-center text-sm">
             Ще не маєш профіль?{" "}

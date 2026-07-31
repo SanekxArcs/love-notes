@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { ViewTransition, type ReactNode } from 'react';
 import { ModeToggle } from '@/components/ModeToggle';
 import Particles from '@/components/reactbits/Particles';
 
@@ -25,7 +25,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
         <header className="absolute top-0 right-0 p-4">
           <ModeToggle />
         </header>
-        {children}
+        <ViewTransition>{children}</ViewTransition>
       </div>
     </>
   );

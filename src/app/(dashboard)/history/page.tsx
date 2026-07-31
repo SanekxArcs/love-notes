@@ -35,8 +35,8 @@ export default function HistoryPage() {
   return (
     <div className="container max-w-3xl mx-auto py-10">
       <ViewTransition name="buttons-top">
-      <BackButton text="Історія повідомлень" />
-</ViewTransition>
+        <BackButton text="Історія повідомлень" />
+      </ViewTransition>
       {isLoading ? (
         <div className="flex justify-center items-center h-40">
           <LoaderCircle className="animate-spin h-8 w-8" />

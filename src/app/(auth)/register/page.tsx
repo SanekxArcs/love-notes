@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ViewTransition } from "react";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -260,7 +259,6 @@ export default function RegisterPage() {
               {error}
             </p>
           )}
-<ViewTransition name="create-profile">
           <Button
             type="submit"
             className="w-full"
@@ -280,7 +278,7 @@ export default function RegisterPage() {
             ) : (
               "Зареєструватися"
             )}
-          </Button></ViewTransition>
+          </Button>
 
           <div className="text-center text-sm">
             Вже маєш профіль? {""} 

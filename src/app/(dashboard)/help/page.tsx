@@ -307,35 +307,31 @@ export default function HelpPage() {
     });
 
   return (
-    <div
-      
-      className="container py-10 max-w-3xl mx-auto overflow-hidden"
-    >
+    <div className="container py-10 max-w-3xl mx-auto overflow-hidden">
       <ViewTransition name="buttons-top">
-      <div className="flex justify-between items-center mb-8">
-        <BackButton text="Початок користування" />
-      </div>
+        <div className="flex justify-between items-center mb-8">
+          <BackButton text="Початок користування" />
+        </div>
       </ViewTransition>
       <ViewTransition
-          onUpdate={(instance) => {
-            instance.old.animate(
-              {
-                opacity: [1, 0],
-              },
-              { duration: 500 }
-            );
+        onUpdate={(instance) => {
+          instance.old.animate(
+            {
+              opacity: [1, 0],
+            },
+            { duration: 500 }
+          );
 
-            instance.new.animate(
-              {
-                opacity: [0, 1],
-              },
-              { duration: 300 }
-            );
-          }}
-        >
-      <div id="HELP" className="flex justify-between mb-8 relative">
-        <div className="absolute top-4 left-0 right-0 h-0.5 bg-gray-200 dark:bg-gray-700 -z-10"></div>
-        
+          instance.new.animate(
+            {
+              opacity: [0, 1],
+            },
+            { duration: 300 }
+          );
+        }}
+      >
+        <div id="HELP" className="flex justify-between mb-8 relative">
+          <div className="absolute top-4 left-0 right-0 h-0.5 bg-gray-200 dark:bg-gray-700 -z-10"></div>
           {steps.map((step, index) => (
             <motion.div
               key={index}
@@ -362,8 +358,7 @@ export default function HelpPage() {
               </span>
             </motion.div>
           ))}
-        
-      </div>
+        </div>
       </ViewTransition>
 
       <motion.div
@@ -386,37 +381,35 @@ export default function HelpPage() {
           </CardContent>
         </Card>
       </motion.div>
-  <ViewTransition name="buttons">
-      <div className="flex justify-between mt-8 gap-4">
-        <Button
-          variant="outline"
-          onClick={prevStep}
-          disabled={currentStep === 0}
-          className={currentStep === 0 ? "opacity-50" : ""}
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" /> Назад
-        </Button>
-
-        <div className="grow text-center self-center">
-          <span className="text-sm text-gray-500">
-            Крок {currentStep + 1} з {steps.length}
-          </span>
-        </div>
-       
-
-        {currentStep < steps.length - 1 ? (
-          <Button onClick={nextStep}>
-            Далі <ArrowRight className="ml-2 h-4 w-4" />
+      <ViewTransition name="buttons">
+        <div className="flex justify-between mt-8 gap-4">
+          <Button
+            variant="outline"
+            onClick={prevStep}
+            disabled={currentStep === 0}
+            className={currentStep === 0 ? "opacity-50" : ""}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" /> Назад
           </Button>
-        ) : (
-          <Link href="/dashboard">
-            <Button>
-              На головну <ArrowRight className="ml-2 h-4 w-4" />
+
+          <div className="grow text-center self-center">
+            <span className="text-sm text-gray-500">
+              Крок {currentStep + 1} з {steps.length}
+            </span>
+          </div>
+
+          {currentStep < steps.length - 1 ? (
+            <Button onClick={nextStep}>
+              Далі <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
-          </Link>
-        )}
-        
-      </div>
+          ) : (
+            <Link href="/dashboard">
+              <Button>
+                На головну <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          )}
+        </div>
       </ViewTransition>
     </div>
   );
