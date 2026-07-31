@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -25,10 +25,13 @@ import {
 } from "@/components/ui/select";
 import { Plus, ScanText, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { mostSimilar } from "@/lib/text-similarity";
+import { getLanguage } from "@/lib/languages";
 
 type ScanMode = "local" | "ai";
 
 const MAX_SCAN_IMAGE_DIMENSION = 1600;
+const UNIQUENESS_DEBOUNCE_MS = 400;
 
 function downscaleImage(file: File): Promise<{ base64: string; mimeType: string }> {
   return new Promise((resolve, reject) => {
@@ -70,6 +73,7 @@ function downscaleImage(file: File): Promise<{ base64: string; mimeType: string 
 interface AddMessageDialogProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
+  existingTexts: string[];
   onSubmit: (data: {
     text: string;
     category: string;
@@ -81,6 +85,7 @@ interface AddMessageDialogProps {
 export default function AddMessageDialog({
   isOpen,
   setIsOpen,
+  existingTexts,
   onSubmit,
 }: AddMessageDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -96,6 +101,25 @@ export default function AddMessageDialog({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scanModeRef = useRef<ScanMode>("local");
+  const localScanLanguageRef = useRef<string | null>(null);
+
+  // Live, debounced uniqueness score against every existing message —
+  // covers manual typing, AI generation, and image scanning uniformly,
+  // since all three just end up setting newMessage.text.
+  useEffect(() => {
+    const text = newMessage.text.trim();
+    if (!text) {
+      setUniquenessScore(null);
+      return;
+    }
+
+    const handle = setTimeout(() => {
+      const { score } = mostSimilar(text, existingTexts);
+      setUniquenessScore(Math.round((1 - score) * 100));
+    }, UNIQUENESS_DEBOUNCE_MS);
+
+    return () => clearTimeout(handle);
+  }, [newMessage.text, existingTexts]);
 
   const resetForm = () => {
     setNewMessage({
@@ -121,7 +145,6 @@ export default function AddMessageDialog({
       }
 
       setNewMessage((prev) => ({ ...prev, text: data.text }));
-      setUniquenessScore(data.uniquenessScore);
     } catch (error) {
       console.error("Error generating AI message:", error);
       toast.error("Не вдалося згенерувати повідомлення");
@@ -135,9 +158,26 @@ export default function AddMessageDialog({
     fileInputRef.current?.click();
   };
 
+  const getLocalScanLanguage = async () => {
+    if (localScanLanguageRef.current) return localScanLanguageRef.current;
+
+    try {
+      const response = await fetch("/api/users/scan-preferences");
+      const data = await response.json();
+      localScanLanguageRef.current = data.localScanLanguage || "uk";
+    } catch {
+      localScanLanguageRef.current = "uk";
+    }
+
+    return localScanLanguageRef.current;
+  };
+
   const scanLocally = async (file: File) => {
+    const languageCode = await getLocalScanLanguage();
+    const tesseractLang = getLanguage(languageCode).tesseract;
+
     const { createWorker } = await import("tesseract.js");
-    const worker = await createWorker("ukr");
+    const worker = await createWorker(tesseractLang);
     try {
       const { data } = await worker.recognize(file);
       return data.text.trim();
@@ -180,7 +220,6 @@ export default function AddMessageDialog({
       }
 
       setNewMessage((prev) => ({ ...prev, text }));
-      setUniquenessScore(null);
     } catch (error) {
       console.error("Error scanning image:", error);
       toast.error(
@@ -269,51 +308,52 @@ export default function AddMessageDialog({
           />
 
           <div className="grid gap-2">
-            <div className="flex items-center justify-between">
-              <label htmlFor="message" className="text-sm font-medium">
-                Текст повідомлення
-              </label>
-              <div className="flex gap-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      disabled={isScanning}
-                    >
-                      <ScanText className="mr-1 h-3.5 w-3.5" />
-                      {isScanning ? "Розпізнавання..." : "Сканувати"}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => openScanPicker("local")}>
-                      Локально (без AI)
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => openScanPicker("ai")}>
-                      За допомогою AI
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleGenerate}
-                  disabled={isGenerating}
-                >
-                  <Sparkles className="mr-1 h-3.5 w-3.5" />
-                  {isGenerating ? "Генерація..." : "Згенерувати AI"}
-                </Button>
-              </div>
+            <label htmlFor="message" className="text-sm font-medium">
+              Текст повідомлення
+            </label>
+
+            <div className="flex gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    disabled={isScanning}
+                  >
+                    <ScanText className="mr-1 h-3.5 w-3.5" />
+                    {isScanning ? "Розпізнавання..." : "Сканувати"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  <DropdownMenuItem onClick={() => openScanPicker("local")}>
+                    Локально (без AI)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => openScanPicker("ai")}>
+                    За допомогою AI
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={handleGenerate}
+                disabled={isGenerating}
+              >
+                <Sparkles className="mr-1 h-3.5 w-3.5" />
+                {isGenerating ? "Генерація..." : "Згенерувати AI"}
+              </Button>
             </div>
+
             <Textarea
               id="message"
               value={newMessage.text}
-              onChange={(e) => {
-                setNewMessage({ ...newMessage, text: e.target.value });
-                setUniquenessScore(null);
-              }}
+              onChange={(e) =>
+                setNewMessage({ ...newMessage, text: e.target.value })
+              }
               rows={5}
               placeholder="Напишіть текст повідомлення..."
               className="resize-none"
@@ -338,39 +378,6 @@ export default function AddMessageDialog({
               )}
             </div>
           </div>
-
-          {/* <div className="grid gap-2">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="isShown"
-                checked={newMessage.isShown || false}
-                onCheckedChange={(checked) =>
-                  setNewMessage({
-                    ...newMessage,
-                    isShown: checked === true,
-                  })
-                }
-              />
-              <label htmlFor="isShown" className="text-sm font-medium">
-                Вже показано
-              </label>
-            </div>
-          </div>
-
-          <div className="grid gap-2">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="like"
-                checked={newMessage.like || false}
-                onCheckedChange={(checked) =>
-                  setNewMessage({ ...newMessage, like: checked === true })
-                }
-              />
-              <label htmlFor="like" className="text-sm font-medium">
-                Сподобалось
-              </label>
-            </div>
-          </div> */}
 
           <div className="flex justify-end gap-2 mt-2">
             <Button

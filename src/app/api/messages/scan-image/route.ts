@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { GEMINI_MODEL, getValidatedGeminiApiKey } from "@/lib/gemini";
+import { sanityClient } from "@/lib/sanity";
+import { getLanguage } from "@/lib/languages";
 
 interface ScanImageRequestBody {
   imageBase64: string;
@@ -37,6 +39,12 @@ export async function POST(request: Request) {
       );
     }
 
+    const user = await sanityClient.fetch(
+      `*[_type == "user" && _id == $userId][0]{ aiScanLanguage }`,
+      { userId: session.user.id }
+    );
+    const targetLanguage = getLanguage(user?.aiScanLanguage);
+
     const geminiResponse = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
       {
@@ -50,7 +58,7 @@ export async function POST(request: Request) {
             {
               parts: [
                 {
-                  text: "Extract and return only the plain text visible in this image. No commentary, no markdown formatting, just the raw text exactly as written.",
+                  text: `Read all text visible in this image, regardless of what language it's written in. Then translate it into ${targetLanguage.englishName}. Return only the translated text — no commentary, no markdown formatting, no original-language text.`,
                 },
                 { inline_data: { mime_type: mimeType, data: imageBase64 } },
               ],

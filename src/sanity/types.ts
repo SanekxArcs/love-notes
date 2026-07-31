@@ -69,6 +69,8 @@ export type User = {
   >;
   geminiApiKey?: string;
   partnerInfo?: string;
+  aiScanLanguage?: "uk" | "en" | "ru" | "pl" | "de" | "es" | "fr";
+  localScanLanguage?: "uk" | "en" | "ru" | "pl" | "de" | "es" | "fr";
 };
 
 export type SanityImageCrop = {

@@ -20,6 +20,14 @@ import { redirect } from "next/navigation";
 import { CustomTooltip } from "@/components/ui/custom-tooltip";
 import { BackButton } from "@/components/ui/back-button";
 import { ViewTransition } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { SCAN_LANGUAGES } from "@/lib/languages";
 
 interface UserData {
   _id: string;
@@ -33,6 +41,8 @@ interface UserData {
   dayMessageLimit: number;
   geminiApiKey: string;
   partnerInfo: string;
+  aiScanLanguage: string;
+  localScanLanguage: string;
   image?: {
     asset?: {
       _ref: string;
@@ -153,7 +163,9 @@ export default function UserProfile() {
         originalUserData.partnerIdToReceiveFrom ||
       userData.dayMessageLimit !== originalUserData.dayMessageLimit ||
       userData.geminiApiKey !== originalUserData.geminiApiKey ||
-      userData.partnerInfo !== originalUserData.partnerInfo
+      userData.partnerInfo !== originalUserData.partnerInfo ||
+      userData.aiScanLanguage !== originalUserData.aiScanLanguage ||
+      userData.localScanLanguage !== originalUserData.localScanLanguage
     );
   };
 
@@ -430,6 +442,60 @@ export default function UserProfile() {
               <p className="text-xs text-gray-500">
                 Використовується для персоналізації AI-згенерованих
                 повідомлень
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="aiScanLanguage">Мова перекладу при AI-скануванні</Label>
+              <Select
+                value={userData?.aiScanLanguage || "uk"}
+                onValueChange={(value) =>
+                  setUserData((prev) =>
+                    prev ? { ...prev, aiScanLanguage: value } : null
+                  )
+                }
+              >
+                <SelectTrigger className="w-full" id="aiScanLanguage">
+                  <SelectValue placeholder="Виберіть мову" />
+                </SelectTrigger>
+                <SelectContent>
+                  {SCAN_LANGUAGES.map((lang) => (
+                    <SelectItem key={lang.code} value={lang.code}>
+                      {lang.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500">
+                Текст, розпізнаний AI на фото, буде перекладено цією мовою
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="localScanLanguage">
+                Мова розпізнавання для локального сканування
+              </Label>
+              <Select
+                value={userData?.localScanLanguage || "uk"}
+                onValueChange={(value) =>
+                  setUserData((prev) =>
+                    prev ? { ...prev, localScanLanguage: value } : null
+                  )
+                }
+              >
+                <SelectTrigger className="w-full" id="localScanLanguage">
+                  <SelectValue placeholder="Виберіть мову" />
+                </SelectTrigger>
+                <SelectContent>
+                  {SCAN_LANGUAGES.map((lang) => (
+                    <SelectItem key={lang.code} value={lang.code}>
+                      {lang.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500">
+                Мова тексту на фото для сканування без AI (локально, офлайн)
               </p>
             </div>
 

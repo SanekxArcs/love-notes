@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { sanityClient } from "@/lib/sanity";
-import { mostSimilar } from "@/lib/text-similarity";
 import { GEMINI_MODEL, getValidatedGeminiApiKey } from "@/lib/gemini";
 
 const MAX_EXAMPLES_IN_PROMPT = 15;
@@ -95,14 +94,7 @@ export async function POST() {
       );
     }
 
-    const { score, match } = mostSimilar(generatedText, existingTexts);
-    const uniquenessScore = Math.round((1 - score) * 100);
-
-    return NextResponse.json({
-      text: generatedText,
-      uniquenessScore,
-      mostSimilarText: match,
-    });
+    return NextResponse.json({ text: generatedText });
   } catch (error) {
     console.error("Error generating AI message:", error);
     return NextResponse.json(

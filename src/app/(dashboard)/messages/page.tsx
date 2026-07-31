@@ -218,6 +218,7 @@ export default function AdminMessages() {
             <AddMessageDialog
               isOpen={isAddDialogOpen}
               setIsOpen={setIsAddDialogOpen}
+              existingTexts={messages.map((msg) => msg.text)}
               onSubmit={handleAddMessage}
             />
 

@@ -1,5 +1,11 @@
 import { defineField, defineType } from "sanity";
 import { UserIcon } from "@sanity/icons/User";
+import { SCAN_LANGUAGES } from "@/lib/languages";
+
+const languageOptionsList = SCAN_LANGUAGES.map((lang) => ({
+  title: lang.label,
+  value: lang.code,
+}));
 
 export const userType = defineType({
   name: "user",
@@ -97,6 +103,24 @@ export const userType = defineType({
       type: "text",
       description:
         "Free-text info about your partner (interests, inside jokes, how you met, etc.) used to personalize AI-generated messages",
+    }),
+    defineField({
+      name: "aiScanLanguage",
+      title: "AI Scan Translation Language",
+      type: "string",
+      description:
+        "When scanning a photo with AI, extracted text is translated into this language",
+      options: { list: languageOptionsList },
+      initialValue: "uk",
+    }),
+    defineField({
+      name: "localScanLanguage",
+      title: "Local Scan Recognition Language",
+      type: "string",
+      description:
+        "Language used by the local (offline) OCR engine when scanning a photo",
+      options: { list: languageOptionsList },
+      initialValue: "uk",
     }),
   ],
   preview: {
