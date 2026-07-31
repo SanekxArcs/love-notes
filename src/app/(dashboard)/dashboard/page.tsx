@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Heart, Clock, Phone } from "lucide-react";
 import { motion } from "framer-motion";
-import { SpinnerIcon } from "@sanity/icons";
+import { SpinnerIcon } from "@sanity/icons/Spinner";
 import { MessageList } from "@/components/ui-app/message-list";
 import { useUserSettings } from "@/hooks/use-user-settings";
 import { useMessages } from "@/hooks/use-messages";
@@ -32,6 +32,11 @@ export default function Dashboard() {
       fetchMessages();
     }
   }, [settings.partnerIdToReceiveFrom, fetchMessages]);
+
+  useEffect(() => {
+    document.documentElement.classList.add("hide-scrollbar");
+    return () => document.documentElement.classList.remove("hide-scrollbar");
+  }, []);
 
   return (
     <div className="relative container mx-auto max-w-3xl pb-6 px-4">

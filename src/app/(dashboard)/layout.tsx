@@ -19,7 +19,7 @@ export default async function DashboardLayout({
 
   return (
     <>
-      <div className="absolute opacity-90 inset-0 -z-10 w-full h-full">
+      <div className="fixed opacity-90 inset-0 -z-10 w-full h-full">
         <Particles
           particleColors={["#fa00e5", "#fa00e5"]}
           particleCount={300}

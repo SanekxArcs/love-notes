@@ -7,12 +7,14 @@ interface Settings {
   partnerIdToReceiveFrom: string;
 }
 
+const DEFAULT_SETTINGS: Settings = {
+  dailyMessageLimit: 1,
+  contactNumber: "",
+  partnerIdToReceiveFrom: "",
+};
+
 export function useUserSettings() {
-  const [settings, setSettings] = useState<Settings>({
-    dailyMessageLimit: 1,
-    contactNumber: "",
-    partnerIdToReceiveFrom: "", 
-  });
+  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -82,8 +84,8 @@ export function useUserSettings() {
 
         setSettings({
           dailyMessageLimit:
-            partnerData.dayMessageLimit || settings.dailyMessageLimit,
-          contactNumber: partnerData.phone || settings.contactNumber,
+            partnerData.dayMessageLimit || DEFAULT_SETTINGS.dailyMessageLimit,
+          contactNumber: partnerData.phone || DEFAULT_SETTINGS.contactNumber,
           partnerIdToReceiveFrom: partnerIdToReceiveFrom,
         });
       } catch (error) {
@@ -95,7 +97,7 @@ export function useUserSettings() {
     }
 
     fetchSettings();
-  }, [settings.contactNumber, settings.dailyMessageLimit]);
+  }, []);
 
   return { settings, isLoading };
 }
