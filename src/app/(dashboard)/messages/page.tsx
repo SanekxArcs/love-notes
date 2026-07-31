@@ -18,6 +18,7 @@ interface NewMessage {
   category: string;
   isShown?: boolean;
   like?: boolean;
+  specificDate?: string;
 }
 
 interface BatchMessageData {

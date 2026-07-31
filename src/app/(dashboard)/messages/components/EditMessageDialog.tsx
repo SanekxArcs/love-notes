@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { Message, EditMessagePayload } from "../types";
+import SpecificDateField from "./SpecificDateField";
 
 interface EditMessageDialogProps {
   message: Message | null;
@@ -48,10 +49,19 @@ export default function EditMessageDialog({ message, isOpen, setIsOpen, onSubmit
   
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     if (!editingMessage) return;
-    
+
     setEditingMessage({
       ...editingMessage,
       text: e.target.value
+    });
+  };
+
+  const handleSpecificDateChange = (specificDate: string) => {
+    if (!editingMessage) return;
+
+    setEditingMessage({
+      ...editingMessage,
+      specificDate,
     });
   };
 
@@ -71,7 +81,8 @@ export default function EditMessageDialog({ message, isOpen, setIsOpen, onSubmit
         const payload: EditMessagePayload = {
           _key: editingMessage._key,
           text: editingMessage.text,
-          category: editingMessage.category
+          category: editingMessage.category,
+          specificDate: editingMessage.specificDate || undefined,
         };
         
         const success = await onSubmit(payload);
@@ -130,6 +141,11 @@ export default function EditMessageDialog({ message, isOpen, setIsOpen, onSubmit
               {editingMessage?.text?.length || 0}/500 символів
             </p>
           </div>
+
+          <SpecificDateField
+            value={editingMessage?.specificDate || ""}
+            onChange={handleSpecificDateChange}
+          />
 
           <div className="flex justify-end gap-2 mt-2">
             <Button

@@ -27,6 +27,7 @@ import { Plus, ScanText, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { mostSimilar } from "@/lib/text-similarity";
 import { getLanguage } from "@/lib/languages";
+import SpecificDateField from "./SpecificDateField";
 
 type ScanMode = "local" | "ai";
 
@@ -79,6 +80,7 @@ interface AddMessageDialogProps {
     category: string;
     isShown?: boolean;
     like?: boolean;
+    specificDate?: string;
   }) => Promise<boolean>;
 }
 
@@ -97,6 +99,7 @@ export default function AddMessageDialog({
     category: "unknown",
     isShown: false,
     like: false,
+    specificDate: "",
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -127,6 +130,7 @@ export default function AddMessageDialog({
       category: "unknown",
       isShown: false,
       like: false,
+      specificDate: "",
     });
     setUniquenessScore(null);
   };
@@ -247,7 +251,8 @@ export default function AddMessageDialog({
         text: newMessage.text,
         category: newMessage.category,
         isShown: newMessage.isShown,
-        like: newMessage.like
+        like: newMessage.like,
+        specificDate: newMessage.specificDate || undefined,
       });
       if (success) {
         resetForm();
@@ -297,6 +302,13 @@ export default function AddMessageDialog({
               </SelectContent>
             </Select>
           </div>
+
+          <SpecificDateField
+            value={newMessage.specificDate}
+            onChange={(specificDate) =>
+              setNewMessage({ ...newMessage, specificDate })
+            }
+          />
 
           <input
             ref={fileInputRef}

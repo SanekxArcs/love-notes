@@ -55,6 +55,20 @@ export const messageType = defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      name: "specificDate",
+      title: "Особлива дата (день і місяць)",
+      type: "string",
+      description:
+        "Якщо задано, це повідомлення матиме пріоритет і буде показане саме в цей день і місяць, незалежно від року (повторюється щороку). Формат: MM-DD",
+      validation: (Rule) =>
+        Rule.custom((value) => {
+          if (!value) return true;
+          return /^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(value)
+            ? true
+            : "Формат має бути MM-DD, наприклад 02-14";
+        }),
+    }),
+    defineField({
       name: "like",
       title: "Вподобайка",
       type: "boolean",
@@ -84,18 +98,20 @@ export const messageType = defineType({
       category: "category",
       like: "like",
       userName: "userName",
+      specificDate: "specificDate",
     },
-    prepare({ text, category, like, userName }) {
+    prepare({ text, category, like, userName, specificDate }) {
       const truncatedText =
         text && text.length > 30 ? `${text.substring(0, 30)}...` : text;
       const likeStatus = like ? "❤️" : "🤍";
       const shown = userName ? `для ${userName}` : "❔";
       const categoryShow =
         category === "daily" ? "📅" : category === "extra" ? "🎁" : "❓";
+      const dateShow = specificDate ? ` | 🎉 ${specificDate}` : "";
 
       return {
         title: truncatedText,
-        subtitle: `${likeStatus} | ${shown} | ${categoryShow}`,
+        subtitle: `${likeStatus} | ${shown} | ${categoryShow}${dateShow}`,
       };
     },
   },

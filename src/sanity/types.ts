@@ -29,6 +29,7 @@ export type Message = {
   isShown?: boolean;
   userName?: string;
   category?: "unknown" | "daily" | "extra";
+  specificDate?: string;
   like?: boolean;
   shownAt?: string;
   shownBy?: UserReference;

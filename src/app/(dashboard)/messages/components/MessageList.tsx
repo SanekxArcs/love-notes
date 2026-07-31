@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { LoaderCircle, Pencil, Trash2 } from "lucide-react";
 import {
   Table,
@@ -82,9 +83,17 @@ export default function MessageList({ messages, isLoading, onEdit, onDelete }: M
               ) : (
                 unshownMessages.map((message) => (
                   <TableRow key={message._key}>
-                    <TableCell className="font-medium max-w-md truncate">
-                      {message.text || <LoaderCircle className="animate-spin" /> }
-
+                    <TableCell className="font-medium max-w-md">
+                      <div className="flex items-center gap-2">
+                        <span className="truncate">
+                          {message.text || <LoaderCircle className="animate-spin" />}
+                        </span>
+                        {message.specificDate ? (
+                          <Badge variant="secondary" className="shrink-0">
+                            🎉 {message.specificDate}
+                          </Badge>
+                        ) : null}
+                      </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">

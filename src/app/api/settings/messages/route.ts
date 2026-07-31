@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { arrayKey, sanityClient } from "@/lib/sanity";
 
+const SPECIFIC_DATE_PATTERN = /^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+
 export async function GET() {
   try {
     const session = await auth();
@@ -23,7 +25,8 @@ export async function GET() {
           userName,
           like,
           shownAt,
-          createdAt
+          createdAt,
+          specificDate
         }
       }`,
       { userId: session.user.id }
@@ -50,11 +53,18 @@ export async function POST(request: Request) {
       );
     }
 
-    const { text, category } = await request.json();
+    const { text, category, specificDate } = await request.json();
 
     if (!text || !category) {
       return NextResponse.json(
         { error: "Message text and category are required" },
+        { status: 400 }
+      );
+    }
+
+    if (specificDate && !SPECIFIC_DATE_PATTERN.test(specificDate)) {
+      return NextResponse.json(
+        { error: "specificDate must be in MM-DD format" },
         { status: 400 }
       );
     }
@@ -69,6 +79,7 @@ export async function POST(request: Request) {
       like: false,
       shownAt: null,
       createdAt: new Date().toISOString(),
+      specificDate: specificDate || undefined,
     };
 
     await sanityClient
@@ -144,11 +155,18 @@ export async function PUT(request: Request) {
       );
     }
 
-    const { text, category, isShown, like } = await request.json();
+    const { text, category, isShown, like, specificDate } = await request.json();
 
     if (!text || !category) {
       return NextResponse.json(
         { error: "Message text and category are required" },
+        { status: 400 }
+      );
+    }
+
+    if (specificDate && !SPECIFIC_DATE_PATTERN.test(specificDate)) {
+      return NextResponse.json(
+        { error: "specificDate must be in MM-DD format" },
         { status: 400 }
       );
     }
@@ -160,18 +178,21 @@ export async function PUT(request: Request) {
       like: like || false,
     };
 
-    await sanityClient
-      .patch(session.user.id)
-      .set({
-        [`messages[_key=="${key}"].text`]: updatedFields.text,
-        [`messages[_key=="${key}"].category`]: updatedFields.category,
-        [`messages[_key=="${key}"].isShown`]: updatedFields.isShown,
-        [`messages[_key=="${key}"].like`]: updatedFields.like,
-      })
-      .commit();
+    let patch = sanityClient.patch(session.user.id).set({
+      [`messages[_key=="${key}"].text`]: updatedFields.text,
+      [`messages[_key=="${key}"].category`]: updatedFields.category,
+      [`messages[_key=="${key}"].isShown`]: updatedFields.isShown,
+      [`messages[_key=="${key}"].like`]: updatedFields.like,
+    });
+
+    patch = specificDate
+      ? patch.set({ [`messages[_key=="${key}"].specificDate`]: specificDate })
+      : patch.unset([`messages[_key=="${key}"].specificDate`]);
+
+    await patch.commit();
 
     return NextResponse.json(
-      { message: { _key: key, ...updatedFields } },
+      { message: { _key: key, ...updatedFields, specificDate: specificDate || undefined } },
       { status: 200 }
     );
   } catch (error) {

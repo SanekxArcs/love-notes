@@ -91,6 +91,13 @@
           },
           "optional": true
         },
+        "specificDate": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string"
+          },
+          "optional": true
+        },
         "like": {
           "type": "objectAttribute",
           "value": {

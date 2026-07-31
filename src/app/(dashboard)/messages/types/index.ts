@@ -6,6 +6,7 @@ export interface Message {
   category: 'daily' | 'extra' | 'unknown'; // Required field, removed undefined option
   shownAt?: string | Date;
   like?: boolean;
+  specificDate?: string; // MM-DD, year-independent priority date
 }
 
-export type EditMessagePayload = Pick<Message, '_key' | 'text' | 'category'>;
+export type EditMessagePayload = Pick<Message, '_key' | 'text' | 'category' | 'specificDate'>;

@@ -21,10 +21,12 @@ export async function GET(request: Request) {
     today.setHours(0, 0, 0, 0);
     const todayStart = today.toISOString();
     const todayEnd = new Date(today.getTime() + 24 * 60 * 60 * 1000 - 1).toISOString();
+    const todayMD = `${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
     const partner = await sanityClient.fetch(
       `*[_type == "user" && partnerIdToSend == $partnerId][0]{
         _id,
+        "dateMessages": messages[isShown == false && specificDate == $todayMD],
         "dailyMessage": messages[isShown == false && category == "daily"][0],
         "anyMessage": messages[isShown == false][0],
         "todayShownCount": count(messages[
@@ -34,14 +36,19 @@ export async function GET(request: Request) {
           shownAt <= $todayEnd
         ])
       }`,
-      { partnerId, userId: session.user.id, todayStart, todayEnd }
+      { partnerId, userId: session.user.id, todayStart, todayEnd, todayMD }
     );
 
     if (!partner?._id) {
       return NextResponse.json({ error: 'Partner not found for the provided ID' }, { status: 404 });
     }
 
-    const randomMessage = partner.dailyMessage || partner.anyMessage;
+    const dateMessages: Array<{ _key: string }> = partner.dateMessages ?? [];
+    const priorityMessage = dateMessages.length
+      ? dateMessages[Math.floor(Math.random() * dateMessages.length)]
+      : null;
+
+    const randomMessage = priorityMessage || partner.dailyMessage || partner.anyMessage;
 
     if (!randomMessage) {
       return NextResponse.json(
