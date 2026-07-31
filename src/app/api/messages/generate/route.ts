@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { sanityClient } from "@/lib/sanity";
 import { mostSimilar } from "@/lib/text-similarity";
+import { GEMINI_MODEL, getValidatedGeminiApiKey } from "@/lib/gemini";
 
-const GEMINI_MODEL = "gemini-3.5-flash-lite";
 const MAX_EXAMPLES_IN_PROMPT = 15;
 
 function buildPrompt(partnerInfo: string | undefined, existing: string[]): string {
@@ -38,39 +38,26 @@ export async function POST() {
       );
     }
 
+    const keyResult = await getValidatedGeminiApiKey(session.user.id);
+    if (!keyResult.ok) {
+      return NextResponse.json(
+        { error: keyResult.error },
+        { status: keyResult.status }
+      );
+    }
+    const { apiKey } = keyResult;
+
     const user = await sanityClient.fetch(
       `*[_type == "user" && _id == $userId][0]{
-        geminiApiKey,
         partnerInfo,
         "existingTexts": messages[].text
       }`,
       { userId: session.user.id }
     );
 
-    const geminiApiKey: string | undefined = user?.geminiApiKey?.trim();
-
-    if (!geminiApiKey) {
-      return NextResponse.json(
-        { error: "Спочатку додайте Gemini API ключ у налаштуваннях профілю" },
-        { status: 400 }
-      );
-    }
-
-    // HTTP header values must be Latin1/ASCII — catches a corrupted/pasted-wrong key early
-    // with a clear message instead of a raw fetch() crash.
-    if (!/^[\x21-\x7e]+$/.test(geminiApiKey)) {
-      return NextResponse.json(
-        {
-          error:
-            "Gemini API ключ у профілі містить неприпустимі символи. Перевірте, чи скопійовано правильний ключ, і збережіть його знову.",
-        },
-        { status: 400 }
-      );
-    }
-
-    const existingTexts: string[] = (user.existingTexts ?? []).filter(Boolean);
+    const existingTexts: string[] = (user?.existingTexts ?? []).filter(Boolean);
     const promptExamples = existingTexts.slice(-MAX_EXAMPLES_IN_PROMPT);
-    const prompt = buildPrompt(user.partnerInfo, promptExamples);
+    const prompt = buildPrompt(user?.partnerInfo, promptExamples);
 
     const geminiResponse = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
@@ -78,7 +65,7 @@ export async function POST() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-goog-api-key": geminiApiKey,
+          "x-goog-api-key": apiKey,
         },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],

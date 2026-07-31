@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -11,14 +11,61 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Sparkles } from "lucide-react";
+import { Plus, ScanText, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+
+type ScanMode = "local" | "ai";
+
+const MAX_SCAN_IMAGE_DIMENSION = 1600;
+
+function downscaleImage(file: File): Promise<{ base64: string; mimeType: string }> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    const objectUrl = URL.createObjectURL(file);
+
+    image.onload = () => {
+      const scale = Math.min(
+        1,
+        MAX_SCAN_IMAGE_DIMENSION / Math.max(image.width, image.height)
+      );
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(image.width * scale);
+      canvas.height = Math.round(image.height * scale);
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error("Canvas is not supported"));
+        return;
+      }
+
+      ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(objectUrl);
+
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+      resolve({ base64: dataUrl.split(",")[1], mimeType: "image/jpeg" });
+    };
+
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("Failed to load image"));
+    };
+
+    image.src = objectUrl;
+  });
+}
 
 interface AddMessageDialogProps {
   isOpen: boolean;
@@ -38,6 +85,7 @@ export default function AddMessageDialog({
 }: AddMessageDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
   const [uniquenessScore, setUniquenessScore] = useState<number | null>(null);
   const [newMessage, setNewMessage] = useState({
     text: "",
@@ -45,6 +93,9 @@ export default function AddMessageDialog({
     isShown: false,
     like: false,
   });
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const scanModeRef = useRef<ScanMode>("local");
 
   const resetForm = () => {
     setNewMessage({
@@ -76,6 +127,69 @@ export default function AddMessageDialog({
       toast.error("Не вдалося згенерувати повідомлення");
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const openScanPicker = (mode: ScanMode) => {
+    scanModeRef.current = mode;
+    fileInputRef.current?.click();
+  };
+
+  const scanLocally = async (file: File) => {
+    const { createWorker } = await import("tesseract.js");
+    const worker = await createWorker("ukr");
+    try {
+      const { data } = await worker.recognize(file);
+      return data.text.trim();
+    } finally {
+      await worker.terminate();
+    }
+  };
+
+  const scanWithAI = async (file: File) => {
+    const { base64, mimeType } = await downscaleImage(file);
+    const response = await fetch("/api/messages/scan-image", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ imageBase64: base64, mimeType }),
+    });
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Не вдалося розпізнати текст на зображенні");
+    }
+
+    return data.text as string;
+  };
+
+  const handleFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    setIsScanning(true);
+    try {
+      const text =
+        scanModeRef.current === "local"
+          ? await scanLocally(file)
+          : await scanWithAI(file);
+
+      if (!text) {
+        toast.error("Не вдалося знайти текст на зображенні");
+        return;
+      }
+
+      setNewMessage((prev) => ({ ...prev, text }));
+      setUniquenessScore(null);
+    } catch (error) {
+      console.error("Error scanning image:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Не вдалося розпізнати текст на зображенні"
+      );
+    } finally {
+      setIsScanning(false);
     }
   };
 
@@ -145,21 +259,53 @@ export default function AddMessageDialog({
             </Select>
           </div>
 
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={handleFileSelected}
+          />
+
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
               <label htmlFor="message" className="text-sm font-medium">
                 Текст повідомлення
               </label>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleGenerate}
-                disabled={isGenerating}
-              >
-                <Sparkles className="mr-1 h-3.5 w-3.5" />
-                {isGenerating ? "Генерація..." : "Згенерувати AI"}
-              </Button>
+              <div className="flex gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={isScanning}
+                    >
+                      <ScanText className="mr-1 h-3.5 w-3.5" />
+                      {isScanning ? "Розпізнавання..." : "Сканувати"}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => openScanPicker("local")}>
+                      Локально (без AI)
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => openScanPicker("ai")}>
+                      За допомогою AI
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGenerate}
+                  disabled={isGenerating}
+                >
+                  <Sparkles className="mr-1 h-3.5 w-3.5" />
+                  {isGenerating ? "Генерація..." : "Згенерувати AI"}
+                </Button>
+              </div>
             </div>
             <Textarea
               id="message"
