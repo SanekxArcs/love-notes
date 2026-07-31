@@ -1,10 +1,10 @@
-import { DocumentTextIcon } from "@sanity/icons";
+import { DocumentTextIcon } from "@sanity/icons/DocumentText";
 import { defineField, defineType } from "sanity";
 
 export const messageType = defineType({
   name: "message",
   title: "Повідомлення",
-  type: "document",
+  type: "object",
   icon: DocumentTextIcon,
   fields: [
     defineField({
@@ -13,6 +13,13 @@ export const messageType = defineType({
       type: "text",
       description: "Обмеження 500 символами",
       validation: (Rule) => Rule.required(),
+    }),
+
+    defineField({
+      name: "createdAt",
+      title: "Коли створено",
+      type: "datetime",
+      description: "Коли це повідомлення було створено",
     }),
 
     defineField({
@@ -61,18 +68,6 @@ export const messageType = defineType({
       description: "Повідомлення було показано в цей час",
     }),
     defineField({
-      name: "creator",
-      title: "Автор",
-      type: "reference",
-      description: "Необхідне для відстеження власності повідомлення",
-      to: [{ type: "user" }],
-      validation: (Rule) =>
-        Rule.required().error("Повідомлення повинно мати автора"),
-      options: {
-        disableNew: true,
-      },
-    }),
-    defineField({
       name: "shownBy",
       title: "Показано користувачу:",
       type: "reference",
@@ -89,12 +84,10 @@ export const messageType = defineType({
       category: "category",
       like: "like",
       userName: "userName",
-      creator: "creator.name",
     },
-    prepare({ text, category, like, userName, creator }) {
-      const creatorName = creator ? `від ${creator}` : "❔";
+    prepare({ text, category, like, userName }) {
       const truncatedText =
-        text && text.length > 30 ? text.substring(0, 30) + "..." : text;
+        text && text.length > 30 ? `${text.substring(0, 30)}...` : text;
       const likeStatus = like ? "❤️" : "🤍";
       const shown = userName ? `для ${userName}` : "❔";
       const categoryShow =
@@ -102,7 +95,7 @@ export const messageType = defineType({
 
       return {
         title: truncatedText,
-        subtitle: `${likeStatus} | ${shown} | ${categoryShow} | ${creatorName}`,
+        subtitle: `${likeStatus} | ${shown} | ${categoryShow}`,
       };
     },
   },

@@ -161,7 +161,7 @@ export default function MessageHistory({ messages, isLoading }: MessageHistoryPr
                 ) : (
                   sortedMessages.map((message) => (
                     <TableRow
-                      key={message._id}
+                      key={message._key}
                       onClick={() => handleRowClick(message)}
                       className="cursor-pointer hover:bg-muted/50"
                     >

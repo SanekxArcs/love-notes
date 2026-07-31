@@ -67,9 +67,9 @@ export default function EditMessageDialog({ message, isOpen, setIsOpen, onSubmit
     
     try {
       if (editingMessage) {
-        // Include the required fields: _id, text, and category
+        // Include the required fields: _key, text, and category
         const payload: EditMessagePayload = {
-          _id: editingMessage._id,
+          _key: editingMessage._key,
           text: editingMessage.text,
           category: editingMessage.category
         };

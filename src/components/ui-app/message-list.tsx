@@ -1,10 +1,10 @@
 import { motion } from "framer-motion";
 import { LoveMessageCard } from "./love-message-card";
-import type { Message } from "@/sanity/types";
+import type { MessageWithKey } from "@/hooks/use-messages";
 
 interface MessageListProps {
   title: string;
-  messages: Message[];
+  messages: MessageWithKey[];
   isToday: boolean;
   onLikeChange: (id: string, liked: boolean) => void;
   animationDelay: number;
@@ -72,13 +72,13 @@ export function MessageList({
               ))
           : messages.map((msg, index) => (
               <motion.div
-                key={msg._id}
+                key={msg._key}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: animationDelay + 0.1 + index * 0.1 }}
               >
                 <LoveMessageCard
-                  id={msg._id}
+                  id={msg._key}
                   message={msg.text}
                   date={msg.shownAt ? new Date(msg.shownAt) : undefined}
                   isToday={isToday}

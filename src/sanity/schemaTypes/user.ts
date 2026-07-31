@@ -1,5 +1,5 @@
 import { defineField, defineType } from "sanity";
-import { UserIcon } from "@sanity/icons";
+import { UserIcon } from "@sanity/icons/User";
 
 export const userType = defineType({
   name: "user",
@@ -78,17 +78,39 @@ export const userType = defineType({
       type: "string",
       description: "ID of the partner who can send messages to you",
     }),
+    defineField({
+      name: "messages",
+      title: "Messages",
+      type: "array",
+      of: [{ type: "message" }],
+      description: "Messages authored by this user",
+    }),
+    defineField({
+      name: "geminiApiKey",
+      title: "Gemini API Key",
+      type: "string",
+      description: "Google Gemini API key, used to generate AI message suggestions",
+    }),
+    defineField({
+      name: "partnerInfo",
+      title: "Partner Info (for AI)",
+      type: "text",
+      description:
+        "Free-text info about your partner (interests, inside jokes, how you met, etc.) used to personalize AI-generated messages",
+    }),
   ],
   preview: {
     select: {
       title: "name",
       subtitle: "login",
       role: "role",
+      messages: "messages",
     },
-    prepare({ title, subtitle, role }) {
+    prepare({ title, subtitle, role, messages }) {
+      const count = Array.isArray(messages) ? messages.length : 0;
       return {
         title: title || "Unnamed User",
-        subtitle: `${subtitle} (${role})`,
+        subtitle: `${subtitle} (${role}) · ${count} message${count === 1 ? "" : "s"}`,
       };
     },
   },

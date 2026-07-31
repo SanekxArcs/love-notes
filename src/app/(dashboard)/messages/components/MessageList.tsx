@@ -20,7 +20,7 @@ interface MessageListProps {
   messages: Message[];
   isLoading: boolean;
   onEdit: (message: EditMessagePayload) => Promise<boolean>;
-  onDelete: (id: string) => Promise<boolean>;
+  onDelete: (key: string) => Promise<boolean>;
 }
 
 export default function MessageList({ messages, isLoading, onEdit, onDelete }: MessageListProps) {
@@ -81,7 +81,7 @@ export default function MessageList({ messages, isLoading, onEdit, onDelete }: M
                 </TableRow>
               ) : (
                 unshownMessages.map((message) => (
-                  <TableRow key={message._id}>
+                  <TableRow key={message._key}>
                     <TableCell className="font-medium max-w-md truncate">
                       {message.text || <LoaderCircle className="animate-spin" /> }
 
@@ -129,7 +129,7 @@ export default function MessageList({ messages, isLoading, onEdit, onDelete }: M
         message={messageToDelete}
         onConfirm={async () => {
           if (!messageToDelete) return false;
-          const success = await onDelete(messageToDelete._id);
+          const success = await onDelete(messageToDelete._key);
           if (success) {
             setIsDeleteDialogOpen(false);
             setMessageToDelete(null);

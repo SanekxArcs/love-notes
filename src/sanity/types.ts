@@ -12,6 +12,8 @@
  * ---------------------------------------------------------------------------------
  */
 
+export declare const internalGroqTypeReferenceTo: unique symbol;
+
 // Source: src/sanity/extract.json
 export type UserReference = {
   _ref: string;
@@ -21,18 +23,14 @@ export type UserReference = {
 };
 
 export type Message = {
-  _id: string;
   _type: "message";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
   text?: string;
+  createdAt?: string;
   isShown?: boolean;
   userName?: string;
   category?: "unknown" | "daily" | "extra";
   like?: boolean;
   shownAt?: string;
-  creator?: UserReference;
   shownBy?: UserReference;
 };
 
@@ -64,6 +62,13 @@ export type User = {
   phone?: string;
   dayMessageLimit?: number;
   partnerIdToReceiveFrom?: string;
+  messages?: Array<
+    {
+      _key: string;
+    } & Message
+  >;
+  geminiApiKey?: string;
+  partnerInfo?: string;
 };
 
 export type SanityImageCrop = {
@@ -201,84 +206,3 @@ export type AllSanitySchemaTypes =
   | SanityImageAsset
   | Geopoint
   | Slug;
-
-export declare const internalGroqTypeReferenceTo: unique symbol;
-
-// Source: src/sanity/lib/queries.ts
-// Variable: SETTINGS_QUERY
-// Query: *[_type == "settings"][0]{  _id,  contactNumber,  dailyMessageLimit}
-export type SETTINGS_QUERY_RESULT = null;
-
-// Source: src/sanity/lib/queries.ts
-// Variable: ALL_MESSAGES_QUERY
-// Query: *[_type == "message"] | order(lastShownAt desc) {  _id,  text,  category,  isShown,  like,  lastShownAt}
-export type ALL_MESSAGES_QUERY_RESULT = Array<{
-  _id: string;
-  text: string | null;
-  category: "daily" | "extra" | "unknown" | null;
-  isShown: boolean | null;
-  like: boolean | null;
-  lastShownAt: null;
-}>;
-
-// Source: src/sanity/lib/queries.ts
-// Variable: UNSHOWN_MESSAGES_QUERY
-// Query: *[_type == "message" && isShown == false] {  _id,  text,  category}
-export type UNSHOWN_MESSAGES_QUERY_RESULT = Array<{
-  _id: string;
-  text: string | null;
-  category: "daily" | "extra" | "unknown" | null;
-}>;
-
-// Source: src/sanity/lib/queries.ts
-// Variable: MESSAGES_BY_CATEGORY_QUERY
-// Query: *[_type == "message" && category == $category] {  _id,  text,  isShown,  like,  lastShownAt}
-export type MESSAGES_BY_CATEGORY_QUERY_RESULT = Array<{
-  _id: string;
-  text: string | null;
-  isShown: boolean | null;
-  like: boolean | null;
-  lastShownAt: null;
-}>;
-
-// Source: src/sanity/lib/queries.ts
-// Variable: LIKED_MESSAGES_QUERY
-// Query: *[_type == "message" && like == true] | order(lastShownAt desc) {  _id,  text,  category,  lastShownAt}
-export type LIKED_MESSAGES_QUERY_RESULT = Array<{
-  _id: string;
-  text: string | null;
-  category: "daily" | "extra" | "unknown" | null;
-  lastShownAt: null;
-}>;
-
-// Source: src/sanity/lib/queries.ts
-// Variable: NEXT_DAILY_MESSAGE_QUERY
-// Query: *[_type == "message" && isShown == false && category == "daily"][0] {  _id,  text,  category}
-export type NEXT_DAILY_MESSAGE_QUERY_RESULT = {
-  _id: string;
-  text: string | null;
-  category: "daily";
-} | null;
-
-// Source: src/sanity/lib/queries.ts
-// Variable: NEXT_EXTRA_MESSAGE_QUERY
-// Query: *[_type == "message" && isShown == false && category == "extra"][0] {  _id,  text,  category}
-export type NEXT_EXTRA_MESSAGE_QUERY_RESULT = {
-  _id: string;
-  text: string | null;
-  category: "extra";
-} | null;
-
-// Query TypeMap
-import "@sanity/client";
-declare module "@sanity/client" {
-  interface SanityQueries {
-    '*[_type == "settings"][0]{\n  _id,\n  contactNumber,\n  dailyMessageLimit\n}': SETTINGS_QUERY_RESULT;
-    '*[_type == "message"] | order(lastShownAt desc) {\n  _id,\n  text,\n  category,\n  isShown,\n  like,\n  lastShownAt\n}': ALL_MESSAGES_QUERY_RESULT;
-    '*[_type == "message" && isShown == false] {\n  _id,\n  text,\n  category\n}': UNSHOWN_MESSAGES_QUERY_RESULT;
-    '*[_type == "message" && category == $category] {\n  _id,\n  text,\n  isShown,\n  like,\n  lastShownAt\n}': MESSAGES_BY_CATEGORY_QUERY_RESULT;
-    '*[_type == "message" && like == true] | order(lastShownAt desc) {\n  _id,\n  text,\n  category,\n  lastShownAt\n}': LIKED_MESSAGES_QUERY_RESULT;
-    '*[_type == "message" && isShown == false && category == "daily"][0] {\n  _id,\n  text,\n  category\n}': NEXT_DAILY_MESSAGE_QUERY_RESULT;
-    '*[_type == "message" && isShown == false && category == "extra"][0] {\n  _id,\n  text,\n  category\n}': NEXT_EXTRA_MESSAGE_QUERY_RESULT;
-  }
-}

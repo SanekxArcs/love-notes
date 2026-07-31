@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { sanityClient } from "@/lib/sanity";
+import { arrayKey, sanityClient } from "@/lib/sanity";
 
 export async function GET() {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: "Authentication required" },
@@ -13,21 +13,23 @@ export async function GET() {
       );
     }
 
-    const messages = await sanityClient.fetch(`
-      *[_type == "message" && creator._ref == $userId] | order(_createdAt desc) {
-        _id,
-        text,
-        category,
-        isShown,
-        userName,
-        like,
-        shownAt
-      }
-    `, {
-      userId: session.user.id
-    });
+    const user = await sanityClient.fetch(
+      `*[_type == "user" && _id == $userId][0]{
+        "messages": messages | order(createdAt desc) {
+          _key,
+          text,
+          category,
+          isShown,
+          userName,
+          like,
+          shownAt,
+          createdAt
+        }
+      }`,
+      { userId: session.user.id }
+    );
 
-    return NextResponse.json({ messages });
+    return NextResponse.json({ messages: user?.messages ?? [] });
   } catch (error) {
     console.error("Error fetching messages:", error);
     return NextResponse.json(
@@ -41,6 +43,13 @@ export async function POST(request: Request) {
   try {
     const session = await auth();
 
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
+    }
+
     const { text, category } = await request.json();
 
     if (!text || !category) {
@@ -50,20 +59,25 @@ export async function POST(request: Request) {
       );
     }
 
-    const message = await sanityClient.create({
-      _type: "message",
+    const userId = session.user.id;
+    const newMessage = {
+      _type: "message" as const,
+      _key: arrayKey(),
       text,
       category,
       isShown: false,
       like: false,
       shownAt: null,
-      creator: {
-        _type: "reference",
-        _ref: session?.user.id,
-      },
-    });
+      createdAt: new Date().toISOString(),
+    };
 
-    return NextResponse.json({ message }, { status: 201 });
+    await sanityClient
+      .patch(userId)
+      .setIfMissing({ messages: [] })
+      .append("messages", [newMessage])
+      .commit();
+
+    return NextResponse.json({ message: newMessage }, { status: 201 });
   } catch (error) {
     console.error("Error creating message:", error);
     return NextResponse.json(
@@ -75,17 +89,29 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
+    const session = await auth();
 
-    if (!id) {
+    if (!session?.user?.id) {
       return NextResponse.json(
-        { error: "Message ID is required" },
+        { error: "Authentication required" },
+        { status: 401 }
+      );
+    }
+
+    const { searchParams } = new URL(request.url);
+    const key = searchParams.get("key");
+
+    if (!key) {
+      return NextResponse.json(
+        { error: "Message key is required" },
         { status: 400 }
       );
     }
 
-    await sanityClient.delete(id);
+    await sanityClient
+      .patch(session.user.id)
+      .unset([`messages[_key=="${key}"]`])
+      .commit();
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
@@ -99,13 +125,21 @@ export async function DELETE(request: Request) {
 
 export async function PUT(request: Request) {
   try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
+    }
 
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
+    const key = searchParams.get("key");
 
-    if (!id) {
+    if (!key) {
       return NextResponse.json(
-        { error: "Message ID is required" },
+        { error: "Message key is required" },
         { status: 400 }
       );
     }
@@ -119,17 +153,27 @@ export async function PUT(request: Request) {
       );
     }
 
-    const message = await sanityClient
-      .patch(id)
+    const updatedFields = {
+      text,
+      category,
+      isShown: isShown || false,
+      like: like || false,
+    };
+
+    await sanityClient
+      .patch(session.user.id)
       .set({
-        text,
-        category,
-        isShown: isShown || false,
-        like: like || false,
+        [`messages[_key=="${key}"].text`]: updatedFields.text,
+        [`messages[_key=="${key}"].category`]: updatedFields.category,
+        [`messages[_key=="${key}"].isShown`]: updatedFields.isShown,
+        [`messages[_key=="${key}"].like`]: updatedFields.like,
       })
       .commit();
 
-    return NextResponse.json({ message }, { status: 200 });
+    return NextResponse.json(
+      { message: { _key: key, ...updatedFields } },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error updating message:", error);
     return NextResponse.json(

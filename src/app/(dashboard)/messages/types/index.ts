@@ -1,5 +1,5 @@
 export interface Message {
-  _id: string;
+  _key: string;
   text: string; // Required field
   isShown: boolean;
   userName?: string;
@@ -8,4 +8,4 @@ export interface Message {
   like?: boolean;
 }
 
-export type EditMessagePayload = Pick<Message, '_id' | 'text' | 'category'>;
+export type EditMessagePayload = Pick<Message, '_key' | 'text' | 'category'>;

@@ -3,7 +3,7 @@ import { sanityClient } from "@/lib/sanity";
 import { auth } from "@/auth";
 
 interface LikeRequestBody {
-  messageId: string;
+  messageKey: string;
   liked: boolean;
 }
 
@@ -15,18 +15,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { messageId, liked } = await request.json() as LikeRequestBody;
+    const { messageKey, liked } = await request.json() as LikeRequestBody;
 
-    if (!messageId) {
+    if (!messageKey) {
       return NextResponse.json(
-        { error: "Message ID is required" },
+        { error: "Message key is required" },
         { status: 400 }
       );
     }
 
+    const ownerId = await sanityClient.fetch(
+      `*[_type == "user" && count(messages[_key == $key]) > 0][0]._id`,
+      { key: messageKey }
+    );
+
+    if (!ownerId) {
+      return NextResponse.json({ error: "Message not found" }, { status: 404 });
+    }
+
     await sanityClient
-      .patch(messageId)
-      .set({ like: liked })
+      .patch(ownerId)
+      .set({ [`messages[_key=="${messageKey}"].like`]: liked })
       .commit();
 
     return NextResponse.json({ success: true });

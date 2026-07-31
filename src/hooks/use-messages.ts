@@ -3,9 +3,11 @@ import { toast } from "sonner";
 import { triggerConfetti } from '@/lib/confetti';
 import type { Message } from '@/sanity/types';
 
+export type MessageWithKey = Message & { _key: string };
+
 export function useMessages(partnerId: string, dailyLimit: number) {
-  const [todayMessages, setTodayMessages] = useState<Message[]>([]);
-  const [previousMessages, setPreviousMessages] = useState<Message[]>([]);
+  const [todayMessages, setTodayMessages] = useState<MessageWithKey[]>([]);
+  const [previousMessages, setPreviousMessages] = useState<MessageWithKey[]>([]);
   const [messageCount, setMessageCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [noMessagesAvailable, setNoMessagesAvailable] = useState(false);
@@ -32,7 +34,7 @@ export function useMessages(partnerId: string, dailyLimit: number) {
 
         setTodayMessages(
           data.todayMessages.map(
-            (msg: Message): Message => ({
+            (msg: MessageWithKey): MessageWithKey => ({
               ...msg,
               shownAt: msg.shownAt ? new Date(msg.shownAt).toISOString() : new Date().toISOString(),
             })
@@ -40,11 +42,11 @@ export function useMessages(partnerId: string, dailyLimit: number) {
         );
         setMessageCount(data.todayMessages.length);
       }
-      
+
       if (data.previousMessages) {
         setPreviousMessages(
           data.previousMessages.map(
-            (msg: Message): Message => ({
+            (msg: MessageWithKey): MessageWithKey => ({
               ...msg,
               shownAt: msg.shownAt ? new Date(msg.shownAt).toISOString() : new Date().toISOString(),
             })
@@ -89,7 +91,7 @@ export function useMessages(partnerId: string, dailyLimit: number) {
       const data = await response.json();
       
       if (data.message) {
-        const newMessage: Message = {
+        const newMessage: MessageWithKey = {
           ...data.message,
           shownAt: new Date(data.message.shownAt).toISOString()
         };
@@ -112,21 +114,21 @@ export function useMessages(partnerId: string, dailyLimit: number) {
       const response = await fetch("/api/messages/like", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messageId: id, liked }),
+        body: JSON.stringify({ messageKey: id, liked }),
       });
-      
+
       const result = await response.json();
 
       if (!response.ok) {
         throw new Error(result.error || toastLikeError);
       }
 
-      setTodayMessages(prev => 
-        prev.map(msg => msg._id === id ? { ...msg, like: liked } : msg)
+      setTodayMessages(prev =>
+        prev.map(msg => msg._key === id ? { ...msg, like: liked } : msg)
       );
-      
-      setPreviousMessages(prev => 
-        prev.map(msg => msg._id === id ? { ...msg, like: liked } : msg)
+
+      setPreviousMessages(prev =>
+        prev.map(msg => msg._key === id ? { ...msg, like: liked } : msg)
       );
     } catch (error) {
       console.error(toastLikeError, error);

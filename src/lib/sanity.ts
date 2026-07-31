@@ -9,6 +9,11 @@ export const sanityClient = createClient({
   token: process.env.SANITY_API_TOKEN,
 });
 
+// Sanity requires a unique `_key` on every array item (e.g. entries in user.messages)
+export function arrayKey() {
+  return crypto.randomUUID();
+}
+
 export async function getTodayMessage(userId: string) {
   // Get today's date at midnight
   const today = new Date();

@@ -115,7 +115,7 @@ export default function AdminMessages() {
   ): Promise<boolean> => {
     try {
       const response = await fetch(
-        `/api/settings/messages?id=${editedMessage._id}`,
+        `/api/settings/messages?key=${editedMessage._key}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -127,7 +127,7 @@ export default function AdminMessages() {
         const updatedMessage = await response.json();
         setMessages(
           messages.map((msg) =>
-            msg._id === editedMessage._id ? updatedMessage.message : msg
+            msg._key === editedMessage._key ? updatedMessage.message : msg
           )
         );
         toast.success("Повідомлення успішно оновлено!");
@@ -146,14 +146,14 @@ export default function AdminMessages() {
     }
   };
 
-  const handleDeleteMessage = async (id: string): Promise<boolean> => {
+  const handleDeleteMessage = async (key: string): Promise<boolean> => {
     try {
-      const response = await fetch(`/api/settings/messages?id=${id}`, {
+      const response = await fetch(`/api/settings/messages?key=${key}`, {
         method: "DELETE",
       });
 
       if (response.ok) {
-        setMessages(messages.filter((msg) => msg._id !== id));
+        setMessages(messages.filter((msg) => msg._key !== key));
         toast.success("Повідомлення успішно видалено!");
         return true;
       } else {
