@@ -2,7 +2,7 @@
 
 import { memo } from "react";
 import Link from "next/link";
-import { CalendarHeart, MailCheck, MailPlus, MessageCircleHeart } from "lucide-react";
+import { CalendarHeart, MailCheck, MailPlus, MessageCircleHeart, NotebookText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CustomTooltip } from "@/components/ui/custom-tooltip";
 import { UserMenu } from "./UserMenu";
@@ -35,6 +35,11 @@ const navigationItems: NavItem[] = [
     href: "/calendar",
     icon: <CalendarHeart />,
     label: "Календар",
+  },
+  {
+    href: "/notes",
+    icon: <NotebookText />,
+    label: "Нотатки про партнера",
   },
 ];
 

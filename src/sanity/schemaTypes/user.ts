@@ -99,6 +99,13 @@ export const userType = defineType({
       description: "Calendar events (important moments, intimate moments, daily moments) authored by this user",
     }),
     defineField({
+      name: "partnerNotes",
+      title: "Partner Notes",
+      type: "array",
+      of: [{ type: "partnerNote" }],
+      description: "Private notes this user keeps about their partner (never shared with the partner)",
+    }),
+    defineField({
       name: "geminiApiKey",
       title: "Gemini API Key",
       type: "string",
