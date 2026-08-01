@@ -15,6 +15,28 @@
 export declare const internalGroqTypeReferenceTo: unique symbol;
 
 // Source: src/sanity/extract.json
+export type CalendarEvent = {
+  _type: "calendarEvent";
+  type?: "important" | "intimate" | "daily";
+  title?: string;
+  date?: string;
+  time?: string;
+  durationMinutes?: number;
+  isRecurringYearly?: boolean;
+  mood?: "great" | "good" | "neutral" | "sad" | "upset" | "romantic" | "angry";
+  activities?: Array<string>;
+  initiatedBy?: "me" | "partner" | "mutual";
+  selfFinished?: boolean;
+  partnerFinished?: boolean;
+  protectionUsed?: boolean;
+  protectionType?:
+    "condom" | "dental_dam" | "birth_control_pill" | "iud" | "other";
+  rating?: number;
+  highlights?: Array<string>;
+  note?: string;
+  createdAt?: string;
+};
+
 export type UserReference = {
   _ref: string;
   _type: "reference";
@@ -67,6 +89,11 @@ export type User = {
     {
       _key: string;
     } & Message
+  >;
+  calendarEvents?: Array<
+    {
+      _key: string;
+    } & CalendarEvent
   >;
   geminiApiKey?: string;
   partnerInfo?: string;
@@ -194,6 +221,7 @@ export type Slug = {
 };
 
 export type AllSanitySchemaTypes =
+  | CalendarEvent
   | UserReference
   | Message
   | SanityImageAssetReference

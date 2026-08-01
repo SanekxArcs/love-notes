@@ -1,5 +1,226 @@
 [
   {
+    "name": "calendarEvent",
+    "type": "type",
+    "value": {
+      "type": "object",
+      "attributes": {
+        "_type": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string",
+            "value": "calendarEvent"
+          }
+        },
+        "type": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "union",
+            "of": [
+              {
+                "type": "string",
+                "value": "important"
+              },
+              {
+                "type": "string",
+                "value": "intimate"
+              },
+              {
+                "type": "string",
+                "value": "daily"
+              }
+            ]
+          },
+          "optional": true
+        },
+        "title": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string"
+          },
+          "optional": true
+        },
+        "date": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string"
+          },
+          "optional": true
+        },
+        "time": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string"
+          },
+          "optional": true
+        },
+        "durationMinutes": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "number"
+          },
+          "optional": true
+        },
+        "isRecurringYearly": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "boolean"
+          },
+          "optional": true
+        },
+        "mood": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "union",
+            "of": [
+              {
+                "type": "string",
+                "value": "great"
+              },
+              {
+                "type": "string",
+                "value": "good"
+              },
+              {
+                "type": "string",
+                "value": "neutral"
+              },
+              {
+                "type": "string",
+                "value": "sad"
+              },
+              {
+                "type": "string",
+                "value": "upset"
+              },
+              {
+                "type": "string",
+                "value": "romantic"
+              },
+              {
+                "type": "string",
+                "value": "angry"
+              }
+            ]
+          },
+          "optional": true
+        },
+        "activities": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "array",
+            "of": {
+              "type": "string"
+            }
+          },
+          "optional": true
+        },
+        "initiatedBy": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "union",
+            "of": [
+              {
+                "type": "string",
+                "value": "me"
+              },
+              {
+                "type": "string",
+                "value": "partner"
+              },
+              {
+                "type": "string",
+                "value": "mutual"
+              }
+            ]
+          },
+          "optional": true
+        },
+        "selfFinished": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "boolean"
+          },
+          "optional": true
+        },
+        "partnerFinished": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "boolean"
+          },
+          "optional": true
+        },
+        "protectionUsed": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "boolean"
+          },
+          "optional": true
+        },
+        "protectionType": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "union",
+            "of": [
+              {
+                "type": "string",
+                "value": "condom"
+              },
+              {
+                "type": "string",
+                "value": "dental_dam"
+              },
+              {
+                "type": "string",
+                "value": "birth_control_pill"
+              },
+              {
+                "type": "string",
+                "value": "iud"
+              },
+              {
+                "type": "string",
+                "value": "other"
+              }
+            ]
+          },
+          "optional": true
+        },
+        "rating": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "number"
+          },
+          "optional": true
+        },
+        "highlights": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "array",
+            "of": {
+              "type": "string"
+            }
+          },
+          "optional": true
+        },
+        "note": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string"
+          },
+          "optional": true
+        },
+        "createdAt": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string"
+          },
+          "optional": true
+        }
+      }
+    }
+  },
+  {
     "type": "type",
     "name": "user.reference",
     "value": {
@@ -318,6 +539,28 @@
             "rest": {
               "type": "inline",
               "name": "message"
+            }
+          }
+        },
+        "optional": true
+      },
+      "calendarEvents": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "array",
+          "of": {
+            "type": "object",
+            "attributes": {
+              "_key": {
+                "type": "objectAttribute",
+                "value": {
+                  "type": "string"
+                }
+              }
+            },
+            "rest": {
+              "type": "inline",
+              "name": "calendarEvent"
             }
           }
         },
