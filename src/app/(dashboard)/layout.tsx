@@ -1,11 +1,11 @@
 // app/(dashboard)/layout.tsx
 
-import { ViewTransition } from "react";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { SanityLive } from "@/sanity/lib/live";
 import Particles from "@/components/reactbits/Particles";
 import { DashboardHeader } from "@/components/dashboard/Header";
+import { PageTransition } from "@/components/dashboard/PageTransition";
 
 export default async function DashboardLayout({
   children,
@@ -35,7 +35,7 @@ export default async function DashboardLayout({
       <div className="min-h-svh relative">
         <DashboardHeader />
         <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-          <ViewTransition>{children}</ViewTransition>
+          <PageTransition>{children}</PageTransition>
           <SanityLive />
         </main>
       </div>
