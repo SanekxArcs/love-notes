@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, ScanText, Sparkles } from "lucide-react";
+import { ListPlus, Plus, ScanText, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { mostSimilar } from "@/lib/text-similarity";
 import { getLanguage } from "@/lib/languages";
@@ -82,6 +82,7 @@ interface AddMessageDialogProps {
     like?: boolean;
     specificDate?: string;
   }) => Promise<boolean>;
+  onOpenBatch: () => void;
 }
 
 export default function AddMessageDialog({
@@ -89,6 +90,7 @@ export default function AddMessageDialog({
   setIsOpen,
   existingTexts,
   onSubmit,
+  onOpenBatch,
 }: AddMessageDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -277,8 +279,19 @@ export default function AddMessageDialog({
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+        <DialogHeader className="flex-row items-center justify-between gap-2 space-y-0">
           <DialogTitle>Додати нове повідомлення</DialogTitle>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setIsOpen(false);
+              onOpenBatch();
+            }}
+          >
+            <ListPlus className="mr-1.5 h-3.5 w-3.5" /> Масове додавання
+          </Button>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="grid gap-4 py-4">
           <div className="grid gap-2">

@@ -221,6 +221,7 @@ export default function AdminMessages() {
               setIsOpen={setIsAddDialogOpen}
               existingTexts={messages.map((msg) => msg.text)}
               onSubmit={handleAddMessage}
+              onOpenBatch={() => setIsBatchDialogOpen(true)}
             />
 
             <DeleteAllDialog

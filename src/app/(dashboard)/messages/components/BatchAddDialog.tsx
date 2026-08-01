@@ -8,9 +8,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
-import { LoaderCircle, Plus } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 
 interface BatchAddDialogProps {
   isOpen: boolean;
@@ -71,11 +70,6 @@ export default function BatchAddDialog({ isOpen, setIsOpen, onSubmit }: BatchAdd
         if (!open) resetForm();
       }}
     >
-      <DialogTrigger asChild>
-        <Button variant="outline" className="w-full md:w-auto">
-          <Plus className="mr-2 h-4 w-4" /> Масове додавання
-        </Button>
-      </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Масове додавання повідомлень</DialogTitle>
