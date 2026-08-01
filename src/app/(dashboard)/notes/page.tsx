@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Search, Sparkles } from "lucide-react";
+import { Eye, EyeOff, Search, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,13 @@ import EditNoteDialog from "./components/EditNoteDialog";
 import DeleteNoteDialog from "./components/DeleteNoteDialog";
 import AiChatDialog from "./components/AiChatDialog";
 import OnboardingWizard from "./components/OnboardingWizard";
-import type { EditPartnerNotePayload, NewPartnerNote, PartnerNote } from "./types";
+import SharedNotesDialog from "./components/SharedNotesDialog";
+import type {
+  EditPartnerNotePayload,
+  NewPartnerNote,
+  PartnerNote,
+  SharedPartnerNote,
+} from "./types";
 
 export default function NotesPage() {
   const [notes, setNotes] = useState<PartnerNote[]>([]);
@@ -25,12 +31,15 @@ export default function NotesPage() {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+  const [isSharedOpen, setIsSharedOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<PartnerNote | null>(null);
   const [deletingNote, setDeletingNote] = useState<PartnerNote | null>(null);
+  const [sharedNotes, setSharedNotes] = useState<SharedPartnerNote[]>([]);
 
   useEffect(() => {
     fetchNotes();
     fetchGeminiKeyStatus();
+    fetchSharedNotes();
   }, []);
 
   async function fetchNotes() {
@@ -57,6 +66,16 @@ export default function NotesPage() {
       setHasGeminiKey(Boolean(data.hasKey));
     } catch (error) {
       console.error("Error checking Gemini key:", error);
+    }
+  }
+
+  async function fetchSharedNotes() {
+    try {
+      const response = await fetch("/api/notes/shared");
+      const data = await response.json();
+      setSharedNotes(data.notes ?? []);
+    } catch (error) {
+      console.error("Error fetching partner's shared notes:", error);
     }
   }
 
@@ -139,6 +158,63 @@ export default function NotesPage() {
     }
   };
 
+  const handleToggleShare = async (note: PartnerNote) => {
+    const nextShared = !note.isShared;
+
+    setNotes((prev) =>
+      prev.map((n) => (n._key === note._key ? { ...n, isShared: nextShared } : n))
+    );
+
+    try {
+      const response = await fetch(`/api/notes/share?key=${note._key}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isShared: nextShared }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update share status");
+      }
+
+      toast.success(
+        nextShared ? "Нотатку показано партнеру" : "Нотатку приховано від партнера"
+      );
+    } catch (error) {
+      console.error("Error toggling note share status:", error);
+      toast.error("Не вдалося оновити статус нотатки");
+      setNotes((prev) =>
+        prev.map((n) => (n._key === note._key ? { ...n, isShared: note.isShared } : n))
+      );
+    }
+  };
+
+  const handleBulkShare = async (nextShared: boolean) => {
+    const previousNotes = notes;
+    setNotes((prev) => prev.map((n) => ({ ...n, isShared: nextShared })));
+
+    try {
+      const response = await fetch("/api/notes/share", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isShared: nextShared }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update share status");
+      }
+
+      toast.success(
+        nextShared
+          ? "Усі нотатки показано партнеру"
+          : "Усі нотатки приховано від партнера"
+      );
+    } catch (error) {
+      console.error("Error bulk updating note share status:", error);
+      toast.error("Не вдалося оновити статус нотаток");
+      setNotes(previousNotes);
+    }
+  };
+
   const filteredNotes = useMemo(() => {
     const query = search.trim().toLowerCase();
     if (!query) return notes;
@@ -151,11 +227,33 @@ export default function NotesPage() {
     });
   }, [notes, search]);
 
+  const allShared = notes.length > 0 && notes.every((note) => note.isShared);
+
   return (
     <div className="container mx-auto flex max-w-4xl flex-col gap-6 py-10">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <BackButton text="Нотатки про партнера" />
         <div className="flex flex-wrap gap-2">
+          {sharedNotes.length > 0 && (
+            <SharedNotesDialog
+              notes={sharedNotes}
+              isOpen={isSharedOpen}
+              setIsOpen={setIsSharedOpen}
+            />
+          )}
+          {notes.length > 0 && (
+            <Button variant="outline" onClick={() => handleBulkShare(!allShared)}>
+              {allShared ? (
+                <>
+                  <EyeOff className="mr-2 h-4 w-4" /> Приховати всі від партнера
+                </>
+              ) : (
+                <>
+                  <Eye className="mr-2 h-4 w-4" /> Показати всі партнеру
+                </>
+              )}
+            </Button>
+          )}
           {hasGeminiKey && <AiChatDialog isOpen={isChatOpen} setIsOpen={setIsChatOpen} />}
           <AddNoteDialog isOpen={isAddOpen} setIsOpen={setIsAddOpen} onSubmit={handleAddNote} />
         </div>
@@ -197,6 +295,7 @@ export default function NotesPage() {
               note={note}
               onEdit={setEditingNote}
               onDelete={setDeletingNote}
+              onToggleShare={handleToggleShare}
             />
           ))}
         </div>

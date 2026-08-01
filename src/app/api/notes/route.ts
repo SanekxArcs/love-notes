@@ -21,6 +21,7 @@ export async function GET() {
           description,
           tags,
           onboardingQuestionId,
+          isShared,
           createdAt,
           updatedAt
         }
@@ -67,6 +68,7 @@ export async function POST(request: Request) {
       description: description.trim(),
       tags: Array.isArray(tags) ? tags.filter(Boolean) : undefined,
       onboardingQuestionId: onboardingQuestionId || undefined,
+      isShared: false,
       createdAt: now,
       updatedAt: now,
     };

@@ -43,6 +43,13 @@
           },
           "optional": true
         },
+        "isShared": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "boolean"
+          },
+          "optional": true
+        },
         "createdAt": {
           "type": "objectAttribute",
           "value": {

@@ -36,6 +36,13 @@ export const partnerNoteType = defineType({
       description: "Заповнюється автоматично, якщо нотатку створено через стартовий опитувальник",
     }),
     defineField({
+      name: "isShared",
+      title: "Показано партнеру",
+      type: "boolean",
+      description: "Якщо увімкнено, цю нотатку зможе побачити партнер",
+      initialValue: false,
+    }),
+    defineField({
       name: "createdAt",
       title: "Коли створено",
       type: "datetime",
@@ -51,11 +58,13 @@ export const partnerNoteType = defineType({
       title: "title",
       description: "description",
       tags: "tags",
+      isShared: "isShared",
     },
-    prepare({ title, description, tags }) {
+    prepare({ title, description, tags, isShared }) {
       const tagsSuffix = tags?.length ? ` · ${tags.join(", ")}` : "";
+      const sharedPrefix = isShared ? "👁️ " : "";
       return {
-        title: title || "Без заголовку",
+        title: `${sharedPrefix}${title || "Без заголовку"}`,
         subtitle: `${description ?? ""}${tagsSuffix}`,
       };
     },

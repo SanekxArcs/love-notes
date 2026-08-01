@@ -21,6 +21,7 @@ export type PartnerNote = {
   description?: string;
   tags?: Array<string>;
   onboardingQuestionId?: string;
+  isShared?: boolean;
   createdAt?: string;
   updatedAt?: string;
 };
