@@ -56,7 +56,7 @@ export default function AddNoteDialog({
       }}
     >
       <DialogTrigger asChild>
-        <Button>
+        <Button className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" /> Додати нотатку
         </Button>
       </DialogTrigger>

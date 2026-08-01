@@ -26,7 +26,7 @@ export default function SharedNotesDialog({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">
+        <Button variant="outline" className="w-full sm:w-auto">
           <Eye className="mr-2 h-4 w-4" /> Нотатки від партнера ({notes.length})
         </Button>
       </DialogTrigger>

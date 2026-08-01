@@ -210,7 +210,7 @@ export default function AdminMessages() {
             <BackButton text="Керування повідомленнями" />
           </ViewTransition>
 
-          <div className="grid grid-cols-2 w-full md:flex justify-end gap-4">
+          <div className="flex w-full flex-col gap-2 md:w-auto md:flex-row md:flex-wrap md:justify-end md:gap-4">
             <BatchAddDialog
               isOpen={isBatchDialogOpen}
               setIsOpen={setIsBatchDialogOpen}

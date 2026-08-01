@@ -233,7 +233,7 @@ export default function NotesPage() {
     <div className="container mx-auto flex max-w-4xl flex-col gap-6 py-10">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <BackButton text="Нотатки про партнера" />
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
           {sharedNotes.length > 0 && (
             <SharedNotesDialog
               notes={sharedNotes}
@@ -242,7 +242,11 @@ export default function NotesPage() {
             />
           )}
           {notes.length > 0 && (
-            <Button variant="outline" onClick={() => handleBulkShare(!allShared)}>
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={() => handleBulkShare(!allShared)}
+            >
               {allShared ? (
                 <>
                   <EyeOff className="mr-2 h-4 w-4" /> Приховати всі від партнера

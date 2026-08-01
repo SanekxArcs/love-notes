@@ -72,7 +72,7 @@ export default function BatchAddDialog({ isOpen, setIsOpen, onSubmit }: BatchAdd
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="outline"className="col-span-1">
+        <Button variant="outline" className="w-full md:w-auto">
           <Plus className="mr-2 h-4 w-4" /> Масове додавання
         </Button>
       </DialogTrigger>

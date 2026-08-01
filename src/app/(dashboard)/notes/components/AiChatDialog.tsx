@@ -91,7 +91,7 @@ export default function AiChatDialog({ isOpen, setIsOpen }: {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="secondary">
+        <Button variant="secondary" className="w-full sm:w-auto">
           <Sparkles className="mr-2 h-4 w-4" /> AI-помічник
         </Button>
       </DialogTrigger>
