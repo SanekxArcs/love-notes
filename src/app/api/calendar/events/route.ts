@@ -80,19 +80,48 @@ export async function GET() {
       `*[_type == "user" && (_id == $myId || (defined($partnerId) && partnerIdToSend == $partnerId))]{
         _id,
         name,
-        "calendarEvents": calendarEvents ${EVENT_PROJECTION}
+        "calendarEvents": calendarEvents ${EVENT_PROJECTION},
+        "shownMessages": messages[isShown == true && defined(shownAt)]{
+          _key,
+          text,
+          shownAt
+        }
       }`,
       { myId: session.user.id, partnerId: partnerId || null }
     );
 
     const events = (users ?? []).flatMap(
-      (user: { _id: string; name?: string; calendarEvents?: Record<string, unknown>[] }) =>
-        (user.calendarEvents ?? []).map((event) => ({
+      (user: {
+        _id: string;
+        name?: string;
+        calendarEvents?: Record<string, unknown>[];
+        shownMessages?: { _key: string; text: string; shownAt: string }[];
+      }) => {
+        const isMine = user._id === session.user.id;
+
+        const calendarEvents = (user.calendarEvents ?? []).map((event) => ({
           ...event,
           ownerId: user._id,
           ownerName: user.name,
-          isMine: user._id === session.user.id,
-        }))
+          isMine,
+        }));
+
+        // Only surface messages the partner sent and I've seen — not my own,
+        // since this is meant as "history of getting messages from partner".
+        const messageEvents = isMine
+          ? []
+          : (user.shownMessages ?? []).map((message) => ({
+              _key: `msg-${message._key}`,
+              type: "message" as const,
+              date: message.shownAt.slice(0, 10),
+              note: message.text,
+              ownerId: user._id,
+              ownerName: user.name,
+              isMine: false,
+            }));
+
+        return [...calendarEvents, ...messageEvents];
+      }
     );
 
     return NextResponse.json({ events });

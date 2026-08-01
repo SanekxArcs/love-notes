@@ -17,6 +17,7 @@ const TYPE_LABEL: Record<CalendarEvent["type"], string> = {
   important: "🎉 Важлива подія",
   intimate: "💞 Інтимний момент",
   daily: "📝 Щоденний момент",
+  message: "💌 Повідомлення від партнера",
 };
 
 const INITIATED_LABEL: Record<NonNullable<CalendarEvent["initiatedBy"]>, string> = {
@@ -105,7 +106,9 @@ export default function DayEventsPanel({
                     {event.title || TYPE_LABEL[event.type]}
                   </span>
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <Badge variant="secondary">{TYPE_LABEL[event.type]}</Badge>
+                    {Boolean(event.title) && (
+                      <Badge variant="secondary">{TYPE_LABEL[event.type]}</Badge>
+                    )}
                     <Badge variant="outline">
                       {event.isMine ? "Мій запис" : event.ownerName || "Партнер"}
                     </Badge>

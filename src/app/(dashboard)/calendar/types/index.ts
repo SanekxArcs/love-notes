@@ -1,4 +1,4 @@
-export type CalendarEventType = "important" | "intimate" | "daily";
+export type CalendarEventType = "important" | "intimate" | "daily" | "message";
 export type IntimateActivity = "manual" | "oral" | "vaginal" | "anal" | "toys" | "bdsm";
 export type ProtectionType = "condom" | "dental_dam" | "birth_control_pill" | "iud" | "other";
 export type InitiatedBy = "me" | "partner" | "mutual";

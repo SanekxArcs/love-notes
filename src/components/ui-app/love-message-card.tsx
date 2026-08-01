@@ -138,7 +138,7 @@ export function LoveMessageCard({
       className="relative"
     >
       <Card
-        className={`overflow-hidden rounded-xl relative py-0 bg-gradient-to-br from-pink-50 to-rose-50 dark:from-pink-900 dark:to-rose-950`}
+        className={`overflow-hidden rounded-xl relative py-0  gap-0 bg-gradient-to-br from-pink-50 to-rose-50 dark:from-pink-900 dark:to-rose-950`}
       >
         {isLiked && <FloatingHearts />}
 
@@ -164,7 +164,7 @@ export function LoveMessageCard({
           </div>
         </CardHeader>
 
-        <CardContent className="p-6 relative ">
+        <CardContent className="px-6 pb-3 pt-6 relative ">
           <div className="absolute -left-1 top-4 text-pink-200 rotate-12 opacity-30 dark:text-pink-900">
             <Heart size={32} fill="currentColor" />
           </div>

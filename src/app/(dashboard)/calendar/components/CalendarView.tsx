@@ -25,6 +25,7 @@ const TYPE_ICON: Record<CalendarEvent["type"], string> = {
   important: "🎉",
   intimate: "💞",
   daily: "📝",
+  message: "💌",
 };
 
 function eventDateKey(date: Date) {
