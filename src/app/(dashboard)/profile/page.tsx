@@ -19,7 +19,6 @@ import {
 import { redirect } from "next/navigation";
 import { CustomTooltip } from "@/components/ui/custom-tooltip";
 import { BackButton } from "@/components/ui/back-button";
-import { ViewTransition } from "react";
 import {
   Select,
   SelectContent,
@@ -263,9 +262,7 @@ export default function UserProfile() {
   if (isLoading) {
     return (
       <div className="container  max-w-3xl mx-auto  py-10">
-        <ViewTransition name="buttons-top">
-          <BackButton text="Профіль" />
-        </ViewTransition>
+        <BackButton text="Профіль" />
         <Card>
           <CardContent className="pt-6">
             <div className="space-y-2">
@@ -280,9 +277,7 @@ export default function UserProfile() {
 
   return (
     <div className="container max-w-3xl mx-auto py-10">
-      <ViewTransition name="buttons-top">
-        <BackButton text="Профіль" />
-      </ViewTransition>
+      <BackButton text="Профіль" />
       <Card>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">

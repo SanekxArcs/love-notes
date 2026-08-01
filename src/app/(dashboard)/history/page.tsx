@@ -6,7 +6,6 @@ import MessageHistory from "./MessageHistory";
 import type { Message } from "../messages/types";
 import { LoaderCircle } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
-import { ViewTransition } from "react";
 
 export default function HistoryPage() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -34,9 +33,7 @@ export default function HistoryPage() {
 
   return (
     <div className="container max-w-3xl mx-auto py-10">
-      <ViewTransition name="buttons-top">
-        <BackButton text="Історія повідомлень" />
-      </ViewTransition>
+      <BackButton text="Історія повідомлень" />
       {isLoading ? (
         <div className="flex justify-center items-center h-40">
           <LoaderCircle className="animate-spin h-8 w-8" />

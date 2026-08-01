@@ -10,7 +10,6 @@ import AddMessageDialog from "./components/AddMessageDialog";
 import BatchAddDialog from "./components/BatchAddDialog";
 import DeleteAllDialog from "./components/DeleteAllDialog";
 import type { Message, EditMessagePayload } from "./types";
-import { ViewTransition } from "react";
 import { BackButton } from "@/components/ui/back-button";
 
 interface NewMessage {
@@ -206,9 +205,7 @@ export default function AdminMessages() {
     <div className="container mx-auto flex max-w-3xl flex-col py-10">
       <div className="flex flex-row justify-between items-center">
         <div className="mb-4 flex flex-col w-full md:flex-row justify-start items-start gap-4">
-          <ViewTransition name="buttons-top">
-            <BackButton text="Керування повідомленнями" />
-          </ViewTransition>
+          <BackButton text="Керування повідомленнями" />
 
           <div className="flex w-full flex-col gap-2 md:w-auto md:flex-row md:flex-wrap md:justify-end md:gap-4">
             <BatchAddDialog

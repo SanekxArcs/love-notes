@@ -308,11 +308,9 @@ export default function HelpPage() {
 
   return (
     <div className="container py-10 max-w-3xl mx-auto overflow-hidden">
-      <ViewTransition name="buttons-top">
-        <div className="flex justify-between items-center mb-8">
-          <BackButton text="Початок користування" />
-        </div>
-      </ViewTransition>
+      <div className="flex justify-between items-center mb-8">
+        <BackButton text="Початок користування" />
+      </div>
       <ViewTransition
         onUpdate={(instance) => {
           instance.old.animate(
