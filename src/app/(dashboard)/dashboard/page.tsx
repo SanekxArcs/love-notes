@@ -102,19 +102,21 @@ function ControlPanel({
       transition={{ delay: 0.4 }}
       className="mb-8"
     >
-      <Card className="bg-linear-to-r from-indigo-500/10 to-pink-500/10 overflow-hidden">
+      <Card className="bg-linear-to-r from-indigo-500/10 to-pink-500/10 overflow-hidden py-0 gap-0">
         <div className="p-6">
-          <div className="mb-4 flex items-center flex-col md:flex-row justify-between">
-            <div className="flex items-center gap-2 text-indigo-700">
-              <Clock className="h-5 w-5" />
-              <h3 className="font-medium text-sm md:text-base">
-                Наступне повідомлення через:
-              </h3>
+          {Boolean(showCallButton) && (
+            <div className="mb-4 flex items-center flex-col md:flex-row justify-between">
+              <div className="flex items-center gap-2 text-indigo-700">
+                <Clock className="h-5 w-5" />
+                <h3 className="font-medium text-sm md:text-base">
+                  Наступне повідомлення через:
+                </h3>
+              </div>
+              <div className="text-4xl md:text-lg font-mono font-semibold text-indigo-700">
+                {remainingTime}
+              </div>
             </div>
-            <div className="text-4xl md:text-lg font-mono font-semibold text-indigo-700">
-              {remainingTime}
-            </div>
-          </div>
+          )}
 
           <div className="flex flex-col gap-4">
             {!showCallButton ? (
@@ -172,7 +174,7 @@ function ControlPanel({
               <p className="text-center text-sm text-gray-500">
                 Всі повідомлення переглянуто 😱
               </p>
-            ) : (
+            ) : messageCount > 0 ? (
               <p className="text-center text-sm text-gray-500">
                 Сьогодні використано:{" "}
                 {isMessageLoading ? (
@@ -184,7 +186,7 @@ function ControlPanel({
                 )}
                 /{dailyLimit}
               </p>
-            )}
+            ) : null}
           </div>
         </div>
       </Card>
