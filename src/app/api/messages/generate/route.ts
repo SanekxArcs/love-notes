@@ -1,11 +1,16 @@
-import { NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { sanityClient } from "@/lib/sanity";
 import { GEMINI_MODEL, getValidatedGeminiApiKey } from "@/lib/gemini";
 
 const MAX_EXAMPLES_IN_PROMPT = 15;
+const MAX_USER_PROMPT_LENGTH = 500;
 
-function buildPrompt(partnerInfo: string | undefined, existing: string[]): string {
+function buildPrompt(
+  partnerInfo: string | undefined,
+  existing: string[],
+  userPrompt: string | undefined
+): string {
   const lines = [
     "Напиши коротке, щире повідомлення кохання українською мовою (1-3 речення, до 500 символів).",
     "Це повідомлення для мого партнера/партнерки.",
@@ -13,6 +18,12 @@ function buildPrompt(partnerInfo: string | undefined, existing: string[]): strin
 
   if (partnerInfo?.trim()) {
     lines.push(`Інформація про партнера: ${partnerInfo.trim()}`);
+  }
+
+  if (userPrompt?.trim()) {
+    lines.push(
+      `Ось що я хочу передати партнеру своїми словами: "${userPrompt.trim()}". Розкрий цю думку у повідомленні.`
+    );
   }
 
   if (existing.length > 0) {
@@ -26,7 +37,7 @@ function buildPrompt(partnerInfo: string | undefined, existing: string[]): strin
   return lines.join("\n");
 }
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
     const session = await auth();
 
@@ -36,6 +47,12 @@ export async function POST() {
         { status: 401 }
       );
     }
+
+    const body = await request.json().catch(() => ({}));
+    const userPrompt: string | undefined =
+      typeof body?.prompt === "string"
+        ? body.prompt.trim().slice(0, MAX_USER_PROMPT_LENGTH)
+        : undefined;
 
     const keyResult = await getValidatedGeminiApiKey(session.user.id);
     if (!keyResult.ok) {
@@ -56,7 +73,7 @@ export async function POST() {
 
     const existingTexts: string[] = (user?.existingTexts ?? []).filter(Boolean);
     const promptExamples = existingTexts.slice(-MAX_EXAMPLES_IN_PROMPT);
-    const prompt = buildPrompt(user?.partnerInfo, promptExamples);
+    const prompt = buildPrompt(user?.partnerInfo, promptExamples, userPrompt);
 
     const geminiResponse = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,

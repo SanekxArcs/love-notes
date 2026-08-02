@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
@@ -16,6 +17,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -96,6 +102,9 @@ export default function AddMessageDialog({
   const [isGenerating, setIsGenerating] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [uniquenessScore, setUniquenessScore] = useState<number | null>(null);
+  const [isGeneratePromptOpen, setIsGeneratePromptOpen] = useState(false);
+  const [generatePrompt, setGeneratePrompt] = useState("");
+  const generatePromptId = useId();
   const [newMessage, setNewMessage] = useState({
     text: "",
     category: "unknown",
@@ -137,11 +146,13 @@ export default function AddMessageDialog({
     setUniquenessScore(null);
   };
 
-  const handleGenerate = async () => {
+  const handleGenerate = async (prompt?: string) => {
     setIsGenerating(true);
     try {
       const response = await fetch("/api/messages/generate", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: prompt?.trim() || undefined }),
       });
       const data = await response.json();
 
@@ -157,6 +168,20 @@ export default function AddMessageDialog({
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const handleGenerateSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!generatePrompt.trim()) return;
+    setIsGeneratePromptOpen(false);
+    handleGenerate(generatePrompt);
+    setGeneratePrompt("");
+  };
+
+  const handleGenerateWithoutPrompt = () => {
+    setIsGeneratePromptOpen(false);
+    handleGenerate();
+    setGeneratePrompt("");
   };
 
   const openScanPicker = (mode: ScanMode) => {
@@ -279,12 +304,13 @@ export default function AddMessageDialog({
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader className="flex-row items-center justify-between gap-2 space-y-0">
-          <DialogTitle>Додати нове повідомлення</DialogTitle>
+        <DialogHeader className="flex-row flex-wrap items-center justify-between gap-2 space-y-0 pr-6">
+          <DialogTitle className="min-w-0">Додати нове повідомлення</DialogTitle>
           <Button
             type="button"
             variant="ghost"
             size="sm"
+            className="shrink-0"
             onClick={() => {
               setIsOpen(false);
               onOpenBatch();
@@ -360,17 +386,54 @@ export default function AddMessageDialog({
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="flex-1"
-                onClick={handleGenerate}
-                disabled={isGenerating}
+              <Popover
+                open={isGeneratePromptOpen}
+                onOpenChange={setIsGeneratePromptOpen}
               >
-                <Sparkles className="mr-1 h-3.5 w-3.5" />
-                {isGenerating ? "Генерація..." : "Згенерувати AI"}
-              </Button>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    disabled={isGenerating}
+                  >
+                    <Sparkles className="mr-1 h-3.5 w-3.5" />
+                    {isGenerating ? "Генерація..." : "Згенерувати AI"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent align="end" className="w-80">
+                  <form onSubmit={handleGenerateSubmit} className="grid gap-2">
+                    <label htmlFor={generatePromptId} className="text-sm font-medium">
+                      Що хочете сказати партнеру?
+                    </label>
+                    <Input
+                      id={generatePromptId}
+                      autoFocus
+                      value={generatePrompt}
+                      onChange={(e) => setGeneratePrompt(e.target.value)}
+                      placeholder="Наприклад: дякую за підтримку сьогодні"
+                    />
+                    <div className="flex justify-end gap-2 mt-1">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleGenerateWithoutPrompt}
+                      >
+                        Без промпту
+                      </Button>
+                      <Button
+                        type="submit"
+                        size="sm"
+                        disabled={!generatePrompt.trim()}
+                      >
+                        Згенерувати
+                      </Button>
+                    </div>
+                  </form>
+                </PopoverContent>
+              </Popover>
             </div>
 
             <Textarea
