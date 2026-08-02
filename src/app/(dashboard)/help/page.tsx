@@ -15,6 +15,10 @@ import {
   ArrowLeft,
   CheckCircle2,
   Info,
+  KeyRound,
+  History,
+  CalendarHeart,
+  NotebookText,
 } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
 import { ViewTransition } from "react";
@@ -159,6 +163,65 @@ export default function HelpPage() {
         </div>
       ),
     },
+    // AI-можливості
+    {
+      title: "AI-можливості",
+      icon: <KeyRound className="h-8 w-8 text-amber-500" />,
+      content: (
+        <div className="space-y-4">
+          <p>
+            Кілька функцій додатку працюють через Gemini AI — генерація
+            повідомлень, сканування тексту з фото та AI-помічник у нотатках
+            про партнера. Щоб їх увімкнути:
+          </p>
+          <ol className="list-decimal pl-5 space-y-2">
+            <li>
+              Отримайте безкоштовний ключ на{" "}
+              <a
+                href="https://aistudio.google.com/app/apikey"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline text-amber-600 dark:text-amber-400"
+              >
+                aistudio.google.com
+              </a>
+            </li>
+            <li>
+              Перейдіть на сторінку <strong>Профіль</strong> і вставте його в
+              поле <strong>&quot;Gemini API ключ&quot;</strong>
+            </li>
+            <li>
+              Там же можна заповнити <strong>&quot;Інформація про
+              партнера&quot;</strong> — AI використає це, щоб генерувати
+              персональніші повідомлення
+            </li>
+            <li>
+              Натисніть <strong>&quot;Зберегти профіль&quot;</strong>
+            </li>
+          </ol>
+          <div className="p-4 bg-amber-50 dark:bg-amber-950/20 rounded-lg">
+            <h4 className="font-medium text-amber-700 dark:text-amber-300 flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4" /> Що це відкриває
+            </h4>
+            <ul className="text-sm mt-1 list-disc pl-5 space-y-1">
+              <li>
+                Кнопку <strong>&quot;Згенерувати AI&quot;</strong> при
+                створенні повідомлення
+              </li>
+              <li>Сканування тексту з фото через AI (крім локального розпізнавання)</li>
+              <li>
+                Кнопку <strong>&quot;AI-помічник&quot;</strong> на сторінці
+                нотаток про партнера
+              </li>
+            </ul>
+            <p className="text-sm mt-2">
+              Без ключа весь інший функціонал додатку працює як завжди — це
+              повністю опціонально, і ключ ніхто, крім вас, не бачить.
+            </p>
+          </div>
+        </div>
+      ),
+    },
     // Створення повідомлень
     {
       title: "Створення повідомлень",
@@ -171,7 +234,7 @@ export default function HelpPage() {
               Перейдіть на сторінку <strong>&quot;Повідомлення&quot;</strong>
             </li>
             <li>
-              Натисніть <strong>&quot;Додати повідомлення&quot;</strong>
+              Натисніть <strong>&quot;Додати&quot;</strong>
             </li>
             <li>Введіть текст вашого повідомлення та оберіть категорію:</li>
             <ul className="list-disc pl-5 space-y-1 mt-1 mb-2">
@@ -188,12 +251,29 @@ export default function HelpPage() {
               </li>
             </ul>
             <li>
+              За бажанням додайте <strong>особливу дату</strong> (день і
+              місяць) — тоді це повідомлення матиме пріоритет саме в цей день
+              щороку (день народження, річниця тощо)
+            </li>
+            <li>
+              Текст можна написати самому, <strong>відсканувати з фото</strong>{" "}
+              (локально або через AI) чи <strong>згенерувати AI</strong> — під
+              полем тексту одразу видно відсоток унікальності порівняно з уже
+              надісланими повідомленнями
+            </li>
+            <li>
               Натисніть <strong>&quot;Зберегти повідомлення&quot;</strong> для
               додавання повідомлення
             </li>
             <li>
-              Для додавання кількох повідомлень одразу, використовуйте функцію{" "}
-              <strong>&quot;Масове додавання&quot;</strong>
+              Щоб додати кілька повідомлень одразу, у діалозі{" "}
+              <strong>&quot;Додати&quot;</strong> натисніть{" "}
+              <strong>&quot;Масове додавання&quot;</strong> — кожен рядок стане
+              окремим повідомленням
+            </li>
+            <li>
+              Список непоказаних повідомлень можна відфільтрувати пошуком
+              зверху сторінки
             </li>
           </ol>
           <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
@@ -203,8 +283,7 @@ export default function HelpPage() {
             <p className="text-sm mt-1">
               Створіть запас повідомлень заздалегідь, щоб вашому партнеру завжди
               було що отримати. Можна підготувати різні повідомлення для різних
-              настроїв та ситуацій. Скоро буде можливість згенерувати
-              повідомлення автоматично.
+              настроїв та ситуацій.
             </p>
           </div>
         </div>
@@ -245,6 +324,153 @@ export default function HelpPage() {
               Ліміт повідомлень оновлюється щодня опівночі за вашим місцевим
               часом. Обговоріть з партнером найкращий час для перегляду
               повідомлень, щоб зробити цей момент особливим для вас обох.
+            </p>
+          </div>
+        </div>
+      ),
+    },
+    // Історія повідомлень
+    {
+      title: "Історія повідомлень",
+      icon: <History className="h-8 w-8 text-slate-500" />,
+      content: (
+        <div className="space-y-4">
+          <p>
+            На сторінці <strong>&quot;Історія&quot;</strong> зберігаються всі
+            повідомлення, які вже було показано вашому партнеру:
+          </p>
+          <ol className="list-decimal pl-5 space-y-2">
+            <li>
+              Скористайтеся <strong>пошуком</strong> зверху, щоб знайти
+              повідомлення за текстом або іменем
+            </li>
+            <li>
+              Натисніть на заголовок колонки (Ім&apos;я, Категорія, Дата
+              показу), щоб відсортувати список
+            </li>
+            <li>
+              Клікніть на рядок, щоб побачити повну картку повідомлення —
+              текст, категорію, дату показу та реакцію (❤️/🤍)
+            </li>
+          </ol>
+          <div className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-lg">
+            <h4 className="font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4" /> Порада
+            </h4>
+            <p className="text-sm mt-1">
+              Історія — це живий літопис ваших теплих слів. Час від часу
+              перегортайте її разом, щоб згадати приємні моменти.
+            </p>
+          </div>
+        </div>
+      ),
+    },
+    // Спільний календар
+    {
+      title: "Спільний календар",
+      icon: <CalendarHeart className="h-8 w-8 text-fuchsia-500" />,
+      content: (
+        <div className="space-y-4">
+          <p>
+            Сторінка <strong>&quot;Календар&quot;</strong> — спільний з
+            партнером простір для важливих і романтичних моментів. На
+            відміну від нотаток, події тут одразу видно обом.
+          </p>
+          <ol className="list-decimal pl-5 space-y-2">
+            <li>
+              Натисніть <strong>&quot;Додати подію&quot;</strong> і оберіть
+              тип:
+            </li>
+            <ul className="list-disc pl-5 space-y-1 mt-1 mb-2">
+              <li>
+                <strong>🎉 Важлива/романтична подія</strong> — з назвою,
+                можна зробити щорічною (день народження, річниця)
+              </li>
+              <li>
+                <strong>💞 Інтимний момент</strong> — простий режим (оцінка
+                зірками/вогниками + нотатка) або детальний (тип активності,
+                тривалість, ініціатор, захист, теги враження)
+              </li>
+              <li>
+                <strong>📝 Щоденний момент</strong> — швидка нотатка про
+                настрій дня
+              </li>
+            </ul>
+            <li>
+              Клацніть на будь-який день у сітці, щоб побачити всі події
+              цього дня — свої та партнерові
+            </li>
+            <li>
+              Редагувати чи видаляти можна лише власні події; події партнера
+              видно, але без можливості зміни
+            </li>
+            <li>
+              Показані повідомлення від партнера теж автоматично зʼявляються
+              в календарі позначкою <strong>💌</strong> — лише для перегляду
+            </li>
+          </ol>
+          <div className="p-4 bg-fuchsia-50 dark:bg-fuchsia-950/20 rounded-lg">
+            <h4 className="font-medium text-fuchsia-700 dark:text-fuchsia-300 flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4" /> Порада
+            </h4>
+            <p className="text-sm mt-1">
+              Використовуйте календар, щоб не забувати важливі дати і вести
+              спільний, чесний журнал інтимного життя пари.
+            </p>
+          </div>
+        </div>
+      ),
+    },
+    // Нотатки про партнера
+    {
+      title: "Нотатки про партнера",
+      icon: <NotebookText className="h-8 w-8 text-teal-500" />,
+      content: (
+        <div className="space-y-4">
+          <p>
+            Сторінка <strong>&quot;Нотатки про партнера&quot;</strong> — це
+            ваш приватний записник уподобань партнера (квіти, музика, розміри
+            одягу, улюблена їжа тощо). Партнер їх{" "}
+            <strong>не бачить</strong>, поки ви самі не покажете.
+          </p>
+          <ol className="list-decimal pl-5 space-y-2">
+            <li>
+              Якщо нотаток ще немає, натисніть{" "}
+              <strong>&quot;Заповнити початкові дані&quot;</strong> — короткий
+              опитувальник із десятками готових питань швидко створить перші
+              нотатки; його можна перервати в будь-який момент і продовжити
+              пізніше з того ж місця
+            </li>
+            <li>
+              Або додайте нотатку вручну: заголовок, опис і довільні теги
+            </li>
+            <li>
+              Пошук зверху шукає одразу за заголовком, описом і тегами
+            </li>
+            <li>
+              Натисніть на іконку ока на картці, щоб показати саме цю
+              нотатку партнеру, або скористайтесь кнопкою{" "}
+              <strong>&quot;Показати всі партнеру&quot;</strong> зверху
+            </li>
+            <li>
+              Якщо партнер показав вам хоча б одну свою нотатку, зверху
+              зʼявиться кнопка{" "}
+              <strong>&quot;Нотатки від партнера&quot;</strong>
+            </li>
+            <li>
+              Якщо додано Gemini API ключ у профілі (див. крок{" "}
+              <strong>&quot;AI-можливості&quot;</strong>), доступна кнопка{" "}
+              <strong>&quot;AI-помічник&quot;</strong> — чат, що бачить усі
+              ваші нотатки і швидко підказує ідеї подарунків чи побачень
+            </li>
+          </ol>
+          <div className="p-4 bg-teal-50 dark:bg-teal-950/20 rounded-lg">
+            <h4 className="font-medium text-teal-700 dark:text-teal-300 flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4" /> Порада
+            </h4>
+            <p className="text-sm mt-1">
+              Показуйте партнеру лише ті нотатки, які не зіпсують сюрприз —
+              решта залишаються повністю приватними.
             </p>
           </div>
         </div>

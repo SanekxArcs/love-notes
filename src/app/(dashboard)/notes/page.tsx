@@ -292,7 +292,7 @@ export default function NotesPage() {
       ) : filteredNotes.length === 0 ? (
         <p className="text-sm text-muted-foreground">Нічого не знайдено.</p>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {filteredNotes.map((note) => (
             <NoteCard
               key={note._key}

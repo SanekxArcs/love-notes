@@ -21,7 +21,7 @@ export default function NoteCard({
   onToggleShare,
 }: NoteCardProps) {
   return (
-    <Card>
+    <Card className="gap-0">
       <CardHeader className="flex-row items-start justify-between gap-2 space-y-0">
         <CardTitle className="text-base">{note.title}</CardTitle>
         <div className="flex gap-1">

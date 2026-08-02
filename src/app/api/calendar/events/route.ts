@@ -80,7 +80,7 @@ export async function GET() {
       `*[_type == "user" && (_id == $myId || (defined($partnerId) && partnerIdToSend == $partnerId))]{
         _id,
         name,
-        "calendarEvents": calendarEvents ${EVENT_PROJECTION},
+        "calendarEvents": calendarEvents[] ${EVENT_PROJECTION},
         "shownMessages": messages[isShown == true && defined(shownAt)]{
           _key,
           text,

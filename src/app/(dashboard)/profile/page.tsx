@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
+import QRCode from "react-qr-code";
+import jsQR from "jsqr";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,10 +17,19 @@ import {
   Eye,
   EyeOff,
   RotateCcw,
+  QrCode,
+  ScanQrCode,
+  Share2,
 } from "lucide-react";
 import { redirect } from "next/navigation";
 import { CustomTooltip } from "@/components/ui/custom-tooltip";
 import { BackButton } from "@/components/ui/back-button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -81,6 +92,9 @@ export default function UserProfile() {
   const [showGeminiApiKey, setShowGeminiApiKey] = useState(false);
   const [partnerName, setPartnerName] = useState<string | null>(null);
   const [loadingPartner, setLoadingPartner] = useState(false);
+  const [isQrDialogOpen, setIsQrDialogOpen] = useState(false);
+  const [isScanningQr, setIsScanningQr] = useState(false);
+  const qrFileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     async function fetchUserData() {
@@ -183,6 +197,27 @@ export default function UserProfile() {
       });
   };
 
+  const shareId = async () => {
+    if (!userData?.partnerIdToSend) return;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Мій ID для Love Notes",
+          text: userData.partnerIdToSend,
+        });
+      } catch (error) {
+        if ((error as Error)?.name !== "AbortError") {
+          console.error("Помилка поширення ID:", error);
+          toast.error("Не вдалося поділитися ID");
+        }
+      }
+    } else {
+      copyToClipboard();
+      toast.info("Поширення недоступне на цьому пристрої — ID скопійовано");
+    }
+  };
+
   const generateUUID = () => {
     try {
       const newUUID = crypto.randomUUID();
@@ -195,6 +230,73 @@ export default function UserProfile() {
     } catch (error) {
       console.error("Помилка генерації UUID:", error);
       toast.error("Не вдалося згенерувати новий ID");
+    }
+  };
+
+  const openQrScanner = () => {
+    qrFileInputRef.current?.click();
+  };
+
+  const decodeQrFromFile = (file: File): Promise<string | null> => {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      const objectUrl = URL.createObjectURL(file);
+
+      image.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = image.width;
+          canvas.height = image.height;
+
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            reject(new Error("Canvas is not supported"));
+            return;
+          }
+
+          ctx.drawImage(image, 0, 0);
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(imageData.data, imageData.width, imageData.height);
+          resolve(code?.data ?? null);
+        } catch (error) {
+          reject(error);
+        } finally {
+          URL.revokeObjectURL(objectUrl);
+        }
+      };
+
+      image.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error("Failed to load image"));
+      };
+
+      image.src = objectUrl;
+    });
+  };
+
+  const handleQrFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    setIsScanningQr(true);
+    try {
+      const partnerId = await decodeQrFromFile(file);
+
+      if (!partnerId) {
+        toast.error("QR-код не розпізнано. Спробуйте ще раз при кращому світлі.");
+        return;
+      }
+
+      setUserData((prev) =>
+        prev ? { ...prev, partnerIdToReceiveFrom: partnerId } : null
+      );
+      toast.success("ID партнера розпізнано з QR-коду!");
+    } catch (error) {
+      console.error("Помилка сканування QR-коду:", error);
+      toast.error("Не вдалося розпізнати QR-код");
+    } finally {
+      setIsScanningQr(false);
     }
   };
 
@@ -530,11 +632,23 @@ export default function UserProfile() {
                     <RefreshCw className="h-4 w-4" />
                   </Button>
                 </CustomTooltip>
+                <CustomTooltip text="Показати QR-код">
+                  <Button
+                    type="button"
+                    onClick={() => setIsQrDialogOpen(true)}
+                    variant="outline"
+                    size="icon"
+                    title="Показати QR-код"
+                    disabled={!userData?.partnerIdToSend}
+                  >
+                    <QrCode className="h-4 w-4" />
+                  </Button>
+                </CustomTooltip>
               </div>
 
               <p className="text-xs text-gray-500">
                 Поділіться цим ID з вашим партнером, щоб він міг надсилати вам
-                повідомлення
+                повідомлення — покажіть йому QR-код або скопіюйте ID
               </p>
             </div>
 
@@ -550,14 +664,38 @@ export default function UserProfile() {
                   </p>
                 )}
               </Label>
-              <Input
-                id="partnerIdToReceiveFrom"
-                name="partnerIdToReceiveFrom"
-                value={userData?.partnerIdToReceiveFrom || ""}
-                onChange={handleInputChange}
+              <div className="flex gap-2">
+                <Input
+                  id="partnerIdToReceiveFrom"
+                  name="partnerIdToReceiveFrom"
+                  value={userData?.partnerIdToReceiveFrom || ""}
+                  onChange={handleInputChange}
+                  className="flex-1"
+                />
+                <CustomTooltip text="Сканувати QR-код партнера">
+                  <Button
+                    type="button"
+                    onClick={openQrScanner}
+                    variant="outline"
+                    size="icon"
+                    title="Сканувати QR-код партнера"
+                    disabled={isScanningQr}
+                  >
+                    <ScanQrCode className="h-4 w-4" />
+                  </Button>
+                </CustomTooltip>
+              </div>
+              <input
+                ref={qrFileInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={handleQrFileSelected}
               />
               <p className="text-xs select-none text-gray-500">
-                Введіть ID вашого партнера, щоб надсилати йому повідомлення
+                Введіть ID вашого партнера, скопіюйте його або відскануйте
+                QR-код з екрана партнера
               </p>
 
               {!loadingPartner &&
@@ -593,6 +731,29 @@ export default function UserProfile() {
           </form>
         </CardContent>
       </Card>
+
+      <Dialog open={isQrDialogOpen} onOpenChange={setIsQrDialogOpen}>
+        <DialogContent className="sm:max-w-xs">
+          <DialogHeader>
+            <DialogTitle>Ваш QR-код</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-4 py-2">
+            {userData?.partnerIdToSend ? (
+              <div className="rounded-lg bg-white p-4">
+                <QRCode value={userData.partnerIdToSend} size={200} />
+              </div>
+            ) : null}
+            <p className="text-center text-sm text-muted-foreground">
+              Покажіть цей код партнеру — він може відсканувати його кнопкою{" "}
+              &quot;Сканувати QR-код партнера&quot; біля поля{" "}
+              &quot;ID вашого партнера&quot; у своєму профілі.
+            </p>
+            <Button type="button" onClick={shareId} className="w-full">
+              <Share2 className="mr-2 h-4 w-4" /> Надіслати в месенджер
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
