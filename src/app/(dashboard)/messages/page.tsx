@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import MessageList from "./components/MessageList";
@@ -35,6 +36,7 @@ export default function AdminMessages() {
   const [isBatchDialogOpen, setIsBatchDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeletingAll, setIsDeletingAll] = useState(false);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     fetchMessages();
@@ -201,6 +203,15 @@ export default function AdminMessages() {
 
   const unshownCount = messages.filter(msg => !msg.isShown).length;
 
+  const filteredMessages = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return messages;
+
+    return messages.filter((message) =>
+      message.text.toLowerCase().includes(query)
+    );
+  }, [messages, search]);
+
   return (
     <div className="container mx-auto flex max-w-3xl flex-col py-10">
       <div className="flex flex-row justify-between items-center">
@@ -231,9 +242,19 @@ export default function AdminMessages() {
         </div>
       </div>
 
+      <div className="relative mb-4">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Пошук за текстом повідомлення..."
+          className="pl-9"
+        />
+      </div>
+
       <div className="mb-6 flex flex-col justify-between">
         <MessageList
-          messages={messages}
+          messages={filteredMessages}
           isLoading={isLoading}
           onEdit={handleEditMessage}
           onDelete={handleDeleteMessage}
