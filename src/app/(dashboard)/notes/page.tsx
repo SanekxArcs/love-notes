@@ -13,8 +13,10 @@ import AddNoteDialog from "./components/AddNoteDialog";
 import EditNoteDialog from "./components/EditNoteDialog";
 import DeleteNoteDialog from "./components/DeleteNoteDialog";
 import AiChatDialog from "./components/AiChatDialog";
+import MatchAnalysisDialog from "./components/MatchAnalysisDialog";
 import OnboardingWizard from "./components/OnboardingWizard";
 import SharedNotesDialog from "./components/SharedNotesDialog";
+import { ONBOARDING_QUESTIONS } from "./data/onboarding-questions";
 import type {
   EditPartnerNotePayload,
   NewPartnerNote,
@@ -30,6 +32,7 @@ export default function NotesPage() {
   const [hasGeminiKey, setHasGeminiKey] = useState(false);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isMatchOpen, setIsMatchOpen] = useState(false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [isSharedOpen, setIsSharedOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<PartnerNote | null>(null);
@@ -229,11 +232,19 @@ export default function NotesPage() {
 
   const allShared = notes.length > 0 && notes.every((note) => note.isShared);
 
+  const answeredQuestionIds = useMemo(
+    () => new Set(notes.map((note) => note.onboardingQuestionId).filter(Boolean)),
+    [notes]
+  );
+  const unansweredQuestionsCount = ONBOARDING_QUESTIONS.filter(
+    (q) => !answeredQuestionIds.has(q.id)
+  ).length;
+
   return (
     <div className="container mx-auto flex max-w-4xl flex-col gap-6 py-10">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <BackButton text="Нотатки про партнера" />
-        <div className="flex flex-col gap-2 md:flex-row">
+        <div className="flex flex-col gap-2 md:flex-row md:flex-wrap md:justify-end">
           {sharedNotes.length > 0 && (
             <SharedNotesDialog
               notes={sharedNotes}
@@ -259,6 +270,21 @@ export default function NotesPage() {
             </Button>
           )}
           {hasGeminiKey && <AiChatDialog isOpen={isChatOpen} setIsOpen={setIsChatOpen} />}
+          {hasGeminiKey && notes.length > 0 && sharedNotes.length > 0 && (
+            <MatchAnalysisDialog isOpen={isMatchOpen} setIsOpen={setIsMatchOpen} />
+          )}
+          {unansweredQuestionsCount > 0 && (
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={() => setIsOnboardingOpen(true)}
+            >
+              <Sparkles className="mr-2 h-4 w-4" />
+              {notes.length === 0
+                ? "Заповнити початкові дані"
+                : `Продовжити анкету (${unansweredQuestionsCount})`}
+            </Button>
+          )}
           <AddNoteDialog isOpen={isAddOpen} setIsOpen={setIsAddOpen} onSubmit={handleAddNote} />
         </div>
       </div>
