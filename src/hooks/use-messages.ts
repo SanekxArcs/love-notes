@@ -20,6 +20,8 @@ export function useMessages(partnerId: string, dailyLimit: number) {
   const toastLikeError = "Не вдалося оновити статус вподобання";
 
   const fetchMessages = useCallback(async () => {
+    setIsLoading(true);
+
     try {
       if (!partnerId) {
         return;
@@ -43,6 +45,8 @@ export function useMessages(partnerId: string, dailyLimit: number) {
         setMessageCount(data.todayMessages.length);
       }
 
+      setNoMessagesAvailable(false);
+
       if (data.previousMessages) {
         setPreviousMessages(
           data.previousMessages.map(
@@ -56,6 +60,8 @@ export function useMessages(partnerId: string, dailyLimit: number) {
     } catch (error) {
       console.error(toastTextError, error);
       toast.error(toastTextError);
+    } finally {
+      setIsLoading(false);
     }
   }, [partnerId]);
 
@@ -74,11 +80,22 @@ export function useMessages(partnerId: string, dailyLimit: number) {
     
     try {
       const response = await fetch(`/api/messages/random?partnerId=${partnerId}`);
+
+      if (response.status === 429 || response.status === 409) {
+        const errorData = await response.json();
+        await fetchMessages();
+        toast.info(
+          response.status === 429
+            ? toastDaylyLimit
+            : errorData.error || "Стан повідомлень змінився. Спробуйте ще раз.",
+        );
+        return;
+      }
       
       if (response.status === 404) {
         const errorData = await response.json();
         
-        if (errorData.error && errorData.error.includes('No unshown messages')) {
+        if (errorData.error?.includes('No unshown messages')) {
           toast.error(toastNoMessages);
           setNoMessagesAvailable(true);
           setIsLoading(false);
@@ -107,7 +124,7 @@ export function useMessages(partnerId: string, dailyLimit: number) {
     } finally {
       setIsLoading(false);
     }
-  }, [messageCount, dailyLimit, partnerId]);
+  }, [messageCount, dailyLimit, partnerId, fetchMessages]);
 
   const handleLikeChange = useCallback(async (id: string, liked: boolean) => {
     try {
