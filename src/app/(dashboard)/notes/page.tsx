@@ -22,6 +22,7 @@ import { ONBOARDING_QUESTIONS } from "./data/onboarding-questions";
 import type {
   EditPartnerNotePayload,
   NewPartnerNote,
+  NoteCorrection,
   NoteSuggestion,
   PartnerNote,
   SharedPartnerNote,
@@ -153,6 +154,82 @@ export default function NotesPage() {
     } catch (error) {
       console.error("Error adding note:", error);
       toast.error("Сталася помилка під час додавання нотатки");
+      return false;
+    }
+  };
+
+  const handleAddCorrection = async (
+    noteKey: string,
+    text: string,
+  ): Promise<boolean> => {
+    try {
+      const response = await fetch("/api/notes/corrections", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ noteKey, text }),
+      });
+      const result: { correction?: NoteCorrection; error?: string } =
+        await response.json();
+
+      if (!response.ok || !result.correction) {
+        toast.error(result.error || "Не вдалося додати уточнення");
+        return false;
+      }
+      const correction = result.correction;
+
+      setSharedNotes((previous) =>
+        previous.map((note) =>
+          note._key === noteKey
+            ? {
+                ...note,
+                corrections: [...(note.corrections ?? []), correction],
+              }
+            : note,
+        ),
+      );
+      toast.success("Уточнення додано — оригінал збережено");
+      return true;
+    } catch (error) {
+      console.error("Error adding note correction:", error);
+      toast.error("Не вдалося додати уточнення");
+      return false;
+    }
+  };
+
+  const handleDeleteCorrection = async (
+    noteKey: string,
+    correctionKey: string,
+  ): Promise<boolean> => {
+    try {
+      const response = await fetch("/api/notes/corrections", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ noteKey, correctionKey }),
+      });
+      const result = await response.json();
+
+      if (!response.ok) {
+        toast.error(result.error || "Не вдалося видалити уточнення");
+        return false;
+      }
+
+      setSharedNotes((previous) =>
+        previous.map((note) =>
+          note._key === noteKey
+            ? {
+                ...note,
+                corrections: note.corrections?.filter(
+                  (correction) => correction._key !== correctionKey,
+                ),
+              }
+            : note,
+        ),
+      );
+      toast.success("Уточнення видалено");
+      return true;
+    } catch (error) {
+      console.error("Error deleting note correction:", error);
+      toast.error("Не вдалося видалити уточнення");
       return false;
     }
   };
@@ -430,6 +507,9 @@ export default function NotesPage() {
                     notes={sharedNotes}
                     ownNotes={notes}
                     partnerName={sharedPartnerName}
+                    onCreateNote={handleAddNote}
+                    onAddCorrection={handleAddCorrection}
+                    onDeleteCorrection={handleDeleteCorrection}
                     isOpen={isSharedOpen}
                     setIsOpen={setIsSharedOpen}
                   />

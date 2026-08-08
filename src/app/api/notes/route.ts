@@ -24,7 +24,8 @@ export async function GET() {
           mirroredFromNoteKey,
           isShared,
           createdAt,
-          updatedAt
+          updatedAt,
+          corrections[]{ _key, authorId, authorName, text, createdAt }
         }
       }`,
       { userId: session.user.id }

@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, EyeOff, Pencil, Trash2 } from "lucide-react";
+import { CornerDownRight, Eye, EyeOff, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -68,6 +68,23 @@ export default function NoteCard({
         <p className="whitespace-pre-wrap text-sm text-muted-foreground">
           {note.description}
         </p>
+        {Boolean(note.corrections?.length) && (
+          <div className="grid gap-2 rounded-[1.1rem] border border-amber-200/65 bg-amber-50/65 p-3 dark:border-amber-300/15 dark:bg-amber-950/20">
+            <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[.08em] text-amber-700 dark:text-amber-200">
+              <CornerDownRight className="h-3.5 w-3.5" /> Уточнення від партнера
+            </p>
+            {note.corrections?.map((correction) => (
+              <div key={correction._key} className="border-l-2 border-amber-300/70 pl-2.5 dark:border-amber-300/25">
+                <p className="whitespace-pre-wrap text-xs leading-5 text-amber-950 dark:text-amber-50">
+                  {correction.text}
+                </p>
+                <p className="mt-1 text-[10px] text-amber-700/70 dark:text-amber-200/60">
+                  {correction.authorName}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
         <div className="flex flex-wrap items-center gap-1.5">
           {Boolean(note.isShared) && <Badge className="border-0 bg-pink-100 text-pink-700 dark:bg-pink-950/45 dark:text-pink-200">Показано партнеру</Badge>}
           {note.tags?.map((tag) => (

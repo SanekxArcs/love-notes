@@ -51,6 +51,32 @@ export const partnerNoteType = defineType({
       initialValue: false,
     }),
     defineField({
+      name: "corrections",
+      title: "Уточнення від партнера",
+      type: "array",
+      description:
+        "Додаткові уточнення партнера. Оригінальний текст нотатки не змінюється.",
+      of: [
+        {
+          type: "object",
+          name: "noteCorrection",
+          fields: [
+            defineField({ name: "authorId", title: "Author ID", type: "string" }),
+            defineField({ name: "authorName", title: "Автор", type: "string" }),
+            defineField({ name: "text", title: "Уточнення", type: "text" }),
+            defineField({
+              name: "createdAt",
+              title: "Створено",
+              type: "datetime",
+            }),
+          ],
+          preview: {
+            select: { title: "authorName", subtitle: "text" },
+          },
+        },
+      ],
+    }),
+    defineField({
       name: "createdAt",
       title: "Коли створено",
       type: "datetime",

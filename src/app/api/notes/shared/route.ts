@@ -27,7 +27,8 @@ export async function GET() {
           title,
           description,
           tags,
-          onboardingQuestionId
+          onboardingQuestionId,
+          corrections[]{ _key, authorId, authorName, text, createdAt }
         }
       }`,
       { partnerId }

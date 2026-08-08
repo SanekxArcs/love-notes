@@ -1,3 +1,11 @@
+export interface NoteCorrection {
+  _key: string;
+  authorId: string;
+  authorName: string;
+  text: string;
+  createdAt: string;
+}
+
 export interface PartnerNote {
   _key: string;
   title: string;
@@ -8,6 +16,7 @@ export interface PartnerNote {
   isShared?: boolean;
   createdAt?: string;
   updatedAt?: string;
+  corrections?: NoteCorrection[];
 }
 
 export type NewPartnerNote = Pick<
@@ -30,6 +39,7 @@ export interface SharedPartnerNote {
   description: string;
   tags?: string[];
   onboardingQuestionId?: string;
+  corrections?: NoteCorrection[];
 }
 
 export interface NoteSuggestion {

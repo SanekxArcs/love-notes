@@ -1,10 +1,40 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import {
+  type FormEvent,
+  type KeyboardEvent,
+  useCallback,
+  useMemo,
+  useState,
+} from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, Eye, Heart, MessagesSquare, UserRound } from "lucide-react";
+import {
+  ArrowLeft,
+  CornerDownRight,
+  Eye,
+  Heart,
+  LoaderCircle,
+  MessageCircleWarning,
+  MessagesSquare,
+  PencilLine,
+  Send,
+  Trash2,
+  UserRound,
+} from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -13,12 +43,27 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import type { PartnerNote, SharedPartnerNote } from "../types";
+import type {
+  NewPartnerNote,
+  PartnerNote,
+  SharedPartnerNote,
+} from "../types";
+import { ONBOARDING_QUESTIONS } from "../data/onboarding-questions";
+
+const onboardingQuestionById = new Map(
+  ONBOARDING_QUESTIONS.map((question) => [question.id, question]),
+);
 
 interface SharedNotesDialogProps {
   notes: SharedPartnerNote[];
   ownNotes: PartnerNote[];
   partnerName: string;
+  onCreateNote: (data: NewPartnerNote) => Promise<boolean>;
+  onAddCorrection: (noteKey: string, text: string) => Promise<boolean>;
+  onDeleteCorrection: (
+    noteKey: string,
+    correctionKey: string,
+  ) => Promise<boolean>;
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
 }
@@ -49,10 +94,15 @@ export default function SharedNotesDialog({
   notes,
   ownNotes,
   partnerName,
+  onCreateNote,
+  onAddCorrection,
+  onDeleteCorrection,
   isOpen,
   setIsOpen,
 }: SharedNotesDialogProps) {
   const [isComparing, setIsComparing] = useState(false);
+  const [correctionTarget, setCorrectionTarget] =
+    useState<SharedPartnerNote | null>(null);
 
   const comparisons = useMemo(() => {
     const result = new Map<string, PartnerNote>();
@@ -65,7 +115,10 @@ export default function SharedNotesDialog({
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
-    if (!open) setIsComparing(false);
+    if (!open) {
+      setIsComparing(false);
+      setCorrectionTarget(null);
+    }
   };
   const showComparison = useCallback(() => setIsComparing(true), []);
   const hideComparison = useCallback(() => setIsComparing(false), []);
@@ -111,6 +164,9 @@ export default function SharedNotesDialog({
               ownNotes={ownNotes}
               comparisons={comparisons}
               partnerName={partnerName}
+              onCreateNote={onCreateNote}
+              onCorrectionRequest={setCorrectionTarget}
+              onDeleteCorrection={onDeleteCorrection}
             />
           ) : (
             <motion.div
@@ -120,7 +176,7 @@ export default function SharedNotesDialog({
               exit={{ opacity: 0, x: -8 }}
               className="grid gap-3 py-2"
             >
-              {comparisons.size > 0 ? (
+              {notes.length > 0 ? (
                 <Button
                   type="button"
                   onClick={showComparison}
@@ -128,7 +184,7 @@ export default function SharedNotesDialog({
                 >
                   <MessagesSquare className="h-4 w-4" /> Порівняти всі відповіді
                   <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px]">
-                    {comparisons.size}
+                    {comparisons.size} збігів
                   </span>
                 </Button>
               ) : null}
@@ -171,6 +227,13 @@ export default function SharedNotesDialog({
             </motion.div>
           )}
         </AnimatePresence>
+
+        <CorrectionDialog
+          note={correctionTarget}
+          partnerName={partnerName}
+          onClose={() => setCorrectionTarget(null)}
+          onSubmit={onAddCorrection}
+        />
       </DialogContent>
     </Dialog>
   );
@@ -181,11 +244,20 @@ function ComparisonView({
   ownNotes,
   comparisons,
   partnerName,
+  onCreateNote,
+  onCorrectionRequest,
+  onDeleteCorrection,
 }: {
   partnerNotes: SharedPartnerNote[];
   ownNotes: PartnerNote[];
   comparisons: Map<string, PartnerNote>;
   partnerName: string;
+  onCreateNote: (data: NewPartnerNote) => Promise<boolean>;
+  onCorrectionRequest: (note: SharedPartnerNote) => void;
+  onDeleteCorrection: (
+    noteKey: string,
+    correctionKey: string,
+  ) => Promise<boolean>;
 }) {
   const pairs: NoteComparison[] = partnerNotes.flatMap((partnerNote) => {
     const ownNote = comparisons.get(partnerNote._key);
@@ -217,6 +289,8 @@ function ComparisonView({
             key={comparison.partnerNote._key}
             comparison={comparison}
             partnerName={partnerName}
+            onCorrectionRequest={onCorrectionRequest}
+            onDeleteCorrection={onDeleteCorrection}
           />
         ))}
       </section>
@@ -229,14 +303,27 @@ function ComparisonView({
               Ці нотатки поки що не мають відповідної теми з іншого боку.
             </p>
           </div>
-          <div className="grid gap-4 md:grid-cols-2 md:items-start">
-            <UnmatchedColumn
-              title={partnerName}
-              notes={unmatchedPartner}
-              variant="partner"
-            />
-            <UnmatchedColumn title="Мої нотатки" notes={unmatchedOwn} variant="own" />
-          </div>
+          {unmatchedPartner.length > 0 ? (
+            <div className="grid gap-3">
+              <p className="text-[11px] font-semibold text-violet-700 dark:text-violet-200">
+                Відповісти на нотатки {partnerName} · {unmatchedPartner.length}
+              </p>
+              {unmatchedPartner.map((note) => (
+                <UnansweredNoteComposer
+                  key={note._key}
+                  note={note}
+                  partnerName={partnerName}
+                  onCreateNote={onCreateNote}
+                  onCorrectionRequest={onCorrectionRequest}
+                  onDeleteCorrection={onDeleteCorrection}
+                />
+              ))}
+            </div>
+          ) : null}
+
+          {unmatchedOwn.length > 0 ? (
+            <UnmatchedColumn title="Мої нотатки без пари" notes={unmatchedOwn} />
+          ) : null}
         </section>
       ) : null}
 
@@ -250,9 +337,16 @@ function ComparisonView({
 function ComparisonPair({
   comparison,
   partnerName,
+  onCorrectionRequest,
+  onDeleteCorrection,
 }: {
   comparison: NoteComparison;
   partnerName: string;
+  onCorrectionRequest: (note: SharedPartnerNote) => void;
+  onDeleteCorrection: (
+    noteKey: string,
+    correctionKey: string,
+  ) => Promise<boolean>;
 }) {
   return (
     <article className="grid gap-3 rounded-[1.4rem] border border-white/60 bg-white/30 p-3 dark:border-white/8 dark:bg-white/3">
@@ -273,11 +367,24 @@ function ComparisonPair({
             <p className="mb-1.5 text-[11px] font-semibold text-violet-700 dark:text-violet-200">
               {partnerName}
             </p>
-            <div className="rounded-[1.35rem] rounded-tl-[.35rem] border border-violet-200/70 bg-violet-100/75 p-4 text-sm leading-6 text-violet-950 shadow-[0_7px_20px_rgba(109,70,170,.1)] dark:border-violet-400/15 dark:bg-violet-950/38 dark:text-violet-50">
+            <button
+              type="button"
+              onClick={() => onCorrectionRequest(comparison.partnerNote)}
+              aria-label={`Уточнити нотатку ${comparison.partnerNote.title}`}
+              className="group w-full rounded-[1.35rem] rounded-tl-[.35rem] border border-violet-200/70 bg-violet-100/75 p-4 text-left text-sm leading-6 text-violet-950 shadow-[0_7px_20px_rgba(109,70,170,.1)] transition hover:-translate-y-0.5 hover:border-violet-300 hover:shadow-[0_10px_24px_rgba(109,70,170,.16)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/40 dark:border-violet-400/15 dark:bg-violet-950/38 dark:text-violet-50"
+            >
               <p className="whitespace-pre-wrap">
                 {comparison.partnerNote.description}
               </p>
-            </div>
+              <span className="mt-2 flex items-center gap-1 text-[10px] font-semibold text-violet-600/75 opacity-75 transition group-hover:opacity-100 dark:text-violet-200/70">
+                <PencilLine className="h-3 w-3" /> Натисни, щоб уточнити
+              </span>
+            </button>
+            <CorrectionAnnotations
+              noteKey={comparison.partnerNote._key}
+              corrections={comparison.partnerNote.corrections}
+              onDelete={onDeleteCorrection}
+            />
           </div>
         </div>
 
@@ -302,16 +409,14 @@ function ComparisonPair({
 function UnmatchedColumn({
   title,
   notes,
-  variant,
 }: {
   title: string;
   notes: Array<PartnerNote | SharedPartnerNote>;
-  variant: "partner" | "own";
 }) {
   return (
     <div className="grid gap-2">
       <p
-        className={`text-[11px] font-semibold ${variant === "partner" ? "text-violet-700 dark:text-violet-200" : "text-pink-700 dark:text-pink-200"}`}
+        className="text-[11px] font-semibold text-pink-700 dark:text-pink-200"
       >
         {title} · {notes.length}
       </p>
@@ -323,7 +428,7 @@ function UnmatchedColumn({
         notes.map((note) => (
           <div
             key={note._key}
-            className={`rounded-[1.1rem] border p-3 ${variant === "partner" ? "border-violet-200/60 bg-violet-50/55 dark:border-violet-400/15 dark:bg-violet-950/20" : "border-pink-200/60 bg-pink-50/55 dark:border-pink-400/15 dark:bg-pink-950/20"}`}
+            className="rounded-[1.1rem] border border-pink-200/60 bg-pink-50/55 p-3 dark:border-pink-400/15 dark:bg-pink-950/20"
           >
             <p className="text-xs font-semibold">{note.title}</p>
             <p className="mt-1 line-clamp-3 whitespace-pre-wrap text-xs leading-5 text-muted-foreground">
@@ -333,5 +438,294 @@ function UnmatchedColumn({
         ))
       )}
     </div>
+  );
+}
+
+function UnansweredNoteComposer({
+  note,
+  partnerName,
+  onCreateNote,
+  onCorrectionRequest,
+  onDeleteCorrection,
+}: {
+  note: SharedPartnerNote;
+  partnerName: string;
+  onCreateNote: (data: NewPartnerNote) => Promise<boolean>;
+  onCorrectionRequest: (note: SharedPartnerNote) => void;
+  onDeleteCorrection: (
+    noteKey: string,
+    correctionKey: string,
+  ) => Promise<boolean>;
+}) {
+  const [answer, setAnswer] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const description = answer.trim();
+    if (!description || isSaving) return;
+
+    setIsSaving(true);
+    try {
+      const success = await onCreateNote({
+        title: note.title,
+        description,
+        tags: note.tags ?? [],
+        onboardingQuestionId: note.onboardingQuestionId,
+        mirroredFromNoteKey: note._key,
+      });
+      if (success) setAnswer("");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      event.currentTarget.form?.requestSubmit();
+    }
+  };
+
+  return (
+    <article className="grid gap-3 rounded-[1.35rem] border border-white/60 bg-white/30 p-3 dark:border-white/8 dark:bg-white/3">
+      <div className="flex items-center justify-center gap-2">
+        <span className="h-px flex-1 bg-violet-200/70 dark:bg-violet-400/15" />
+        <span className="rounded-full border border-white/70 bg-white/60 px-3 py-1.5 text-xs font-semibold dark:border-white/10 dark:bg-white/7">
+          {note.title}
+        </span>
+        <span className="h-px flex-1 bg-pink-200/70 dark:bg-pink-400/15" />
+      </div>
+
+      <div className="flex items-start gap-2.5">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-700 dark:bg-violet-950/55 dark:text-violet-200">
+          <UserRound className="h-4 w-4" />
+        </span>
+        <div className="min-w-0 max-w-[88%]">
+          <p className="mb-1.5 text-[11px] font-semibold text-violet-700 dark:text-violet-200">
+            {partnerName}
+          </p>
+          <button
+            type="button"
+            onClick={() => onCorrectionRequest(note)}
+            aria-label={`Уточнити нотатку ${note.title}`}
+            className="group w-full rounded-[1.35rem] rounded-tl-[.35rem] border border-violet-200/70 bg-violet-100/75 p-3.5 text-left text-sm leading-6 text-violet-950 transition hover:border-violet-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/40 dark:border-violet-400/15 dark:bg-violet-950/38 dark:text-violet-50"
+          >
+            <p className="whitespace-pre-wrap">{note.description}</p>
+            <span className="mt-2 flex items-center gap-1 text-[10px] font-semibold text-violet-600/75 opacity-75 transition group-hover:opacity-100 dark:text-violet-200/70">
+              <PencilLine className="h-3 w-3" /> Натисни, щоб уточнити
+            </span>
+          </button>
+          <CorrectionAnnotations
+            noteKey={note._key}
+            corrections={note.corrections}
+            onDelete={onDeleteCorrection}
+          />
+        </div>
+      </div>
+
+      <form
+        onSubmit={handleSubmit}
+        className="ml-auto flex w-[calc(100%_-_2.75rem)] items-end gap-2"
+      >
+        <div className="min-w-0 flex-1">
+          <p className="mb-1.5 text-right text-[11px] font-semibold text-pink-700 dark:text-pink-200">
+            Моя відповідь
+          </p>
+          <Textarea
+            value={answer}
+            onChange={(event) => setAnswer(event.target.value)}
+            onKeyDown={handleKeyDown}
+            rows={2}
+            placeholder="Напиши свою нотатку…"
+            aria-label={`Моя відповідь на тему ${note.title}`}
+            className="min-h-16 resize-none rounded-[1.25rem] rounded-tr-[.35rem] border-pink-200/70 bg-pink-50/75 px-4 py-3 text-sm shadow-[inset_0_1px_1px_rgba(255,255,255,.85)] focus-visible:border-pink-400 focus-visible:ring-pink-400/20 dark:border-pink-400/20 dark:bg-pink-950/25"
+          />
+        </div>
+        <Button
+          type="submit"
+          size="icon"
+          aria-label="Зберегти мою нотатку"
+          disabled={!answer.trim() || isSaving}
+          className="h-11 w-11 shrink-0 rounded-full bg-[linear-gradient(145deg,rgba(255,120,176,.98),rgba(225,52,118,.94))] text-white shadow-[0_7px_18px_rgba(207,49,112,.24)] hover:brightness-105"
+        >
+          {isSaving ? (
+            <LoaderCircle className="h-4 w-4 animate-spin" />
+          ) : (
+            <Send className="h-4 w-4" />
+          )}
+        </Button>
+      </form>
+      <p className="text-right text-[10px] text-muted-foreground">
+        Enter — зберегти · Shift + Enter — новий рядок
+      </p>
+    </article>
+  );
+}
+
+function CorrectionAnnotations({
+  noteKey,
+  corrections,
+  onDelete,
+}: {
+  noteKey: string;
+  corrections: SharedPartnerNote["corrections"];
+  onDelete: (noteKey: string, correctionKey: string) => Promise<boolean>;
+}) {
+  if (!corrections?.length) return null;
+
+  return (
+    <div className="mt-2 grid gap-2 pl-3">
+      {corrections.map((correction) => (
+        <div
+          key={correction._key}
+          className="rounded-[1rem] rounded-tl-[.3rem] border border-amber-200/70 bg-amber-50/80 px-3 py-2.5 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.8)] dark:border-amber-300/15 dark:bg-amber-950/25"
+        >
+          <div className="flex items-start justify-between gap-2">
+            <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[.08em] text-amber-700 dark:text-amber-200">
+              <CornerDownRight className="h-3 w-3" /> Уточнення від {correction.authorName}
+            </p>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Видалити уточнення"
+                  className="-mt-1 -mr-1 h-7 w-7 shrink-0 rounded-full text-amber-700/65 hover:bg-red-100 hover:text-red-600 dark:text-amber-200/60 dark:hover:bg-red-950/35 dark:hover:text-red-300"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="rounded-[1.5rem] border-white/65 bg-white/90 backdrop-blur-2xl dark:border-white/15 dark:bg-zinc-950/92">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Видалити уточнення?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Воно зникне для тебе і партнера. Оригінальна нотатка залишиться без змін.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="rounded-[.9rem]">Скасувати</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => void onDelete(noteKey, correction._key)}
+                    className="rounded-[.9rem] bg-red-600 text-white hover:bg-red-500"
+                  >
+                    Видалити
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+          <p className="mt-1 whitespace-pre-wrap text-xs leading-5 text-amber-950 dark:text-amber-50">
+            {correction.text}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function CorrectionDialog({
+  note,
+  partnerName,
+  onClose,
+  onSubmit,
+}: {
+  note: SharedPartnerNote | null;
+  partnerName: string;
+  onClose: () => void;
+  onSubmit: (noteKey: string, text: string) => Promise<boolean>;
+}) {
+  const [text, setText] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const sourceQuestion = note?.onboardingQuestionId
+    ? onboardingQuestionById.get(note.onboardingQuestionId)
+    : undefined;
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open && !isSaving) {
+      setText("");
+      onClose();
+    }
+  };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const correction = text.trim();
+    if (!note || !correction || isSaving) return;
+
+    setIsSaving(true);
+    try {
+      const success = await onSubmit(note._key, correction);
+      if (success) {
+        setText("");
+        onClose();
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={Boolean(note)} onOpenChange={handleOpenChange}>
+      <DialogContent className="rounded-[1.65rem] border-white/65 bg-white/88 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_22px_65px_rgba(71,40,62,.2)] backdrop-blur-2xl sm:max-w-md dark:border-white/15 dark:bg-zinc-950/92">
+        <DialogHeader className="text-left">
+          <DialogTitle className="flex items-center gap-2">
+            <MessageCircleWarning className="h-5 w-5 text-amber-600 dark:text-amber-300" />
+            Уточнити нотатку партнера
+          </DialogTitle>
+          <DialogDescription>
+            Оригінал залишиться без змін. Твоє уточнення з’явиться під ним для вас обох.
+          </DialogDescription>
+        </DialogHeader>
+
+        {note ? (
+          <form onSubmit={handleSubmit} className="grid gap-3">
+            <div className="rounded-[1.1rem] border border-white/65 bg-white/55 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,.85)] dark:border-white/10 dark:bg-white/6">
+              <p className="text-[10px] font-bold uppercase tracking-[.1em] text-muted-foreground">
+                Початкове питання
+              </p>
+              <p className="mt-1.5 text-sm font-semibold leading-5">
+                {sourceQuestion?.question ?? note.title}
+              </p>
+              {sourceQuestion ? (
+                <Badge variant="secondary" className="mt-2 text-[10px]">
+                  {sourceQuestion.category}
+                </Badge>
+              ) : null}
+            </div>
+            <div className="rounded-[1.2rem] border border-violet-200/70 bg-violet-100/65 p-3 dark:border-violet-400/15 dark:bg-violet-950/30">
+              <p className="text-[10px] font-bold uppercase tracking-[.1em] text-violet-700 dark:text-violet-200">
+                Оригінал від {partnerName}
+              </p>
+              <p className="mt-1.5 whitespace-pre-wrap text-sm leading-5">
+                {note.description}
+              </p>
+            </div>
+            <Textarea
+              value={text}
+              onChange={(event) => setText(event.target.value.slice(0, 1000))}
+              rows={4}
+              autoFocus
+              placeholder="Наприклад: Насправді я люблю це, але тільки коли…"
+              aria-label="Текст уточнення"
+              className="min-h-28 resize-none rounded-[1.2rem] border-amber-200/70 bg-amber-50/60 px-4 py-3 shadow-[inset_0_1px_1px_rgba(255,255,255,.85)] focus-visible:border-amber-400 focus-visible:ring-amber-400/20 dark:border-amber-300/15 dark:bg-amber-950/20"
+            />
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-[10px] text-muted-foreground">{text.length}/1000</span>
+              <div className="flex gap-2">
+                <Button type="button" variant="ghost" onClick={onClose} disabled={isSaving} className="rounded-[.9rem]">
+                  Скасувати
+                </Button>
+                <Button type="submit" disabled={!text.trim() || isSaving} className="rounded-[.9rem] bg-amber-600 text-white hover:bg-amber-500">
+                  {isSaving ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  Додати уточнення
+                </Button>
+              </div>
+            </div>
+          </form>
+        ) : null}
+      </DialogContent>
+    </Dialog>
   );
 }

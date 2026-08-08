@@ -23,6 +23,14 @@ export type PartnerNote = {
   onboardingQuestionId?: string;
   mirroredFromNoteKey?: string;
   isShared?: boolean;
+  corrections?: Array<{
+    authorId?: string;
+    authorName?: string;
+    text?: string;
+    createdAt?: string;
+    _type: "noteCorrection";
+    _key: string;
+  }>;
   createdAt?: string;
   updatedAt?: string;
 };

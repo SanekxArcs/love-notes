@@ -1,0 +1,154 @@
+import { type NextRequest, NextResponse } from "next/server";
+import { auth } from "@/auth";
+import { arrayKey, sanityClient } from "@/lib/sanity";
+
+const MAX_CORRECTION_LENGTH = 1000;
+const NOTE_KEY_PATTERN = /^[a-zA-Z0-9_-]{1,100}$/;
+const CORRECTION_KEY_PATTERN = /^[a-zA-Z0-9_-]{1,100}$/;
+
+export async function POST(request: NextRequest) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 },
+      );
+    }
+
+    const body = await request.json().catch(() => ({}));
+    const noteKey = typeof body?.noteKey === "string" ? body.noteKey.trim() : "";
+    const text =
+      typeof body?.text === "string"
+        ? body.text.trim().slice(0, MAX_CORRECTION_LENGTH)
+        : "";
+
+    if (!NOTE_KEY_PATTERN.test(noteKey) || !text) {
+      return NextResponse.json(
+        { error: "Note key and correction text are required" },
+        { status: 400 },
+      );
+    }
+
+    const partnerId = session.user.partnerIdToReceiveFrom;
+    if (!partnerId) {
+      return NextResponse.json(
+        { error: "Партнера не підключено" },
+        { status: 400 },
+      );
+    }
+
+    const partner = await sanityClient.fetch<{ _id: string } | null>(
+      `*[
+        _type == "user" &&
+        partnerIdToSend == $partnerId &&
+        count(partnerNotes[_key == $noteKey && isShared == true]) > 0
+      ][0]{ _id }`,
+      { partnerId, noteKey },
+    );
+
+    if (!partner) {
+      return NextResponse.json(
+        { error: "Спільну нотатку партнера не знайдено" },
+        { status: 404 },
+      );
+    }
+
+    const correction = {
+      _type: "noteCorrection" as const,
+      _key: arrayKey(),
+      authorId: session.user.id,
+      authorName: session.user.name?.trim() || "Партнер",
+      text,
+      createdAt: new Date().toISOString(),
+    };
+    const correctionsPath = `partnerNotes[_key=="${noteKey}"].corrections`;
+
+    await sanityClient
+      .patch(partner._id)
+      .setIfMissing({ [correctionsPath]: [] })
+      .append(correctionsPath, [correction])
+      .commit();
+
+    return NextResponse.json({ correction }, { status: 201 });
+  } catch (error) {
+    console.error("Error adding partner note correction:", error);
+    return NextResponse.json(
+      { error: "Не вдалося додати уточнення" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 },
+      );
+    }
+
+    const body = await request.json().catch(() => ({}));
+    const noteKey = typeof body?.noteKey === "string" ? body.noteKey.trim() : "";
+    const correctionKey =
+      typeof body?.correctionKey === "string" ? body.correctionKey.trim() : "";
+
+    if (
+      !NOTE_KEY_PATTERN.test(noteKey) ||
+      !CORRECTION_KEY_PATTERN.test(correctionKey)
+    ) {
+      return NextResponse.json(
+        { error: "Note key and correction key are required" },
+        { status: 400 },
+      );
+    }
+
+    const partnerId = session.user.partnerIdToReceiveFrom;
+    if (!partnerId) {
+      return NextResponse.json(
+        { error: "Партнера не підключено" },
+        { status: 400 },
+      );
+    }
+
+    const partner = await sanityClient.fetch<{ _id: string } | null>(
+      `*[
+        _type == "user" &&
+        partnerIdToSend == $partnerId &&
+        count(partnerNotes[
+          _key == $noteKey &&
+          isShared == true &&
+          count(corrections[_key == $correctionKey && authorId == $authorId]) > 0
+        ]) > 0
+      ][0]{ _id }`,
+      {
+        partnerId,
+        noteKey,
+        correctionKey,
+        authorId: session.user.id,
+      },
+    );
+
+    if (!partner) {
+      return NextResponse.json(
+        { error: "Уточнення не знайдено або його створив інший користувач" },
+        { status: 404 },
+      );
+    }
+
+    const correctionPath = `partnerNotes[_key=="${noteKey}"].corrections[_key=="${correctionKey}"]`;
+    await sanityClient.patch(partner._id).unset([correctionPath]).commit();
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting partner note correction:", error);
+    return NextResponse.json(
+      { error: "Не вдалося видалити уточнення" },
+      { status: 500 },
+    );
+  }
+}
