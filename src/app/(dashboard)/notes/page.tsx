@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Eye, EyeOff, Search, Sparkles } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
+import { Eye, EyeOff, Hash, LoaderCircle, NotebookPen, Search, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { BackButton } from "@/components/ui/back-button";
+import { PageContainer } from "@/components/ui/page-container";
 
 import NoteCard from "./components/NoteCard";
 import AddNoteDialog from "./components/AddNoteDialog";
@@ -24,6 +25,20 @@ import type {
   SharedPartnerNote,
 } from "./types";
 
+function notesCountLabel(count: number) {
+  const lastTwo = count % 100;
+  const last = count % 10;
+  if (lastTwo >= 11 && lastTwo <= 14) return `${count} нотаток`;
+  if (last === 1) return `${count} нотатка`;
+  if (last >= 2 && last <= 4) return `${count} нотатки`;
+  return `${count} нотаток`;
+}
+
+function categoryLabel(value: string) {
+  if (value === "__uncategorized") return "Без категорії";
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
 export default function NotesPage() {
   const [notes, setNotes] = useState<PartnerNote[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -39,13 +54,7 @@ export default function NotesPage() {
   const [deletingNote, setDeletingNote] = useState<PartnerNote | null>(null);
   const [sharedNotes, setSharedNotes] = useState<SharedPartnerNote[]>([]);
 
-  useEffect(() => {
-    fetchNotes();
-    fetchGeminiKeyStatus();
-    fetchSharedNotes();
-  }, []);
-
-  async function fetchNotes() {
+  const fetchNotes = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await fetch("/api/notes");
@@ -60,9 +69,9 @@ export default function NotesPage() {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, []);
 
-  async function fetchGeminiKeyStatus() {
+  const fetchGeminiKeyStatus = useCallback(async () => {
     try {
       const response = await fetch("/api/users/has-gemini-key");
       const data = await response.json();
@@ -70,9 +79,9 @@ export default function NotesPage() {
     } catch (error) {
       console.error("Error checking Gemini key:", error);
     }
-  }
+  }, []);
 
-  async function fetchSharedNotes() {
+  const fetchSharedNotes = useCallback(async () => {
     try {
       const response = await fetch("/api/notes/shared");
       const data = await response.json();
@@ -80,7 +89,13 @@ export default function NotesPage() {
     } catch (error) {
       console.error("Error fetching partner's shared notes:", error);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    fetchNotes();
+    fetchGeminiKeyStatus();
+    fetchSharedNotes();
+  }, [fetchGeminiKeyStatus, fetchNotes, fetchSharedNotes]);
 
   const handleAddNote = async (data: NewPartnerNote): Promise<boolean> => {
     try {
@@ -108,7 +123,7 @@ export default function NotesPage() {
 
   const handleEditNote = async (
     key: string,
-    data: EditPartnerNotePayload
+    data: EditPartnerNotePayload,
   ): Promise<boolean> => {
     try {
       const response = await fetch(`/api/notes?key=${key}`, {
@@ -124,7 +139,7 @@ export default function NotesPage() {
       }
 
       setNotes((prev) =>
-        prev.map((note) => (note._key === key ? { ...note, ...result.note } : note))
+        prev.map((note) => (note._key === key ? { ...note, ...result.note } : note)),
       );
       toast.success("Нотатку успішно оновлено!");
       setEditingNote(null);
@@ -165,7 +180,7 @@ export default function NotesPage() {
     const nextShared = !note.isShared;
 
     setNotes((prev) =>
-      prev.map((n) => (n._key === note._key ? { ...n, isShared: nextShared } : n))
+      prev.map((n) => (n._key === note._key ? { ...n, isShared: nextShared } : n)),
     );
 
     try {
@@ -180,13 +195,13 @@ export default function NotesPage() {
       }
 
       toast.success(
-        nextShared ? "Нотатку показано партнеру" : "Нотатку приховано від партнера"
+        nextShared ? "Нотатку показано партнеру" : "Нотатку приховано від партнера",
       );
     } catch (error) {
       console.error("Error toggling note share status:", error);
       toast.error("Не вдалося оновити статус нотатки");
       setNotes((prev) =>
-        prev.map((n) => (n._key === note._key ? { ...n, isShared: note.isShared } : n))
+        prev.map((n) => (n._key === note._key ? { ...n, isShared: note.isShared } : n)),
       );
     }
   };
@@ -209,7 +224,7 @@ export default function NotesPage() {
       toast.success(
         nextShared
           ? "Усі нотатки показано партнеру"
-          : "Усі нотатки приховано від партнера"
+          : "Усі нотатки приховано від партнера",
       );
     } catch (error) {
       console.error("Error bulk updating note share status:", error);
@@ -230,103 +245,184 @@ export default function NotesPage() {
     });
   }, [notes, search]);
 
+  const groupedNotes = useMemo(() => {
+    const groups = new Map<string, PartnerNote[]>();
+
+    for (const note of filteredNotes) {
+      const category = note.tags?.[0]?.trim().toLocaleLowerCase("uk") || "__uncategorized";
+      const group = groups.get(category) ?? [];
+      group.push(note);
+      groups.set(category, group);
+    }
+
+    return [...groups.entries()]
+      .sort(([left], [right]) => {
+        if (left === "__uncategorized") return 1;
+        if (right === "__uncategorized") return -1;
+        return left.localeCompare(right, "uk");
+      })
+      .map(([category, categoryNotes]) => ({
+        category,
+        notes: categoryNotes,
+      }));
+  }, [filteredNotes]);
+
   const allShared = notes.length > 0 && notes.every((note) => note.isShared);
 
   const answeredQuestionIds = useMemo(
     () => new Set(notes.map((note) => note.onboardingQuestionId).filter(Boolean)),
-    [notes]
+    [notes],
   );
   const unansweredQuestionsCount = ONBOARDING_QUESTIONS.filter(
-    (q) => !answeredQuestionIds.has(q.id)
+    (q) => !answeredQuestionIds.has(q.id),
   ).length;
 
   return (
-    <div className="container mx-auto flex max-w-4xl flex-col gap-6 py-10">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <BackButton text="Нотатки про партнера" />
-        <div className="flex flex-col gap-2 md:flex-row md:flex-wrap md:justify-end">
-          {sharedNotes.length > 0 && (
-            <SharedNotesDialog
-              notes={sharedNotes}
-              isOpen={isSharedOpen}
-              setIsOpen={setIsSharedOpen}
-            />
-          )}
-          {notes.length > 0 && (
-            <Button
-              variant="outline"
-              className="w-full sm:w-auto"
-              onClick={() => handleBulkShare(!allShared)}
-            >
-              {allShared ? (
-                <>
-                  <EyeOff className="mr-2 h-4 w-4" /> Приховати всі від партнера
-                </>
-              ) : (
-                <>
-                  <Eye className="mr-2 h-4 w-4" /> Показати всі партнеру
-                </>
-              )}
-            </Button>
-          )}
-          {hasGeminiKey && <AiChatDialog isOpen={isChatOpen} setIsOpen={setIsChatOpen} />}
-          {hasGeminiKey && notes.length > 0 && sharedNotes.length > 0 && (
-            <MatchAnalysisDialog isOpen={isMatchOpen} setIsOpen={setIsMatchOpen} />
-          )}
-          {unansweredQuestionsCount > 0 && (
-            <Button
-              variant="outline"
-              className="w-full sm:w-auto"
-              onClick={() => setIsOnboardingOpen(true)}
-            >
-              <Sparkles className="mr-2 h-4 w-4" />
-              {notes.length === 0
-                ? "Заповнити початкові дані"
-                : `Продовжити анкету (${unansweredQuestionsCount})`}
-            </Button>
-          )}
-          <AddNoteDialog isOpen={isAddOpen} setIsOpen={setIsAddOpen} onSubmit={handleAddNote} />
-        </div>
-      </div>
+    <PageContainer size="medium">
+      <BackButton text="Нотатки про партнера" />
 
-      <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <motion.section
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 28 }}
+        className="mb-4 rounded-[1.75rem] border border-white/60 bg-white/52 p-4 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_12px_34px_rgba(71,40,62,.1)] backdrop-blur-2xl dark:border-white/12 dark:bg-zinc-950/48"
+      >
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[1.05rem] bg-[linear-gradient(145deg,rgba(255,135,181,.98),rgba(225,52,118,.94))] text-white shadow-[inset_0_1px_1px_rgba(255,255,255,.65),0_8px_20px_rgba(207,49,112,.24)]">
+            <NotebookPen className="h-5 w-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-base font-semibold tracking-tight">Важливе про партнера</h1>
+            <p className="mt-0.5 text-xs text-muted-foreground">Деталі, вподобання та спільні відкриття</p>
+          </div>
+          <div className="shrink-0 rounded-full border border-white/65 bg-white/50 px-3 py-1.5 text-[11px] font-bold text-pink-700 dark:border-white/10 dark:bg-white/7 dark:text-pink-200">
+            {notesCountLabel(notes.length)}
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-2.5">
+          <div className="rounded-[1.3rem] border border-white/60 bg-white/35 p-2.5 dark:border-white/10 dark:bg-white/4">
+            <p className="mb-2 px-1 text-[10px] font-bold uppercase tracking-[.14em] text-muted-foreground">
+              Мої нотатки
+            </p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <AddNoteDialog isOpen={isAddOpen} setIsOpen={setIsAddOpen} onSubmit={handleAddNote} />
+              {unansweredQuestionsCount > 0 && (
+                <Button
+                  variant="outline"
+                  className="h-11 w-full rounded-[1rem] border-white/70 bg-white/45 px-3 text-xs shadow-[inset_0_1px_0_rgba(255,255,255,.8)] dark:border-white/10 dark:bg-white/7"
+                  onClick={() => setIsOnboardingOpen(true)}
+                >
+                  <Sparkles className="h-4 w-4" />
+                  {notes.length === 0
+                    ? "Заповнити початкові дані"
+                    : `Продовжити анкету (${unansweredQuestionsCount})`}
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {(sharedNotes.length > 0 || notes.length > 0) && (
+            <div className="rounded-[1.3rem] border border-white/60 bg-white/35 p-2.5 dark:border-white/10 dark:bg-white/4">
+              <p className="mb-2 px-1 text-[10px] font-bold uppercase tracking-[.14em] text-muted-foreground">
+                Для двох
+              </p>
+              <div className="grid grid-cols-2 gap-2 [&>*:only-child]:col-span-2">
+                {sharedNotes.length > 0 && (
+                  <SharedNotesDialog
+                    notes={sharedNotes}
+                    isOpen={isSharedOpen}
+                    setIsOpen={setIsSharedOpen}
+                  />
+                )}
+                {notes.length > 0 && (
+                  <Button
+                    variant="outline"
+                    className="h-11 w-full rounded-[1rem] border-white/70 bg-white/45 px-3 text-xs shadow-[inset_0_1px_0_rgba(255,255,255,.8)] dark:border-white/10 dark:bg-white/7"
+                    onClick={() => handleBulkShare(!allShared)}
+                  >
+                    {allShared ? (
+                      <><EyeOff className="h-4 w-4" /> Приховати всі</>
+                    ) : (
+                      <><Eye className="h-4 w-4" /> Показати всі</>
+                    )}
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {Boolean(hasGeminiKey) && (
+            <div className="rounded-[1.3rem] border border-pink-200/55 bg-pink-50/30 p-2.5 dark:border-pink-400/15 dark:bg-pink-950/12">
+              <p className="mb-2 px-1 text-[10px] font-bold uppercase tracking-[.14em] text-pink-700/70 dark:text-pink-200/70">
+                AI інструменти
+              </p>
+              <div className="grid grid-cols-2 gap-2 [&>*:only-child]:col-span-2">
+                <AiChatDialog isOpen={isChatOpen} setIsOpen={setIsChatOpen} />
+                {notes.length > 0 && sharedNotes.length > 0 && (
+                  <MatchAnalysisDialog isOpen={isMatchOpen} setIsOpen={setIsMatchOpen} />
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </motion.section>
+
+      <div className="relative mb-4 rounded-[1.25rem] border border-white/60 bg-white/50 shadow-[inset_0_1px_1px_rgba(255,255,255,.85),0_8px_24px_rgba(71,40,62,.08)] backdrop-blur-xl dark:border-white/12 dark:bg-zinc-950/45">
+        <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-pink-700 dark:text-pink-200" />
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Пошук за заголовком, описом чи тегом..."
-          className="pl-9"
+          className="h-12 rounded-[1.25rem] border-0 bg-transparent pr-4 pl-11 shadow-none focus-visible:ring-pink-400/30"
         />
       </div>
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">Завантаження...</p>
+        <div className="flex h-40 items-center justify-center rounded-[1.5rem] border border-white/60 bg-white/45 backdrop-blur-2xl dark:border-white/10 dark:bg-white/5">
+          <LoaderCircle className="h-7 w-7 animate-spin text-pink-600" />
+        </div>
       ) : notes.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
+        <div className="flex flex-col items-center gap-3 rounded-[1.75rem] border border-dashed border-pink-200/80 bg-white/42 px-6 py-10 text-center backdrop-blur-xl dark:border-pink-400/20 dark:bg-white/4">
             <p className="text-2xl">📝</p>
             <p className="font-medium">Тут поки що порожньо</p>
             <p className="max-w-sm text-sm text-muted-foreground">
               Давай швидко заповнимо перші нотатки про партнера — просто дай
               відповідь на кілька питань.
             </p>
-            <Button onClick={() => setIsOnboardingOpen(true)}>
-              <Sparkles className="mr-2 h-4 w-4" /> Заповнити початкові дані
+            <Button onClick={() => setIsOnboardingOpen(true)} className="h-11 rounded-[1rem] bg-pink-600 px-4 text-white hover:bg-pink-500">
+              <Sparkles className="h-4 w-4" /> Заповнити початкові дані
             </Button>
-          </CardContent>
-        </Card>
+        </div>
       ) : filteredNotes.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Нічого не знайдено.</p>
+        <div className="rounded-[1.5rem] border border-dashed border-white/60 bg-white/35 py-10 text-center text-sm text-muted-foreground dark:border-white/10 dark:bg-white/4">Нічого не знайдено.</div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {filteredNotes.map((note) => (
-            <NoteCard
-              key={note._key}
-              note={note}
-              onEdit={setEditingNote}
-              onDelete={setDeletingNote}
-              onToggleShare={handleToggleShare}
-            />
+        <div className="grid gap-4">
+          {groupedNotes.map((group) => (
+            <section key={group.category} className="grid gap-2.5">
+              <div className="flex items-center gap-2 px-1">
+                <span className="flex h-7 w-7 items-center justify-center rounded-[.75rem] border border-pink-200/65 bg-pink-50/65 text-pink-700 dark:border-pink-400/20 dark:bg-pink-950/30 dark:text-pink-200">
+                  <Hash className="h-3.5 w-3.5" />
+                </span>
+                <h2 className="min-w-0 flex-1 truncate text-sm font-semibold">
+                  {categoryLabel(group.category)}
+                </h2>
+                <span className="rounded-full bg-white/45 px-2.5 py-1 text-[10px] font-bold text-muted-foreground dark:bg-white/6">
+                  {group.notes.length}
+                </span>
+              </div>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                {group.notes.map((note) => (
+                  <NoteCard
+                    key={note._key}
+                    note={note}
+                    onEdit={setEditingNote}
+                    onDelete={setDeletingNote}
+                    onToggleShare={handleToggleShare}
+                  />
+                ))}
+              </div>
+            </section>
           ))}
         </div>
       )}
@@ -355,6 +451,6 @@ export default function NotesPage() {
         existingNotes={notes}
         onNoteCreated={(note) => setNotes((prev) => [note, ...prev])}
       />
-    </div>
+    </PageContainer>
   );
 }

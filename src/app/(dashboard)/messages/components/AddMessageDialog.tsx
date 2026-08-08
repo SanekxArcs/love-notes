@@ -29,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ListPlus, Plus, ScanText, Sparkles } from "lucide-react";
+import { Loader2, Plus, ScanText, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { mostSimilar } from "@/lib/text-similarity";
 import { getLanguage } from "@/lib/languages";
@@ -88,7 +88,6 @@ interface AddMessageDialogProps {
     like?: boolean;
     specificDate?: string;
   }) => Promise<boolean>;
-  onOpenBatch: () => void;
 }
 
 export default function AddMessageDialog({
@@ -96,7 +95,6 @@ export default function AddMessageDialog({
   setIsOpen,
   existingTexts,
   onSubmit,
-  onOpenBatch,
 }: AddMessageDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -105,6 +103,8 @@ export default function AddMessageDialog({
   const [isGeneratePromptOpen, setIsGeneratePromptOpen] = useState(false);
   const [generatePrompt, setGeneratePrompt] = useState("");
   const generatePromptId = useId();
+  const categoryId = useId();
+  const messageId = useId();
   const [newMessage, setNewMessage] = useState({
     text: "",
     category: "unknown",
@@ -170,8 +170,7 @@ export default function AddMessageDialog({
     }
   };
 
-  const handleGenerateSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleGenerateSubmit = () => {
     if (!generatePrompt.trim()) return;
     setIsGeneratePromptOpen(false);
     handleGenerate(generatePrompt);
@@ -299,29 +298,17 @@ export default function AddMessageDialog({
       }}
     >
       <DialogTrigger asChild>
-        <Button className="w-full md:w-auto">
-          <Plus className="mr-2 h-4 w-4" /> Додати
+        <Button className="h-11 w-full rounded-[1rem] border border-white/55 bg-[linear-gradient(145deg,rgba(255,120,176,.98),rgba(225,52,118,.94))] text-white shadow-[inset_0_1px_1px_rgba(255,255,255,.6),0_8px_20px_rgba(207,49,112,.22)] hover:brightness-105">
+          <Plus className="h-4 w-4" /> Новий лист
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader className="flex-row flex-wrap items-center justify-between gap-2 space-y-0 pr-6">
+      <DialogContent className="max-h-[90svh] overflow-y-auto rounded-[1.75rem] border-white/65 bg-white/75 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_20px_60px_rgba(71,40,62,.18)] backdrop-blur-2xl sm:max-w-md dark:border-white/15 dark:bg-zinc-950/80">
+        <DialogHeader>
           <DialogTitle className="min-w-0">Додати нове повідомлення</DialogTitle>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="shrink-0"
-            onClick={() => {
-              setIsOpen(false);
-              onOpenBatch();
-            }}
-          >
-            <ListPlus className="mr-1.5 h-3.5 w-3.5" /> Масове додавання
-          </Button>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="grid gap-4 py-4">
+        <form onSubmit={handleSubmit} className="grid gap-4 py-2 [&_button]:rounded-[.9rem]">
           <div className="grid gap-2">
-            <label htmlFor="category" className="text-sm font-medium">
+            <label htmlFor={categoryId} className="text-sm font-medium">
               Категорія повідомлення
             </label>
             <Select
@@ -331,11 +318,11 @@ export default function AddMessageDialog({
               }
               required
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger id={categoryId} className="h-11 w-full rounded-[1rem] border-white/70 bg-white/45 dark:border-white/10 dark:bg-white/6">
                 <SelectValue placeholder="Виберіть категорію" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="unknown">Невідома</SelectItem>
+                <SelectItem value="unknown">Повсякденне повідомлення</SelectItem>
                 <SelectItem value="daily">Щоденне повідомлення</SelectItem>
                 <SelectItem value="extra">Додаткове повідомлення</SelectItem>
               </SelectContent>
@@ -359,7 +346,7 @@ export default function AddMessageDialog({
           />
 
           <div className="grid gap-2">
-            <label htmlFor="message" className="text-sm font-medium">
+            <label htmlFor={messageId} className="text-sm font-medium">
               Текст повідомлення
             </label>
 
@@ -370,14 +357,17 @@ export default function AddMessageDialog({
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="flex-1"
+                    className="h-10 flex-1 border-white/70 bg-white/45 dark:border-white/10 dark:bg-white/8"
                     disabled={isScanning}
                   >
                     <ScanText className="mr-1 h-3.5 w-3.5" />
                     {isScanning ? "Розпізнавання..." : "Сканувати"}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
+                <DropdownMenuContent
+                  align="start"
+                  className="rounded-[1rem] border-white/65 bg-white/82 p-1.5 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_14px_36px_rgba(71,40,62,.14)] backdrop-blur-2xl dark:border-white/15 dark:bg-zinc-950/85"
+                >
                   <DropdownMenuItem onClick={() => openScanPicker("local")}>
                     Локально (без AI)
                   </DropdownMenuItem>
@@ -395,15 +385,15 @@ export default function AddMessageDialog({
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="flex-1"
+                    className="h-10 flex-1 border-white/70 bg-white/45 dark:border-white/10 dark:bg-white/8"
                     disabled={isGenerating}
                   >
                     <Sparkles className="mr-1 h-3.5 w-3.5" />
                     {isGenerating ? "Генерація..." : "Згенерувати AI"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent align="end" className="w-80">
-                  <form onSubmit={handleGenerateSubmit} className="grid gap-2">
+                <PopoverContent align="end" className="w-80 rounded-[1.25rem] border-white/65 bg-white/80 shadow-xl backdrop-blur-2xl dark:border-white/15 dark:bg-zinc-950/85">
+                  <div className="grid gap-2">
                     <label htmlFor={generatePromptId} className="text-sm font-medium">
                       Що хочете сказати партнеру?
                     </label>
@@ -424,27 +414,28 @@ export default function AddMessageDialog({
                         Без промпту
                       </Button>
                       <Button
-                        type="submit"
+                        type="button"
                         size="sm"
                         disabled={!generatePrompt.trim()}
+                        onClick={handleGenerateSubmit}
                       >
                         Згенерувати
                       </Button>
                     </div>
-                  </form>
+                  </div>
                 </PopoverContent>
               </Popover>
             </div>
 
             <Textarea
-              id="message"
+              id={messageId}
               value={newMessage.text}
               onChange={(e) =>
                 setNewMessage({ ...newMessage, text: e.target.value })
               }
               rows={5}
               placeholder="Напишіть текст повідомлення..."
-              className="resize-none"
+              className="min-h-36 resize-none rounded-[1rem] border-white/70 bg-white/45 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,.75)] dark:border-white/10 dark:bg-white/6"
               required
             />
             <div className="flex items-center justify-between">
@@ -467,7 +458,7 @@ export default function AddMessageDialog({
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 mt-2">
+          <div className="mt-2 grid grid-cols-2 gap-2">
             <Button
               type="button"
               variant="outline"
@@ -478,14 +469,15 @@ export default function AddMessageDialog({
             <Button
               type="submit"
               disabled={!newMessage.text.trim() || isSubmitting}
+              className="bg-[linear-gradient(145deg,rgba(255,120,176,.98),rgba(225,52,118,.94))] text-white hover:brightness-105"
             >
               {isSubmitting ? (
                 <>
-                  <span className="mr-2 h-4 w-4 animate-spin">⏳</span>
-                  Збереження...
-                </>
+                <Loader2 className="animate-spin" />
+                Збереження...
+              </>
               ) : (
-                "Зберегти повідомлення"
+                "Зберегти"
               )}
             </Button>
           </div>

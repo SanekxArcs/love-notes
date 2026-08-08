@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
-import { HeartIcon, Loader2, Eye, EyeOff, CheckCircle, XCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle, Eye, EyeOff, HeartIcon, Loader2, XCircle } from "lucide-react";
+import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -23,6 +24,10 @@ export default function RegisterPage() {
   const [loginStatus, setLoginStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
   
   const loginInputRef = useRef<HTMLInputElement>(null);
+  const nameId = useId();
+  const loginId = useId();
+  const passwordId = useId();
+  const phoneId = useId();
 
   const generatePassword = () => {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
@@ -139,32 +144,45 @@ export default function RegisterPage() {
   };
 
   return (
-    <Card className="w-full max-w-md bg-background border border-pink-200 dark:border-pink-900">
-      <CardHeader className="text-center">
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-pink-100 dark:bg-pink-950">
-          <HeartIcon className="h-6 w-6 text-pink-500 dark:text-pink-400" />
+    <motion.div
+      initial={{ opacity: 0, y: 18, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ type: "spring", stiffness: 230, damping: 26 }}
+      className="w-full max-w-md"
+    >
+    <Card className="w-full gap-0 overflow-hidden rounded-[2.1rem] border border-white/65 bg-white/55 py-0 shadow-[inset_0_1px_1px_rgba(255,255,255,.95),0_24px_70px_rgba(88,38,70,.18)] backdrop-blur-2xl backdrop-saturate-150 dark:border-white/15 dark:bg-zinc-950/55">
+      <CardHeader className="relative px-5 pt-5 pb-4 text-center sm:px-7 sm:pt-7">
+        <Button asChild variant="ghost" size="icon" className="absolute h-10 w-10 rounded-[1rem] border border-white/60 bg-white/45 text-zinc-600 hover:bg-white/70 dark:border-white/10 dark:bg-white/8 dark:text-zinc-300">
+          <Link href="/" aria-label="На головну">
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
+        </Button>
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-[1.35rem] border border-white/65 bg-[linear-gradient(145deg,rgba(255,135,181,.98),rgba(225,52,118,.94))] text-white shadow-[inset_0_1px_1px_rgba(255,255,255,.7),0_10px_24px_rgba(207,49,112,.28)]">
+          <HeartIcon className="h-6 w-6 fill-current" />
         </div>
-        <CardTitle> Створити профіль</CardTitle>
-        <CardDescription>Введи необхідні дані для реєстрації</CardDescription>
+        <CardTitle className="text-2xl font-bold tracking-[-.03em]">Створити профіль</CardTitle>
+        <CardDescription className="mt-1">Почни ваш щоденний ритуал теплих слів</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-5 pb-6 sm:px-7 sm:pb-7">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Ім&apos;я</Label>
+            <Label htmlFor={nameId}>Ім&apos;я</Label>
             <Input
-              id="name"
+              id={nameId}
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Твоє ім'я"
               required
+              autoComplete="name"
+              className="h-12 rounded-[1rem] border-white/70 bg-white/45 px-4 shadow-[inset_0_1px_0_rgba(255,255,255,.75)] dark:border-white/10 dark:bg-white/6"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="login">Логін</Label>
+            <Label htmlFor={loginId}>Логін</Label>
             <div className="relative">
               <Input
-                id="login"
+                id={loginId}
                 type="text"
                 ref={loginInputRef}
                 value={login}
@@ -172,7 +190,8 @@ export default function RegisterPage() {
                 onBlur={handleLoginBlur}
                 placeholder="Твій логін наприклад user123"
                 required
-                className={`transition-colors ${
+                autoComplete="username"
+                className={`h-12 rounded-[1rem] border-white/70 bg-white/45 px-4 pr-11 shadow-[inset_0_1px_0_rgba(255,255,255,.75)] transition-colors dark:border-white/10 dark:bg-white/6 ${
                   loginStatus === "available"
                     ? "border-green-500 focus-visible:ring-green-500/20"
                     : loginStatus === "taken"
@@ -180,51 +199,53 @@ export default function RegisterPage() {
                       : ""
                 }`}
               />
-              {loginStatus === "checking" && (
+              {loginStatus === "checking" ? (
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
                   <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                 </div>
-              )}
-              {loginStatus === "available" && (
+              ) : null}
+              {loginStatus === "available" ? (
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
                   <CheckCircle className="h-4 w-4 text-green-500" />
                 </div>
-              )}
-              {loginStatus === "taken" && (
+              ) : null}
+              {loginStatus === "taken" ? (
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
                   <XCircle className="h-4 w-4 text-red-500" />
                 </div>
-              )}
+              ) : null}
             </div>
           </div>
 
           <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              
-              <Label htmlFor="password">Пароль</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor={passwordId}>Пароль</Label>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={generatePassword}
+                className="rounded-[.85rem] border-white/70 bg-white/45 text-xs dark:border-white/10 dark:bg-white/6"
               >
                 Згенерувати
               </Button>
             </div>
             <div className="relative">
               <Input
-                id="password"
+                id={passwordId}
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
+                autoComplete="new-password"
+                className="h-12 rounded-[1rem] border-white/70 bg-white/45 px-4 pr-12 shadow-[inset_0_1px_0_rgba(255,255,255,.75)] dark:border-white/10 dark:bg-white/6"
               />
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                className="absolute right-1 top-1 h-10 w-10 rounded-[.85rem] hover:bg-white/60 dark:hover:bg-white/10"
                 onClick={() => setShowPassword(!showPassword)}
                 tabIndex={-1}
               >
@@ -238,30 +259,32 @@ export default function RegisterPage() {
                 </span>
               </Button>
             </div>
-            <p className="text-red-500 pl-2 text-[10px]">
+            <p className="pl-2 text-[10px] text-red-500">
               Не пиши свій справжній пароль!
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="phone">Номер телефону (необов&apos;язково)</Label>
+            <Label htmlFor={phoneId}>Номер телефону (необов&apos;язково)</Label>
             <Input
-              id="phone"
+              id={phoneId}
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="+123456789"
+              autoComplete="tel"
+              className="h-12 rounded-[1rem] border-white/70 bg-white/45 px-4 shadow-[inset_0_1px_0_rgba(255,255,255,.75)] dark:border-white/10 dark:bg-white/6"
             />
           </div>
 
-          {error && (
-            <p className="rounded bg-red-100 dark:bg-red-900/30 p-2 text-sm text-red-600 dark:text-red-400">
+          {error ? (
+            <p className="rounded-[1rem] border border-red-200/60 bg-red-50/65 p-3 text-sm text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300">
               {error}
             </p>
-          )}
+          ) : null}
           <Button
             type="submit"
-            className="w-full"
+            className="h-12 w-full rounded-[1.1rem] border border-white/50 bg-[linear-gradient(145deg,rgba(255,120,176,.98),rgba(225,52,118,.94))] text-white shadow-[inset_0_1px_1px_rgba(255,255,255,.6),0_10px_24px_rgba(207,49,112,.24)] hover:brightness-105"
             disabled={
               isLoading ||
               loginStatus === "taken" ||
@@ -272,7 +295,7 @@ export default function RegisterPage() {
           >
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="animate-spin" />
                 Збереження...
               </>
             ) : (
@@ -280,14 +303,15 @@ export default function RegisterPage() {
             )}
           </Button>
 
-          <div className="text-center text-sm">
-            Вже маєш профіль? {""} 
-            <Link href="/login" className="underline text-primary">
+          <div className="pt-1 text-center text-sm text-zinc-600 dark:text-zinc-300">
+            Вже маєш профіль?{" "}
+            <Link href="/login" className="font-semibold text-pink-700 hover:underline dark:text-pink-200">
               Вхід
             </Link>
           </div>
         </form>
       </CardContent>
     </Card>
+    </motion.div>
   );
 }

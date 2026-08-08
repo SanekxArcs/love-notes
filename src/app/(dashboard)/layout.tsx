@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { SanityLive } from "@/sanity/lib/live";
 import Particles from "@/components/reactbits/Particles";
 import { DashboardHeader } from "@/components/dashboard/Header";
+import { MobileBottomNav } from "@/components/dashboard/MobileBottomNav";
+import { AboutAppButton } from "@/components/dashboard/AboutAppButton";
 
 export default async function DashboardLayout({
   children,
@@ -33,10 +35,12 @@ export default async function DashboardLayout({
       </div>
       <div className="min-h-svh relative">
         <DashboardHeader />
-        <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <AboutAppButton />
+        <main className="w-full">
           {children}
           <SanityLive />
         </main>
+        <MobileBottomNav />
       </div>
     </>
   );

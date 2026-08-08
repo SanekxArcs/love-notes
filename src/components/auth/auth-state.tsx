@@ -11,44 +11,47 @@ export function AuthState() {
 
   if (status === "loading") {
     return (
-      <div>
-        <LoaderCircle className="animate-spin" />
+      <div className="flex h-12 items-center justify-center rounded-[1.2rem] border border-white/60 bg-white/45">
+        <LoaderCircle className="h-5 w-5 animate-spin text-pink-600" />
       </div>
     );
   }
 
   if (status === "unauthenticated") {
     return (
-      <div className="flex max-w-80 mx-auto justify-between items-center flex-row gap-2 md:gap-4">
-        <Link href="/login">
-          <Button
-            id="login"
-            className="bg-pink-600 transition-all hover:bg-pink-700 text-white"
-          >
+      <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2">
+        <Button
+          asChild
+          size="lg"
+          className="h-12 rounded-[1.2rem] border border-white/55 bg-[linear-gradient(145deg,rgba(255,120,176,.98),rgba(225,52,118,.94))] text-white shadow-[inset_0_1px_1px_rgba(255,255,255,.65),0_10px_24px_rgba(207,49,112,.25)] hover:brightness-105"
+        >
+          <Link href="/login">
             Увійти
-          </Button>
-        </Link>
-        <span className="text-muted-foreground">або</span>
-        <Link href="/register">
-          <Button
-            className=" hover:bg-pink-900 rounded-md transition-all"
-            variant="outline"
-          >
+          </Link>
+        </Button>
+        <Button
+          asChild
+          size="lg"
+          variant="outline"
+          className="h-12 rounded-[1.2rem] border-white/70 bg-white/48 shadow-[inset_0_1px_1px_rgba(255,255,255,.85)] hover:bg-white/70 dark:border-white/15 dark:bg-white/8 dark:hover:bg-white/12"
+        >
+          <Link href="/register">
             Зареєструватися
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </div>
     );
   }
 
   return (
-    <Link href="/dashboard">
-      <Button
-        size="lg"
-        className="bg-pink-600 hover:bg-pink-700 text-white px-8 py-6 text-lg rounded-full"
-      >
+    <Button
+      asChild
+      size="lg"
+      className="h-12 w-full rounded-[1.2rem] border border-white/55 bg-[linear-gradient(145deg,rgba(255,120,176,.98),rgba(225,52,118,.94))] text-white shadow-[inset_0_1px_1px_rgba(255,255,255,.65),0_10px_24px_rgba(207,49,112,.25)] hover:brightness-105"
+    >
+      <Link href="/dashboard">
         Перейти до додатку
-      </Button>
-    </Link>
+      </Link>
+    </Button>
   );
 }

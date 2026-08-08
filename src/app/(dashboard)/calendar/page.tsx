@@ -1,8 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
+import { CalendarHeart, Heart, LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
 import { BackButton } from "@/components/ui/back-button";
+import { PageContainer } from "@/components/ui/page-container";
 import CalendarView, { getEventsForDay } from "./components/CalendarView";
 import DayEventsPanel from "./components/DayEventsPanel";
 import AddEventDialog from "./components/AddEventDialog";
@@ -19,11 +22,7 @@ export default function CalendarPage() {
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
   const [deletingEvent, setDeletingEvent] = useState<CalendarEvent | null>(null);
 
-  useEffect(() => {
-    fetchEvents();
-  }, []);
-
-  async function fetchEvents() {
+  const fetchEvents = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await fetch("/api/calendar/events");
@@ -40,7 +39,11 @@ export default function CalendarPage() {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
 
   const handleAddEvent = async (data: NewCalendarEvent): Promise<boolean> => {
     try {
@@ -68,7 +71,7 @@ export default function CalendarPage() {
 
   const handleEditEvent = async (
     key: string,
-    data: NewCalendarEvent
+    data: NewCalendarEvent,
   ): Promise<boolean> => {
     try {
       const response = await fetch(`/api/calendar/events?key=${key}`, {
@@ -85,8 +88,8 @@ export default function CalendarPage() {
 
       setEvents((prev) =>
         prev.map((event) =>
-          event._key === key ? { ...event, ...result.event } : event
-        )
+          event._key === key ? { ...event, ...result.event } : event,
+        ),
       );
       toast.success("Подію успішно оновлено!");
       setEditingEvent(null);
@@ -104,7 +107,7 @@ export default function CalendarPage() {
     try {
       const response = await fetch(
         `/api/calendar/events?key=${deletingEvent._key}`,
-        { method: "DELETE" }
+        { method: "DELETE" },
       );
 
       if (!response.ok) {
@@ -126,37 +129,62 @@ export default function CalendarPage() {
 
   const selectedDayEvents = useMemo(
     () => getEventsForDay(selectedDate, events),
-    [selectedDate, events]
+    [selectedDate, events],
   );
 
   return (
-    <div className="container mx-auto flex max-w-5xl flex-col gap-6 py-10">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <BackButton text="Спільний календар" />
-        <AddEventDialog
-          isOpen={isAddOpen}
-          setIsOpen={setIsAddOpen}
-          onSubmit={handleAddEvent}
-          defaultDate={selectedDate}
-        />
-      </div>
+    <PageContainer size="wide">
+      <BackButton text="Спільний календар" />
+
+      <motion.section
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 28 }}
+        className="mb-4 rounded-[1.75rem] border border-white/60 bg-white/52 p-4 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_12px_34px_rgba(71,40,62,.1)] backdrop-blur-2xl dark:border-white/12 dark:bg-zinc-950/48"
+      >
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[1.05rem] bg-[linear-gradient(145deg,rgba(255,135,181,.98),rgba(225,52,118,.94))] text-white shadow-[inset_0_1px_1px_rgba(255,255,255,.65),0_8px_20px_rgba(207,49,112,.24)]">
+            <CalendarHeart className="h-5 w-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-base font-semibold tracking-tight">Наші особливі дні</h1>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Спільні події, моменти та маленькі спогади
+            </p>
+          </div>
+        </div>
+        <div className="mt-4 flex items-center gap-2">
+          <div className="flex h-11 min-w-0 flex-1 items-center gap-2 rounded-[1rem] border border-white/60 bg-white/45 px-3 text-sm font-semibold dark:border-white/10 dark:bg-white/6">
+            <Heart className="h-4 w-4 fill-pink-500 text-pink-500" />
+            <span>{events.length} {events.length === 1 ? "подія" : "подій"}</span>
+          </div>
+          <AddEventDialog
+            isOpen={isAddOpen}
+            setIsOpen={setIsAddOpen}
+            onSubmit={handleAddEvent}
+            defaultDate={selectedDate}
+          />
+        </div>
+      </motion.section>
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">Завантаження...</p>
+        <div className="flex h-48 items-center justify-center rounded-[1.75rem] border border-white/60 bg-white/45 backdrop-blur-2xl dark:border-white/10 dark:bg-white/5">
+          <LoaderCircle className="h-7 w-7 animate-spin text-pink-600" />
+        </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="flex flex-col gap-4">
+          <DayEventsPanel
+            date={selectedDate}
+            events={selectedDayEvents}
+            onEdit={setEditingEvent}
+            onDelete={setDeletingEvent}
+          />
           <CalendarView
             month={month}
             onMonthChange={setMonth}
             selectedDate={selectedDate}
             onSelectDate={setSelectedDate}
             events={events}
-          />
-          <DayEventsPanel
-            date={selectedDate}
-            events={selectedDayEvents}
-            onEdit={setEditingEvent}
-            onDelete={setDeletingEvent}
           />
         </div>
       )}
@@ -178,6 +206,6 @@ export default function CalendarPage() {
         }}
         onConfirm={handleDeleteEvent}
       />
-    </div>
+    </PageContainer>
   );
 }

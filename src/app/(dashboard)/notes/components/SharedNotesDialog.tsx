@@ -26,11 +26,11 @@ export default function SharedNotesDialog({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="w-full sm:w-auto">
-          <Eye className="mr-2 h-4 w-4" /> Нотатки від партнера ({notes.length})
+        <Button variant="outline" className="h-11 w-full rounded-[1rem] border-white/70 bg-white/45 px-3 text-xs shadow-[inset_0_1px_0_rgba(255,255,255,.8)] dark:border-white/10 dark:bg-white/7">
+          <Eye className="h-4 w-4" /> Від партнера ({notes.length})
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-h-[85vh] overflow-y-auto custom-scrollbar sm:max-w-lg">
+      <DialogContent className="custom-scrollbar max-h-[90svh] overflow-y-auto rounded-[1.75rem] border-white/65 bg-white/78 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_20px_60px_rgba(71,40,62,.18)] backdrop-blur-2xl sm:max-w-lg dark:border-white/15 dark:bg-zinc-950/82">
         <DialogHeader>
           <DialogTitle>Нотатки, якими поділився партнер</DialogTitle>
         </DialogHeader>
@@ -41,7 +41,7 @@ export default function SharedNotesDialog({
             </p>
           ) : (
             notes.map((note) => (
-              <div key={note._key} className="rounded-md border p-3">
+              <div key={note._key} className="rounded-[1.25rem] border border-white/65 bg-white/45 p-3.5 dark:border-white/10 dark:bg-white/6">
                 <p className="text-sm font-medium">{note.title}</p>
                 <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">
                   {note.description}

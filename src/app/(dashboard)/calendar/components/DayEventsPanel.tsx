@@ -1,10 +1,11 @@
 "use client";
 
 import { format } from "date-fns";
-import { Pencil, Trash2 } from "lucide-react";
+import { uk } from "date-fns/locale";
+import { AnimatePresence, motion } from "framer-motion";
+import { CalendarDays, Pencil, Sparkles, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ACTIVITY_OPTIONS,
   HIGHLIGHT_OPTIONS,
@@ -83,22 +84,41 @@ export default function DayEventsPanel({
   onDelete,
 }: DayEventsPanelProps) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="capitalize">
-          {format(date, "d MMMM yyyy")}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-3">
+    <motion.section
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.08 }}
+      className="rounded-[1.75rem] border border-white/60 bg-white/52 p-4 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_12px_34px_rgba(71,40,62,.1)] backdrop-blur-2xl dark:border-white/12 dark:bg-zinc-950/48"
+    >
+      <div className="mb-4 flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-[1rem] border border-pink-200/70 bg-pink-50/65 text-pink-700 dark:border-pink-400/20 dark:bg-pink-950/30 dark:text-pink-200">
+          <CalendarDays className="h-4.5 w-4.5" />
+        </div>
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Обраний день</p>
+          <h2 className="text-base font-semibold capitalize tracking-tight">
+            {format(date, "d MMMM yyyy", { locale: uk })}
+          </h2>
+        </div>
+      </div>
+      <div className="flex flex-col gap-3">
         {events.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            У цей день немає жодних подій.
-          </p>
+          <div className="flex min-h-36 flex-col items-center justify-center rounded-[1.35rem] border border-dashed border-pink-200/80 bg-pink-50/25 px-6 text-center dark:border-pink-400/20 dark:bg-pink-950/10">
+            <Sparkles className="mb-2 h-5 w-5 text-pink-400" />
+            <p className="text-sm font-semibold">Цей день поки вільний</p>
+            <p className="mt-1 text-xs text-muted-foreground">Можна додати новий спільний момент</p>
+          </div>
         ) : (
-          events.map((event) => (
-            <div
+          <AnimatePresence mode="popLayout">
+            {events.map((event, index) => (
+            <motion.article
               key={event._key}
-              className="flex flex-col gap-1.5 rounded-md border p-3"
+              layout
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ delay: index * 0.035 }}
+              className="flex flex-col gap-2 rounded-[1.35rem] border border-white/65 bg-white/48 p-3.5 shadow-[inset_0_1px_1px_rgba(255,255,255,.85),0_7px_20px_rgba(71,40,62,.07)] dark:border-white/10 dark:bg-white/6"
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="flex flex-col gap-0.5">
@@ -112,19 +132,20 @@ export default function DayEventsPanel({
                     <Badge variant="outline">
                       {event.isMine ? "Мій запис" : event.ownerName || "Партнер"}
                     </Badge>
-                    {event.isRecurringYearly && (
+                    {Boolean(event.isRecurringYearly) && (
                       <Badge variant="outline">Щороку</Badge>
                     )}
-                    {event.time && <Badge variant="outline">{event.time}</Badge>}
+                    {Boolean(event.time) && <Badge variant="outline">{event.time}</Badge>}
                   </div>
                 </div>
-                {event.isMine && (
+                {Boolean(event.isMine) && (
                   <div className="flex gap-1">
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => onEdit(event)}
                       aria-label="Редагувати подію"
+                      className="h-9 w-9 rounded-[.9rem] bg-white/45 hover:bg-white/75 dark:bg-white/5"
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>
@@ -133,6 +154,7 @@ export default function DayEventsPanel({
                       size="icon"
                       onClick={() => onDelete(event)}
                       aria-label="Видалити подію"
+                      className="h-9 w-9 rounded-[.9rem] text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -164,11 +186,12 @@ export default function DayEventsPanel({
                 </p>
               )}
 
-              {event.note && <p className="text-sm">{event.note}</p>}
-            </div>
-          ))
+              {Boolean(event.note) && <p className="text-sm">{event.note}</p>}
+            </motion.article>
+            ))}
+          </AnimatePresence>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </motion.section>
   );
 }

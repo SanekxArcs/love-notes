@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import QRCode from "react-qr-code";
 import jsQR from "jsqr";
@@ -20,10 +20,15 @@ import {
   QrCode,
   ScanQrCode,
   Share2,
+  HeartHandshake,
+  Sparkles,
+  UserRound,
 } from "lucide-react";
 import { redirect } from "next/navigation";
 import { CustomTooltip } from "@/components/ui/custom-tooltip";
 import { BackButton } from "@/components/ui/back-button";
+import { PageContainer } from "@/components/ui/page-container";
+import { ThemeSetting } from "@/components/profile/theme-setting";
 import {
   Dialog,
   DialogContent,
@@ -38,6 +43,41 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SCAN_LANGUAGES } from "@/lib/languages";
+
+interface ProfileSectionProps {
+  icon: ReactNode;
+  title: string;
+  description: string;
+  children: ReactNode;
+}
+
+function ProfileSection({
+  icon,
+  title,
+  description,
+  children,
+}: ProfileSectionProps) {
+  return (
+    <section className="rounded-[1.75rem] border border-white/60 bg-white/52 p-4 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_12px_34px_rgba(71,40,62,.1)] backdrop-blur-2xl backdrop-saturate-150 sm:p-5 dark:border-white/12 dark:bg-zinc-950/48">
+      <header className="mb-5 flex items-center gap-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[1rem] border border-white/65 bg-white/55 text-pink-700 shadow-[inset_0_1px_1px_rgba(255,255,255,.85),0_5px_14px_rgba(80,40,70,.09)] dark:border-white/15 dark:bg-white/10 dark:text-pink-200">
+          {icon}
+        </div>
+        <div className="min-w-0">
+          <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+            {title}
+          </h2>
+          <p className="mt-0.5 text-xs leading-4 text-muted-foreground">
+            {description}
+          </p>
+        </div>
+      </header>
+      <div className="space-y-5 [&_button]:rounded-[.9rem] [&_button]:border-white/70 [&_button]:bg-white/45 [&_button]:shadow-[inset_0_1px_0_rgba(255,255,255,.75)] dark:[&_button]:border-white/10 dark:[&_button]:bg-white/8">
+        {children}
+      </div>
+    </section>
+  );
+}
 
 interface UserData {
   _id: string;
@@ -363,9 +403,10 @@ export default function UserProfile() {
 
   if (isLoading) {
     return (
-      <div className="container  max-w-3xl mx-auto  py-10">
+      <PageContainer>
         <BackButton text="Профіль" />
-        <Card>
+        <ThemeSetting />
+        <Card className="rounded-[1.75rem] border border-white/60 bg-white/50 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_12px_34px_rgba(71,40,62,.1)] backdrop-blur-2xl dark:border-white/12 dark:bg-zinc-950/45">
           <CardContent className="pt-6">
             <div className="space-y-2">
               <div className="h-4 w-1/2 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
@@ -373,16 +414,23 @@ export default function UserProfile() {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </PageContainer>
     );
   }
 
   return (
-    <div className="container max-w-3xl mx-auto py-10">
+    <PageContainer>
       <BackButton text="Профіль" />
-      <Card>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+      <ThemeSetting />
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4 [&_input]:h-11 [&_input]:rounded-[1rem] [&_input]:border-white/70 [&_input]:bg-white/45 [&_input]:shadow-[inset_0_1px_0_rgba(255,255,255,.75)] [&_textarea]:rounded-[1rem] [&_textarea]:border-white/70 [&_textarea]:bg-white/45 [&_textarea]:shadow-[inset_0_1px_0_rgba(255,255,255,.75)] dark:[&_input]:border-white/10 dark:[&_input]:bg-white/6 dark:[&_textarea]:border-white/10 dark:[&_textarea]:bg-white/6"
+      >
+        <ProfileSection
+          icon={<UserRound className="h-[1.15rem] w-[1.15rem]" />}
+          title="Обліковий запис"
+          description="Основні дані та щоденні налаштування"
+        >
             <div className="space-y-2">
               <Label htmlFor="name">Ім&apos;я</Label>
               <Input
@@ -414,7 +462,7 @@ export default function UserProfile() {
                   type={showPassword ? "text" : "password"}
                   value={userData?.password || ""}
                   onChange={handleInputChange}
-                  className="flex-1"
+                  className="min-w-0 flex-1"
                 />
                 <CustomTooltip
                   text={showPassword ? "Приховати пароль" : "Показати пароль"}
@@ -479,6 +527,14 @@ export default function UserProfile() {
               </p>
             </div>
 
+        </ProfileSection>
+
+        <ProfileSection
+          icon={<Sparkles className="h-[1.15rem] w-[1.15rem]" />}
+          title="AI та сканування"
+          description="Персоналізація повідомлень і розпізнавання тексту"
+        >
+
             <div className="space-y-2">
               <Label htmlFor="geminiApiKey">Gemini API ключ</Label>
               <div className="flex gap-2">
@@ -488,7 +544,7 @@ export default function UserProfile() {
                   type={showGeminiApiKey ? "text" : "password"}
                   value={userData?.geminiApiKey || ""}
                   onChange={handleInputChange}
-                  className="flex-1"
+                  className="min-w-0 flex-1"
                 />
                 <CustomTooltip
                   text={showGeminiApiKey ? "Приховати ключ" : "Показати ключ"}
@@ -596,6 +652,14 @@ export default function UserProfile() {
               </p>
             </div>
 
+        </ProfileSection>
+
+        <ProfileSection
+          icon={<HeartHandshake className="h-[1.15rem] w-[1.15rem]" />}
+          title="Зв’язок із партнером"
+          description="ID та QR-коди для обміну повідомленнями"
+        >
+
             <div className="space-y-2">
               <Label htmlFor="partnerIdToSend">Ваш ID для поширення</Label>
               <div className="flex gap-2">
@@ -604,7 +668,7 @@ export default function UserProfile() {
                   name="partnerIdToSend"
                   value={userData?.partnerIdToSend || ""}
                   onChange={handleInputChange}
-                  className="flex-1"
+                  className="min-w-0 flex-1"
                 />
                 <CustomTooltip text="Копіювати">
                   <Button
@@ -670,7 +734,7 @@ export default function UserProfile() {
                   name="partnerIdToReceiveFrom"
                   value={userData?.partnerIdToReceiveFrom || ""}
                   onChange={handleInputChange}
-                  className="flex-1"
+                  className="min-w-0 flex-1"
                 />
                 <CustomTooltip text="Сканувати QR-код партнера">
                   <Button
@@ -707,39 +771,39 @@ export default function UserProfile() {
                 )}
             </div>
 
-            <div className="flex gap-4">
+        </ProfileSection>
+
+        <div className="flex flex-col gap-2 rounded-[1.5rem] border border-white/60 bg-white/55 p-2 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_10px_30px_rgba(71,40,62,.1)] backdrop-blur-2xl sm:flex-row dark:border-white/15 dark:bg-zinc-950/55">
               <Button
                 type="submit"
                 disabled={isSaving || !hasChanges()}
-                className="flex-1"
+                className="h-11 flex-1 rounded-[1rem] bg-[linear-gradient(145deg,rgba(255,120,176,.98),rgba(225,52,118,.94))] text-white shadow-[inset_0_1px_1px_rgba(255,255,255,.6),0_8px_20px_rgba(207,49,112,.2)] hover:brightness-105"
               >
                 {isSaving ? "Збереження..." : "Зберегти профіль"}
               </Button>
 
-              {hasChanges() && (
+              {hasChanges() ? (
                 <Button
                   type="button"
                   onClick={resetChanges}
                   variant="outline"
-                  className="flex gap-2"
+                  className="h-11 gap-2 rounded-[1rem] border-white/70 bg-white/45 sm:flex-none dark:border-white/10 dark:bg-white/8"
                 >
                   <RotateCcw className="h-4 w-4" />
                   Скасувати зміни
                 </Button>
-              )}
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+              ) : null}
+        </div>
+      </form>
 
       <Dialog open={isQrDialogOpen} onOpenChange={setIsQrDialogOpen}>
-        <DialogContent className="sm:max-w-xs">
+        <DialogContent className="rounded-[1.75rem] border-white/65 bg-white/70 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_20px_60px_rgba(71,40,62,.18)] backdrop-blur-2xl sm:max-w-xs dark:border-white/15 dark:bg-zinc-950/75">
           <DialogHeader>
             <DialogTitle>Ваш QR-код</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col items-center gap-4 py-2">
             {userData?.partnerIdToSend ? (
-              <div className="rounded-lg bg-white p-4">
+              <div className="rounded-[1.25rem] bg-white p-4 shadow-[0_8px_24px_rgba(71,40,62,.1)]">
                 <QRCode value={userData.partnerIdToSend} size={200} />
               </div>
             ) : null}
@@ -748,12 +812,16 @@ export default function UserProfile() {
               &quot;Сканувати QR-код партнера&quot; біля поля{" "}
               &quot;ID вашого партнера&quot; у своєму профілі.
             </p>
-            <Button type="button" onClick={shareId} className="w-full">
+            <Button
+              type="button"
+              onClick={shareId}
+              className="h-11 w-full rounded-[1rem] bg-[linear-gradient(145deg,rgba(255,120,176,.98),rgba(225,52,118,.94))] text-white hover:brightness-105"
+            >
               <Share2 className="mr-2 h-4 w-4" /> Надіслати в месенджер
             </Button>
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageContainer>
   );
 }

@@ -21,6 +21,7 @@ import {
   NotebookText,
 } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
+import { PageContainer } from "@/components/ui/page-container";
 import { ViewTransition } from "react";
 
 export default function HelpPage() {
@@ -70,7 +71,7 @@ export default function HelpPage() {
             </ul>
           </div>
 
-          <div className="p-4 bg-purple-50 dark:bg-purple-950/20 rounded-lg">
+          <div className="rounded-[1.25rem] border border-purple-200/60 bg-purple-50/55 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,.8)] dark:border-purple-400/15 dark:bg-purple-950/20">
             <h4 className="font-medium text-purple-700 dark:text-purple-300 flex items-center gap-2">
               <Heart className="h-4 w-4" /> Як це працює
             </h4>
@@ -115,7 +116,7 @@ export default function HelpPage() {
               вами
             </li>
           </ol>
-          <div className="p-4 bg-pink-50 dark:bg-pink-950/20 rounded-lg">
+          <div className="rounded-[1.25rem] border border-pink-200/60 bg-pink-50/55 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,.8)] dark:border-pink-400/15 dark:bg-pink-950/20">
             <h4 className="font-medium text-pink-700 dark:text-pink-300 flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4" /> Порада
             </h4>
@@ -150,7 +151,7 @@ export default function HelpPage() {
               збереження налаштувань
             </li>
           </ol>
-          <div className="p-4 bg-indigo-50 dark:bg-indigo-950/20 rounded-lg">
+          <div className="rounded-[1.25rem] border border-indigo-200/60 bg-indigo-50/55 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,.8)] dark:border-indigo-400/15 dark:bg-indigo-950/20">
             <h4 className="font-medium text-indigo-700 dark:text-indigo-300 flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4" /> Рекомендація
             </h4>
@@ -199,7 +200,7 @@ export default function HelpPage() {
               Натисніть <strong>&quot;Зберегти профіль&quot;</strong>
             </li>
           </ol>
-          <div className="p-4 bg-amber-50 dark:bg-amber-950/20 rounded-lg">
+          <div className="rounded-[1.25rem] border border-amber-200/60 bg-amber-50/55 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,.8)] dark:border-amber-400/15 dark:bg-amber-950/20">
             <h4 className="font-medium text-amber-700 dark:text-amber-300 flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4" /> Що це відкриває
             </h4>
@@ -239,7 +240,7 @@ export default function HelpPage() {
             <li>Введіть текст вашого повідомлення та оберіть категорію:</li>
             <ul className="list-disc pl-5 space-y-1 mt-1 mb-2">
               <li>
-                <strong>Невідома</strong> - для справжнього сюрпризу
+                <strong>Повсякденне</strong> - для справжнього сюрпризу
               </li>
               <li>
                 <strong>Щоденне</strong> - стандартні повідомлення кохання. А це
@@ -262,7 +263,7 @@ export default function HelpPage() {
               надісланими повідомленнями
             </li>
             <li>
-              Натисніть <strong>&quot;Зберегти повідомлення&quot;</strong> для
+              Натисніть <strong>&quot;Зберегти&quot;</strong> для
               додавання повідомлення
             </li>
             <li>
@@ -276,7 +277,7 @@ export default function HelpPage() {
               зверху сторінки
             </li>
           </ol>
-          <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
+          <div className="rounded-[1.25rem] border border-blue-200/60 bg-blue-50/55 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,.8)] dark:border-blue-400/15 dark:bg-blue-950/20">
             <h4 className="font-medium text-blue-700 dark:text-blue-300 flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4" /> Порада
             </h4>
@@ -316,7 +317,7 @@ export default function HelpPage() {
               сподобалося
             </li>
           </ol>
-          <div className="p-4 bg-rose-50 dark:bg-rose-950/20 rounded-lg">
+          <div className="rounded-[1.25rem] border border-rose-200/60 bg-rose-50/55 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,.8)] dark:border-rose-400/15 dark:bg-rose-950/20">
             <h4 className="font-medium text-rose-700 dark:text-rose-300 flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4" /> Нагадування
             </h4>
@@ -353,7 +354,7 @@ export default function HelpPage() {
               текст, категорію, дату показу та реакцію (❤️/🤍)
             </li>
           </ol>
-          <div className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-lg">
+          <div className="rounded-[1.25rem] border border-slate-200/60 bg-slate-50/55 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,.8)] dark:border-white/10 dark:bg-slate-900/40">
             <h4 className="font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4" /> Порада
             </h4>
@@ -409,7 +410,7 @@ export default function HelpPage() {
               в календарі позначкою <strong>💌</strong> — лише для перегляду
             </li>
           </ol>
-          <div className="p-4 bg-fuchsia-50 dark:bg-fuchsia-950/20 rounded-lg">
+          <div className="rounded-[1.25rem] border border-fuchsia-200/60 bg-fuchsia-50/55 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,.8)] dark:border-fuchsia-400/15 dark:bg-fuchsia-950/20">
             <h4 className="font-medium text-fuchsia-700 dark:text-fuchsia-300 flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4" /> Порада
             </h4>
@@ -464,7 +465,7 @@ export default function HelpPage() {
               ваші нотатки і швидко підказує ідеї подарунків чи побачень
             </li>
           </ol>
-          <div className="p-4 bg-teal-50 dark:bg-teal-950/20 rounded-lg">
+          <div className="rounded-[1.25rem] border border-teal-200/60 bg-teal-50/55 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,.8)] dark:border-teal-400/15 dark:bg-teal-950/20">
             <h4 className="font-medium text-teal-700 dark:text-teal-300 flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4" /> Порада
             </h4>
@@ -497,7 +498,7 @@ export default function HelpPage() {
               <strong>&quot;Історія&quot;</strong>
             </li>
           </ol>
-          <div className="p-4 bg-green-50 dark:bg-green-950/20 rounded-lg mt-4">
+          <div className="mt-4 rounded-[1.25rem] border border-green-200/60 bg-green-50/55 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,.8)] dark:border-green-400/15 dark:bg-green-950/20">
             <h4 className="font-medium text-green-700 dark:text-green-300 flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4" /> Найважливіше
             </h4>
@@ -533,8 +534,8 @@ export default function HelpPage() {
     });
 
   return (
-    <div className="container py-10 max-w-3xl mx-auto overflow-hidden">
-      <div className="flex justify-between items-center mb-8">
+    <PageContainer size="medium" className="overflow-hidden">
+      <div className="mb-4 flex items-center justify-between">
         <BackButton text="Початок користування" />
       </div>
       <ViewTransition
@@ -554,33 +555,25 @@ export default function HelpPage() {
           );
         }}
       >
-        <div id="HELP" className="flex justify-between mb-8 relative">
-          <div className="absolute top-4 left-0 right-0 h-0.5 bg-gray-200 dark:bg-gray-700 -z-10"></div>
+        <div className="custom-scrollbar mb-4 flex gap-2 overflow-x-auto rounded-[1.5rem] border border-white/60 bg-white/48 p-2 shadow-[inset_0_1px_1px_rgba(255,255,255,.88),0_9px_28px_rgba(71,40,62,.08)] backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/42">
           {steps.map((step, index) => (
-            <motion.div
-              key={index}
-              className={`flex flex-col items-center cursor-pointer`}
+            <motion.button
+              key={step.title}
+              type="button"
+              className={`flex h-10 shrink-0 items-center gap-2 rounded-[1rem] px-3 text-xs font-semibold transition-colors ${
+                index === currentStep
+                  ? "bg-white/75 text-pink-700 shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_5px_14px_rgba(71,40,62,.08)] dark:bg-white/10 dark:text-pink-200"
+                  : "text-muted-foreground hover:bg-white/45 hover:text-foreground dark:hover:bg-white/6"
+              }`}
               onClick={() => setCurrentStep(index)}
-              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.96 }}
               transition={{ duration: 0.2 }}
             >
-              <div
-                className={`flex items-center justify-center w-8 h-8 rounded-full z-10 ${
-                  index <= currentStep
-                    ? "bg-pink-500 text-white"
-                    : "bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-300"
-                }`}
-              >
+              <span className={`flex h-6 w-6 items-center justify-center rounded-[.65rem] text-[10px] ${index === currentStep ? "bg-pink-500 text-white" : "bg-white/55 dark:bg-white/8"}`}>
                 {index + 1}
-              </div>
-              <span
-                className={`text-xs mt-2 hidden md:inline-block ${
-                  index === currentStep ? "font-semibold text-pink-500" : ""
-                }`}
-              >
-                {step.title}
               </span>
-            </motion.div>
+              <span>{step.title}</span>
+            </motion.button>
           ))}
         </div>
       </ViewTransition>
@@ -591,50 +584,50 @@ export default function HelpPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <Card className="overflow-hidden border-pink-200 dark:border-pink-900">
-          <CardContent className="pt-6">
-            <div className="flex items-center mb-4 gap-3">
-              <div className="bg-linear-to-br from-pink-100 to-indigo-100 dark:from-pink-900/30 dark:to-indigo-900/30 p-3 rounded-full">
+        <Card className="overflow-hidden rounded-[1.75rem] border-white/60 bg-white/52 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_12px_34px_rgba(71,40,62,.1)] backdrop-blur-2xl dark:border-white/12 dark:bg-zinc-950/48">
+          <CardContent className="p-5 sm:p-6">
+            <div className="mb-4 flex items-center gap-3">
+              <div className="rounded-[1.1rem] border border-white/65 bg-white/55 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,.88)] dark:border-white/10 dark:bg-white/7">
                 {steps[currentStep].icon}
               </div>
               <h2 className="text-2xl font-semibold">
                 {steps[currentStep].title}
               </h2>
             </div>
-            <div className="py-4">{steps[currentStep].content}</div>
+            <div className="py-2 text-sm leading-6 sm:text-base">{steps[currentStep].content}</div>
           </CardContent>
         </Card>
       </motion.div>
       <ViewTransition name="buttons">
-        <div className="flex justify-between mt-8 gap-4">
+        <div className="mt-4 flex items-center justify-between gap-3 rounded-[1.35rem] border border-white/60 bg-white/48 p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,.85)] backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/42">
           <Button
             variant="outline"
             onClick={prevStep}
             disabled={currentStep === 0}
-            className={currentStep === 0 ? "opacity-50" : ""}
+            className={`h-10 rounded-[.95rem] border-white/70 bg-white/45 dark:border-white/10 dark:bg-white/7 ${currentStep === 0 ? "opacity-50" : ""}`}
           >
             <ArrowLeft className="mr-2 h-4 w-4" /> Назад
           </Button>
 
           <div className="grow text-center self-center">
-            <span className="text-sm text-gray-500">
+            <span className="text-xs font-semibold text-muted-foreground">
               Крок {currentStep + 1} з {steps.length}
             </span>
           </div>
 
           {currentStep < steps.length - 1 ? (
-            <Button onClick={nextStep}>
+            <Button onClick={nextStep} className="h-10 rounded-[.95rem] bg-pink-600 text-white hover:bg-pink-500">
               Далі <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           ) : (
             <Link href="/dashboard">
-              <Button>
+              <Button className="h-10 rounded-[.95rem] bg-pink-600 text-white hover:bg-pink-500">
                 На головну <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
           )}
         </div>
       </ViewTransition>
-    </div>
+    </PageContainer>
   );
 }

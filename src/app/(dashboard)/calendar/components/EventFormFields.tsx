@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Flame, Star } from "lucide-react";
+import { useId, useState } from "react";
+import { CalendarDays, Clock3, Flame, Star } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,12 +37,18 @@ export default function EventFormFields({
   setForm,
   onTypeChange,
 }: EventFormFieldsProps) {
+  const dateId = useId();
+  const timeId = useId();
+  const titleId = useId();
+  const recurringId = useId();
+  const noteId = useId();
+
   return (
     <>
       <div className="grid gap-2">
         <Label>Тип події</Label>
         <Select value={form.type} onValueChange={onTypeChange}>
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full rounded-[.9rem]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -55,49 +61,58 @@ export default function EventFormFields({
         </Select>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid gap-3 sm:grid-cols-2">
         <div className="grid gap-2">
-          <Label htmlFor="date">Дата</Label>
-          <Input
-            id="date"
-            type="date"
-            required
-            value={form.date}
-            onChange={(e) => setForm({ ...form, date: e.target.value })}
-          />
+          <Label htmlFor={dateId}>Дата</Label>
+          <div className="relative">
+            <CalendarDays className="pointer-events-none absolute left-3.5 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-pink-600 dark:text-pink-300" />
+            <Input
+              id={dateId}
+              type="date"
+              required
+              value={form.date}
+              onChange={(e) => setForm({ ...form, date: e.target.value })}
+              className="h-12 rounded-[1rem] border-white/70 bg-white/52 pr-3 pl-10 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_5px_16px_rgba(71,40,62,.06)] focus-visible:border-pink-300 focus-visible:ring-pink-300/25 dark:border-white/12 dark:bg-white/7 dark:[color-scheme:dark]"
+            />
+          </div>
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="time">Час (необов&apos;язково)</Label>
-          <Input
-            id="time"
-            type="time"
-            value={form.time || ""}
-            onChange={(e) => setForm({ ...form, time: e.target.value })}
-          />
+          <Label htmlFor={timeId}>Час (необов&apos;язково)</Label>
+          <div className="relative">
+            <Clock3 className="pointer-events-none absolute left-3.5 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-pink-600 dark:text-pink-300" />
+            <Input
+              id={timeId}
+              type="time"
+              value={form.time || ""}
+              onChange={(e) => setForm({ ...form, time: e.target.value })}
+              className="h-12 rounded-[1rem] border-white/70 bg-white/52 pr-3 pl-10 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_5px_16px_rgba(71,40,62,.06)] focus-visible:border-pink-300 focus-visible:ring-pink-300/25 dark:border-white/12 dark:bg-white/7 dark:[color-scheme:dark]"
+            />
+          </div>
         </div>
       </div>
 
       {form.type === "important" && (
         <>
           <div className="grid gap-2">
-            <Label htmlFor="title">Назва</Label>
+            <Label htmlFor={titleId}>Назва</Label>
             <Input
-              id="title"
+              id={titleId}
               value={form.title || ""}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
               placeholder="Наприклад, Річниця стосунків"
               required
+              className="h-12 rounded-[1rem] border-white/70 bg-white/52 px-4 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_5px_16px_rgba(71,40,62,.06)] focus-visible:border-pink-300 focus-visible:ring-pink-300/25 dark:border-white/12 dark:bg-white/7"
             />
           </div>
-          <div className="flex items-center justify-between rounded-md border p-3">
+          <div className="flex items-center justify-between rounded-[1.15rem] border border-white/65 bg-white/42 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,.85)] dark:border-white/10 dark:bg-white/5">
             <div className="grid gap-0.5">
-              <Label htmlFor="recurring">Повторюється щороку</Label>
+              <Label htmlFor={recurringId}>Повторюється щороку</Label>
               <p className="text-xs text-muted-foreground">
                 День і місяць стануть пріоритетними щороку
               </p>
             </div>
             <Switch
-              id="recurring"
+              id={recurringId}
               checked={form.isRecurringYearly}
               onCheckedChange={(checked) =>
                 setForm({ ...form, isRecurringYearly: checked })
@@ -118,7 +133,7 @@ export default function EventFormFields({
               setForm({ ...form, mood: value as NewCalendarEvent["mood"] })
             }
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-full rounded-[.9rem]">
               <SelectValue placeholder="Як почуваєшся?" />
             </SelectTrigger>
             <SelectContent>
@@ -133,14 +148,14 @@ export default function EventFormFields({
       )}
 
       <div className="grid gap-2">
-        <Label htmlFor="note">Нотатка</Label>
+        <Label htmlFor={noteId}>Нотатка</Label>
         <Textarea
-          id="note"
+          id={noteId}
           rows={3}
           value={form.note || ""}
           onChange={(e) => setForm({ ...form, note: e.target.value })}
           placeholder="Довільні деталі, спогади, думки..."
-          className="resize-none"
+          className="min-h-24 resize-none rounded-[1rem] border-white/70 bg-white/52 px-4 py-3 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_5px_16px_rgba(71,40,62,.06)] focus-visible:border-pink-300 focus-visible:ring-pink-300/25 dark:border-white/12 dark:bg-white/7"
         />
       </div>
     </>
@@ -162,10 +177,10 @@ function Chip({
       type="button"
       onClick={onClick}
       className={cn(
-        "rounded-full border px-3 py-1.5 text-sm transition-colors",
+        "rounded-full border px-3 py-1.5 text-sm transition-all duration-200",
         active
-          ? "border-primary bg-primary text-primary-foreground"
-          : "border-input bg-transparent hover:bg-accent"
+          ? "border-pink-400/65 bg-pink-500 text-white shadow-[0_5px_12px_rgba(219,39,119,.18)]"
+          : "border-white/70 bg-white/42 hover:bg-white/70 dark:border-white/12 dark:bg-white/5 dark:hover:bg-white/10",
       )}
     >
       {children}
@@ -183,7 +198,7 @@ function SegmentedControl<T extends string>({
   options: { value: T; label: string }[];
 }) {
   return (
-    <div className="inline-flex w-fit gap-0.5 rounded-full border bg-muted p-0.5">
+    <div className="inline-flex w-fit gap-0.5 rounded-full border border-white/65 bg-white/42 p-0.5 dark:border-white/10 dark:bg-white/5">
       {options.map((option) => (
         <button
           key={option.value}
@@ -192,7 +207,7 @@ function SegmentedControl<T extends string>({
           className={cn(
             "rounded-full px-3 py-1 text-xs font-medium transition-colors",
             value === option.value
-              ? "bg-background shadow-sm"
+              ? "bg-white text-pink-700 shadow-sm dark:bg-white/12 dark:text-pink-200"
               : "text-muted-foreground hover:text-foreground"
           )}
         >
@@ -222,7 +237,7 @@ function RatingPicker({
             type="button"
             onClick={() => onChange(n)}
             aria-label={`Оцінка ${n} з 10`}
-            className="p-0.5"
+            className="rounded-md p-0.5 transition-transform active:scale-90"
           >
             <Icon
               className={cn(
@@ -251,6 +266,8 @@ interface IntimateFieldsProps {
 
 function IntimateFields({ form, setForm }: IntimateFieldsProps) {
   const [mode, setMode] = useState<"simple" | "advanced">("simple");
+  const durationId = useId();
+  const protectionId = useId();
 
   const toggleActivity = (activity: IntimateActivity) => {
     const current = form.activities || [];
@@ -284,7 +301,7 @@ function IntimateFields({ form, setForm }: IntimateFieldsProps) {
   };
 
   return (
-    <div className="grid gap-4 rounded-md border p-3">
+    <div className="grid gap-4 rounded-[1.35rem] border border-white/65 bg-white/35 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,.85)] dark:border-white/10 dark:bg-white/4">
       <div className="flex items-center justify-between">
         <Label className="text-sm">Оцінка задоволення</Label>
         <SegmentedControl
@@ -321,9 +338,9 @@ function IntimateFields({ form, setForm }: IntimateFieldsProps) {
 
           <div className="grid grid-cols-2 gap-2">
             <div className="grid gap-2">
-              <Label htmlFor="duration">Тривалість (хв)</Label>
+              <Label htmlFor={durationId}>Тривалість (хв)</Label>
               <Input
-                id="duration"
+                id={durationId}
                 type="number"
                 min={0}
                 value={form.durationMinutes ?? ""}
@@ -335,6 +352,7 @@ function IntimateFields({ form, setForm }: IntimateFieldsProps) {
                       : undefined,
                   })
                 }
+                className="h-12 rounded-[1rem] border-white/70 bg-white/52 px-4 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_5px_16px_rgba(71,40,62,.06)] focus-visible:border-pink-300 focus-visible:ring-pink-300/25 dark:border-white/12 dark:bg-white/7"
               />
             </div>
             <div className="grid gap-2">
@@ -348,7 +366,7 @@ function IntimateFields({ form, setForm }: IntimateFieldsProps) {
                   })
                 }
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-full rounded-[.9rem]">
                   <SelectValue placeholder="Виберіть" />
                 </SelectTrigger>
                 <SelectContent>
@@ -369,8 +387,8 @@ function IntimateFields({ form, setForm }: IntimateFieldsProps) {
                 className={cn(
                   "flex-1 rounded-full border px-3 py-2 text-sm font-medium transition-colors",
                   form.selfFinished
-                    ? "border-rose-500 bg-rose-500 text-white"
-                    : "border-input bg-transparent hover:bg-accent"
+                    ? "border-rose-500 bg-rose-500 text-white shadow-[0_5px_12px_rgba(244,63,94,.18)]"
+                    : "border-white/70 bg-white/42 hover:bg-white/70 dark:border-white/12 dark:bg-white/5"
                 )}
               >
                 {form.selfFinished ? "💖" : "🤍"} Я
@@ -381,8 +399,8 @@ function IntimateFields({ form, setForm }: IntimateFieldsProps) {
                 className={cn(
                   "flex-1 rounded-full border px-3 py-2 text-sm font-medium transition-colors",
                   form.partnerFinished
-                    ? "border-rose-500 bg-rose-500 text-white"
-                    : "border-input bg-transparent hover:bg-accent"
+                    ? "border-rose-500 bg-rose-500 text-white shadow-[0_5px_12px_rgba(244,63,94,.18)]"
+                    : "border-white/70 bg-white/42 hover:bg-white/70 dark:border-white/12 dark:bg-white/5"
                 )}
               >
                 {form.partnerFinished ? "💖" : "🤍"} Партнер
@@ -390,10 +408,10 @@ function IntimateFields({ form, setForm }: IntimateFieldsProps) {
             </div>
           </div>
 
-          <div className="flex items-center justify-between rounded-md border p-3">
-            <Label htmlFor="protectionUsed">Використано захист</Label>
+          <div className="flex items-center justify-between rounded-[1.15rem] border border-white/65 bg-white/42 p-3 dark:border-white/10 dark:bg-white/5">
+            <Label htmlFor={protectionId}>Використано захист</Label>
             <Switch
-              id="protectionUsed"
+              id={protectionId}
               checked={form.protectionUsed ?? false}
               onCheckedChange={(checked) =>
                 setForm({
@@ -417,7 +435,7 @@ function IntimateFields({ form, setForm }: IntimateFieldsProps) {
                   })
                 }
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-full rounded-[.9rem]">
                   <SelectValue placeholder="Виберіть вид захисту" />
                 </SelectTrigger>
                 <SelectContent>

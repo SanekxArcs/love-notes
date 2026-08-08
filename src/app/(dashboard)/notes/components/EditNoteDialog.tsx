@@ -39,7 +39,7 @@ export default function EditNoteDialog({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!note || !form || !form.title.trim() || !form.description.trim()) return;
+    if (!note || !form?.title.trim() || !form.description.trim()) return;
 
     setIsSubmitting(true);
     try {
@@ -54,20 +54,21 @@ export default function EditNoteDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto custom-scrollbar">
+      <DialogContent className="custom-scrollbar max-h-[90svh] overflow-y-auto rounded-[1.75rem] border-white/65 bg-white/78 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_20px_60px_rgba(71,40,62,.18)] backdrop-blur-2xl sm:max-w-md dark:border-white/15 dark:bg-zinc-950/82">
         <DialogHeader>
           <DialogTitle>Редагувати нотатку</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="grid gap-4 py-2">
           <NoteFormFields form={form} setForm={setForm} />
 
-          <div className="flex justify-end gap-2 mt-2">
-            <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            <Button type="button" variant="outline" onClick={() => setIsOpen(false)} className="h-11 rounded-[1rem] border-white/70 bg-white/45 dark:border-white/10 dark:bg-white/6">
               Скасувати
             </Button>
             <Button
               type="submit"
               disabled={isSubmitting || !form.title.trim() || !form.description.trim()}
+              className="h-11 rounded-[1rem] bg-pink-600 text-white hover:bg-pink-500"
             >
               {isSubmitting ? "Збереження..." : "Зберегти зміни"}
             </Button>

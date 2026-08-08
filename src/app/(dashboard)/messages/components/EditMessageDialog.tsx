@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, type FormEvent } from "react";
+import { useState, useEffect, useId, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import type { Message, EditMessagePayload } from "../types";
 import SpecificDateField from "./SpecificDateField";
+import { Loader2 } from "lucide-react";
 
 interface EditMessageDialogProps {
   message: Message | null;
@@ -29,6 +30,8 @@ interface EditMessageDialogProps {
 export default function EditMessageDialog({ message, isOpen, setIsOpen, onSubmit }: EditMessageDialogProps) {
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const editCategoryId = useId();
+  const editMessageId = useId();
 
   useEffect(() => {
     if (message) {
@@ -99,13 +102,13 @@ export default function EditMessageDialog({ message, isOpen, setIsOpen, onSubmit
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="rounded-[1.75rem] border-white/65 bg-white/75 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_20px_60px_rgba(71,40,62,.18)] backdrop-blur-2xl sm:max-w-md dark:border-white/15 dark:bg-zinc-950/80">
         <DialogHeader>
           <DialogTitle>Редагувати повідомлення</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="grid gap-4 py-4">
+        <form onSubmit={handleSubmit} className="grid gap-4 py-2">
           <div className="grid gap-2">
-            <label htmlFor="category" className="text-sm font-medium">
+            <label htmlFor={editCategoryId} className="text-sm font-medium">
               Категорія повідомлення
             </label>
             <Select
@@ -113,11 +116,11 @@ export default function EditMessageDialog({ message, isOpen, setIsOpen, onSubmit
               onValueChange={handleCategoryChange}
               required
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger id={editCategoryId} className="h-11 w-full rounded-[1rem] border-white/70 bg-white/45 dark:border-white/10 dark:bg-white/6">
                 <SelectValue placeholder="Виберіть категорію" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="unknown">Невідома</SelectItem>
+                <SelectItem value="unknown">Повідомлення</SelectItem>
                 <SelectItem value="daily">Щоденне повідомлення</SelectItem>
                 <SelectItem value="extra">Додаткове повідомлення</SelectItem>
               </SelectContent>
@@ -125,16 +128,16 @@ export default function EditMessageDialog({ message, isOpen, setIsOpen, onSubmit
           </div>
 
           <div className="grid gap-2">
-            <label htmlFor="message" className="text-sm font-medium">
+            <label htmlFor={editMessageId} className="text-sm font-medium">
               Текст повідомлення
             </label>
             <Textarea
-              id="message"
+              id={editMessageId}
               value={editingMessage?.text || ""}
               onChange={handleTextChange}
               rows={5}
               placeholder="Напишіть текст повідомлення..."
-              className="resize-none"
+              className="min-h-36 resize-none rounded-[1rem] border-white/70 bg-white/45 px-4 py-3 dark:border-white/10 dark:bg-white/6"
               required
             />
             <p className="text-xs text-gray-500">
@@ -147,7 +150,7 @@ export default function EditMessageDialog({ message, isOpen, setIsOpen, onSubmit
             onChange={handleSpecificDateChange}
           />
 
-          <div className="flex justify-end gap-2 mt-2">
+          <div className="mt-2 grid grid-cols-2 gap-2 [&_button]:rounded-[.9rem]">
             <Button
               type="button"
               variant="outline"
@@ -158,12 +161,13 @@ export default function EditMessageDialog({ message, isOpen, setIsOpen, onSubmit
             <Button
               type="submit"
               disabled={isSubmitting}
+              className="bg-[linear-gradient(145deg,rgba(255,120,176,.98),rgba(225,52,118,.94))] text-white hover:brightness-105"
             >
               {isSubmitting ? (
                 <>
-                  <span className="mr-2 h-4 w-4 animate-spin">⏳</span>
-                  Збереження...
-                </>
+                <Loader2 className="animate-spin" />
+                Збереження...
+              </>
               ) : (
                 "Зберегти зміни"
               )}

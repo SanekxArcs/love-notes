@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -27,6 +27,7 @@ export default function DeleteAllDialog({
 }: DeleteAllDialogProps) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const passwordId = useId();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +49,7 @@ export default function DeleteAllDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="rounded-[1.75rem] border-white/65 bg-white/75 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_20px_60px_rgba(71,40,62,.18)] backdrop-blur-2xl sm:max-w-md dark:border-white/15 dark:bg-zinc-950/80">
         <DialogHeader>
           <DialogTitle>Видалити всі неопубліковані повідомлення</DialogTitle>
           <DialogDescription>
@@ -59,20 +60,21 @@ export default function DeleteAllDialog({
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="password">Пароль</Label>
+              <Label htmlFor={passwordId}>Пароль</Label>
               <Input
-                id="password"
+                id={passwordId}
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Введіть пароль для підтвердження"
                 autoComplete="off"
                 disabled={isLoading}
+                className="h-11 rounded-[1rem] border-white/70 bg-white/45 px-4 dark:border-white/10 dark:bg-white/6"
               />
-              {error && <p className="text-sm text-red-500">{error}</p>}
+              {error ? <p className="text-sm text-red-500">{error}</p> : null}
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="grid grid-cols-2 gap-2 sm:grid-cols-2 [&_button]:m-0 [&_button]:rounded-[.9rem]">
             <Button
               type="button"
               variant="outline"

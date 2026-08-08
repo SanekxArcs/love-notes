@@ -96,7 +96,7 @@ export default function SpecificDateField({
       </div>
       <div className="flex gap-2">
         <Select value={month} onValueChange={handleMonthChange}>
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="h-11 w-full rounded-[1rem] border-white/70 bg-white/45 dark:border-white/10 dark:bg-white/6">
             <SelectValue placeholder="Місяць" />
           </SelectTrigger>
           <SelectContent>
@@ -108,7 +108,7 @@ export default function SpecificDateField({
           </SelectContent>
         </Select>
         <Select value={day} onValueChange={handleDayChange} disabled={!month}>
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="h-11 w-full rounded-[1rem] border-white/70 bg-white/45 dark:border-white/10 dark:bg-white/6">
             <SelectValue placeholder="День" />
           </SelectTrigger>
           <SelectContent>

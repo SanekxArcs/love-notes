@@ -91,12 +91,12 @@ export default function AiChatDialog({ isOpen, setIsOpen }: {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="secondary" className="w-full sm:w-auto">
-          <Sparkles className="mr-2 h-4 w-4" /> AI-помічник
+        <Button variant="secondary" className="h-11 w-full rounded-[1rem] border border-white/70 bg-white/45 px-3 text-xs dark:border-white/10 dark:bg-white/7">
+          <Sparkles className="h-4 w-4" /> AI-помічник
         </Button>
       </DialogTrigger>
-      <DialogContent className="flex h-[80vh] max-h-[700px] flex-col gap-0 p-0 sm:max-w-lg">
-        <DialogHeader className="flex-row items-center justify-between gap-2 border-b p-4 space-y-0">
+      <DialogContent className="flex h-[86svh] max-h-[700px] flex-col gap-0 overflow-hidden rounded-[1.75rem] border-white/65 bg-white/82 p-0 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_20px_60px_rgba(71,40,62,.18)] backdrop-blur-2xl sm:max-w-lg dark:border-white/15 dark:bg-zinc-950/86">
+        <DialogHeader className="flex-row items-center justify-between gap-2 space-y-0 border-b border-white/55 p-4 dark:border-white/10">
           <DialogTitle>AI-помічник</DialogTitle>
           {messages.length > 0 && (
             <Button
@@ -126,7 +126,7 @@ export default function AiChatDialog({ isOpen, setIsOpen }: {
                           key={suggestion}
                           type="button"
                           onClick={() => sendMessage(suggestion)}
-                          className="w-fit rounded-full border px-3 py-1.5 text-left text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                          className="w-fit rounded-full border border-white/70 bg-white/45 px-3 py-1.5 text-left text-xs text-muted-foreground transition-colors hover:bg-white/75 hover:text-foreground dark:border-white/10 dark:bg-white/6"
                         >
                           {suggestion}
                         </button>
@@ -152,7 +152,7 @@ export default function AiChatDialog({ isOpen, setIsOpen }: {
                   </MessageScrollerItem>
                 ))}
 
-                {isSending && (
+                {Boolean(isSending) && (
                   <MessageScrollerItem>
                     <Marker>
                       <MarkerContent className="shimmer">Думаю...</MarkerContent>
@@ -165,7 +165,7 @@ export default function AiChatDialog({ isOpen, setIsOpen }: {
           </MessageScroller>
         </MessageScrollerProvider>
 
-        <form onSubmit={handleSubmit} className="flex gap-2 border-t p-3">
+        <form onSubmit={handleSubmit} className="flex gap-2 border-t border-white/55 bg-white/30 p-3 dark:border-white/10 dark:bg-white/3">
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -177,9 +177,9 @@ export default function AiChatDialog({ isOpen, setIsOpen }: {
             }}
             placeholder="Напиши питання..."
             rows={1}
-            className="min-h-9 resize-none"
+            className="min-h-11 resize-none rounded-[1rem] border-white/70 bg-white/52 px-3 py-2.5 focus-visible:border-pink-300 focus-visible:ring-pink-300/25 dark:border-white/12 dark:bg-white/7"
           />
-          <Button type="submit" disabled={isSending || !input.trim()}>
+          <Button type="submit" disabled={isSending || !input.trim()} className="h-11 rounded-[1rem] bg-pink-600 text-white hover:bg-pink-500">
             Надіслати
           </Button>
         </form>

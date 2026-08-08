@@ -14,6 +14,8 @@ import {
   startOfWeek,
   subMonths,
 } from "date-fns";
+import { uk } from "date-fns/locale";
+import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -71,32 +73,39 @@ export default function CalendarView({
   }, [month]);
 
   return (
-    <div className="rounded-lg border bg-card p-3 sm:p-4">
-      <div className="mb-3 flex items-center justify-between">
+    <motion.section
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.04 }}
+      className="rounded-[1.75rem] border border-white/60 bg-white/52 p-3 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_12px_34px_rgba(71,40,62,.1)] backdrop-blur-2xl sm:p-4 dark:border-white/12 dark:bg-zinc-950/48"
+    >
+      <div className="mb-4 flex items-center justify-between">
         <Button
           variant="outline"
           size="icon"
           onClick={() => onMonthChange(subMonths(month, 1))}
           aria-label="Попередній місяць"
+          className="h-10 w-10 rounded-[1rem] border-white/65 bg-white/50 shadow-[inset_0_1px_0_rgba(255,255,255,.9)] dark:border-white/10 dark:bg-white/7"
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        <p className="text-sm font-medium capitalize">
-          {format(month, "LLLL yyyy")}
+        <p className="text-base font-semibold capitalize tracking-tight">
+          {format(month, "LLLL yyyy", { locale: uk })}
         </p>
         <Button
           variant="outline"
           size="icon"
           onClick={() => onMonthChange(addMonths(month, 1))}
           aria-label="Наступний місяць"
+          className="h-10 w-10 rounded-[1rem] border-white/65 bg-white/50 shadow-[inset_0_1px_0_rgba(255,255,255,.9)] dark:border-white/10 dark:bg-white/7"
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
 
-      <div className="grid grid-cols-7 gap-1 text-center text-xs text-muted-foreground">
+      <div className="mb-1 grid grid-cols-7 gap-1 text-center text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
         {WEEKDAYS.map((day) => (
-          <div key={day} className="py-1">
+          <div key={day} className="py-1.5">
             {day}
           </div>
         ))}
@@ -114,10 +123,11 @@ export default function CalendarView({
               type="button"
               onClick={() => onSelectDate(day)}
               className={cn(
-                "flex min-h-14 flex-col items-center gap-0.5 rounded-md border border-transparent p-1 text-sm hover:bg-accent",
+                "relative flex min-h-14 flex-col items-center gap-0.5 rounded-[.95rem] border border-transparent p-1.5 text-sm transition-all duration-200 hover:bg-white/55 dark:hover:bg-white/8",
                 isOutside && "text-muted-foreground/50",
-                isSelected && "border-primary bg-accent",
-                isToday(day) && !isSelected && "font-semibold text-primary"
+                isSelected &&
+                  "border-pink-300/70 bg-[linear-gradient(145deg,rgba(255,236,245,.95),rgba(255,210,229,.74))] text-pink-950 shadow-[inset_0_1px_1px_rgba(255,255,255,.95),0_5px_14px_rgba(212,62,123,.12)] dark:border-pink-400/30 dark:bg-[linear-gradient(145deg,rgba(131,24,67,.42),rgba(84,20,48,.35))] dark:text-pink-50",
+                isToday(day) && !isSelected && "font-bold text-pink-600 dark:text-pink-300",
               )}
             >
               <span>{format(day, "d")}</span>
@@ -128,7 +138,7 @@ export default function CalendarView({
                       key={event._key}
                       title={event.title || TYPE_ICON[event.type]}
                       className={cn(
-                        "text-[0.65rem] leading-none",
+                        "text-[0.62rem] leading-none",
                         event.isMine ? "opacity-100" : "opacity-60"
                       )}
                     >
@@ -146,7 +156,7 @@ export default function CalendarView({
           );
         })}
       </div>
-    </div>
+    </motion.section>
   );
 }
 

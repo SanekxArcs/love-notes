@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { LoaderCircle } from "lucide-react";
+import { Loader2, LoaderCircle } from "lucide-react";
 
 interface BatchAddDialogProps {
   isOpen: boolean;
@@ -25,6 +25,7 @@ interface BatchAddDialogProps {
 export default function BatchAddDialog({ isOpen, setIsOpen, onSubmit }: BatchAddDialogProps) {
   const [batchMessages, setBatchMessages] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const batchMessagesId = useId();
 
   const resetForm = () => {
     setBatchMessages("");
@@ -70,22 +71,22 @@ export default function BatchAddDialog({ isOpen, setIsOpen, onSubmit }: BatchAdd
         if (!open) resetForm();
       }}
     >
-      <DialogContent>
+      <DialogContent className="rounded-[1.75rem] border-white/65 bg-white/75 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_20px_60px_rgba(71,40,62,.18)] backdrop-blur-2xl sm:max-w-md dark:border-white/15 dark:bg-zinc-950/80">
         <DialogHeader>
           <DialogTitle>Масове додавання повідомлень</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <label htmlFor="batchMessages" className="text-sm font-medium">
+            <label htmlFor={batchMessagesId} className="text-sm font-medium">
               Текст повідомлень (кожне з нового рядка)
             </label>
             <Textarea
-              id="batchMessages"
+              id={batchMessagesId}
               value={batchMessages}
               onChange={(e) => setBatchMessages(e.target.value)}
               rows={10}
               placeholder="Введіть кожне повідомлення з нового рядка..."
-              className="resize-none  max-h-[60svh] overflow-y-auto"
+              className="max-h-[60svh] min-h-56 resize-none overflow-y-auto rounded-[1rem] border-white/70 bg-white/45 px-4 py-3 dark:border-white/10 dark:bg-white/6"
               required
             />
             <p className="text-xs text-gray-500">
@@ -93,7 +94,7 @@ export default function BatchAddDialog({ isOpen, setIsOpen, onSubmit }: BatchAdd
             </p>
           </div>
 
-          <div className="flex justify-end gap-2 mt-2">
+          <div className="mt-2 grid grid-cols-2 gap-2 [&_button]:rounded-[.9rem]">
             <Button
               type="button"
               variant="outline"
@@ -104,13 +105,15 @@ export default function BatchAddDialog({ isOpen, setIsOpen, onSubmit }: BatchAdd
             <Button
               type="submit"
               disabled={!batchMessages.trim() || isSubmitting}
+              className="bg-[linear-gradient(145deg,rgba(255,120,176,.98),rgba(225,52,118,.94))] text-white hover:brightness-105"
             >
               {isSubmitting ? (
                 <>
-                  <LoaderCircle className="animate-spin h-4 w-4" /><span className=" animate-pulse">Збереження...</span>
-                </>
+                <Loader2 className="animate-spin" />
+                Збереження...
+              </>
               ) : (
-                "Зберегти повідомлення"
+                "Зберегти"
               )}
             </Button>
           </div>

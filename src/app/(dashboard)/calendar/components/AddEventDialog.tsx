@@ -89,30 +89,35 @@ export default function AddEventDialog({
       }}
     >
       <DialogTrigger asChild>
-        <Button className="w-full sm:w-auto">
-          <Plus className="mr-2 h-4 w-4" /> Додати подію
+        <Button className="h-11 shrink-0 rounded-[1rem] border border-white/55 bg-[linear-gradient(145deg,rgba(255,120,176,.98),rgba(225,52,118,.94))] px-4 text-white shadow-[inset_0_1px_1px_rgba(255,255,255,.6),0_8px_20px_rgba(207,49,112,.22)] hover:brightness-105">
+          <Plus className="h-4 w-4" /> Додати
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto custom-scrollbar">
+      <DialogContent className="custom-scrollbar max-h-[90svh] overflow-y-auto rounded-[1.75rem] border-white/65 bg-white/78 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_20px_60px_rgba(71,40,62,.18)] backdrop-blur-2xl sm:max-w-md dark:border-white/15 dark:bg-zinc-950/82">
         <DialogHeader>
           <DialogTitle>Нова подія календаря</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="grid gap-4 py-2">
+        <form onSubmit={handleSubmit} className="grid gap-4 py-2 [&_input]:rounded-[.9rem] [&_textarea]:rounded-[1rem]">
           <EventFormFields
             form={form}
             setForm={setForm}
             onTypeChange={handleTypeChange}
           />
 
-          <div className="flex justify-end gap-2 mt-2">
+          <div className="mt-2 grid grid-cols-2 gap-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => setIsOpen(false)}
+              className="h-11 rounded-[1rem] border-white/70 bg-white/45 dark:border-white/10 dark:bg-white/6"
             >
               Скасувати
             </Button>
-            <Button type="submit" disabled={isSubmitting || !form.date}>
+            <Button
+              type="submit"
+              disabled={isSubmitting || !form.date}
+              className="h-11 rounded-[1rem] bg-pink-600 text-white hover:bg-pink-500"
+            >
               {isSubmitting ? "Збереження..." : "Додати подію"}
             </Button>
           </div>

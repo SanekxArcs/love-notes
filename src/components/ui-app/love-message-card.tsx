@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Card,
   CardContent,
@@ -74,6 +74,28 @@ interface LoveMessageCardProps {
   onLikeChange?: (id: string, liked: boolean) => void;
 }
 
+function triggerConfetti() {
+  if (typeof window === "undefined") return;
+
+  try {
+    const heart = confetti.shapeFromText({ text: "❤️" });
+
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 1.2 },
+      shapes: ["circle", heart],
+      colors: ["#FF1493", "#FF69B4", "#FFB6C1", "#FFC0CB"],
+      scalar: 1,
+      gravity: 1.5,
+      drift: 0,
+      ticks: 200,
+    });
+  } catch (error) {
+    console.error("Failed to trigger confetti", error);
+  }
+}
+
 export function LoveMessageCard({
   id,
   message,
@@ -85,37 +107,11 @@ export function LoveMessageCard({
 }: LoveMessageCardProps) {
   const [isLiked, setIsLiked] = useState<boolean>(initialLikeState);
 
-  function triggerConfetti() {
-    // Make sure we're in a browser environment
-    if (typeof window === "undefined") return;
-    
-    try {
-      // Create heart shape
-      const heart = confetti.shapeFromText({ text: '❤️' });
-      
-      // Fallback to default particles if shape creation fails
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 1.2 },
-        shapes: ['circle', heart],
-        colors: ['#FF1493', '#FF69B4', '#FFB6C1', '#FFC0CB'],
-        scalar: 1,
-        gravity: 1.5,
-        drift: 0,
-        ticks: 200
-      });
-    } catch (error) {
-
-      console.error("Failed to trigger confetti", error);
-    }
-  }
-
   useEffect(() => {
     setIsLiked(initialLikeState);
   }, [initialLikeState]);
 
-  const handleLikeClick = async () => {
+  const handleLikeClick = useCallback(async () => {
     const newLikedState = !isLiked;
     setIsLiked(newLikedState);
 
@@ -126,74 +122,51 @@ export function LoveMessageCard({
     if (onLikeChange) {
       onLikeChange(id, newLikedState);
     }
-  };
+  }, [id, isLiked, onLikeChange]);
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
+      transition={{ type: "spring", stiffness: 320, damping: 28 }}
+      whileTap={{ scale: 0.985 }}
       className="relative"
     >
       <Card
-        className={`overflow-hidden rounded-xl relative py-0  gap-0 bg-gradient-to-br from-pink-50 to-rose-50 dark:from-pink-900 dark:to-rose-950`}
+        className="relative gap-0 overflow-hidden rounded-[1.75rem] border border-white/65 bg-white/55 py-0 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_12px_34px_rgba(71,40,62,.12)] backdrop-blur-2xl backdrop-saturate-150 dark:border-white/12 dark:bg-zinc-950/50"
       >
-        {isLiked && <FloatingHearts />}
+        {isLiked ? <FloatingHearts count={5} /> : null}
 
-        <CardHeader className="bg-gradient-to-r from-pink-400 via-rose-300 to-purple-300 dark:from-pink-400 dark:via-rose-500 dark:to-purple-400 text-white py-3">
+        <div className="pointer-events-none absolute -right-16 -top-20 h-44 w-44 rounded-full bg-pink-300/25 blur-3xl dark:bg-pink-700/15" />
+
+        <CardHeader className="px-5 pt-4 pb-0">
           <div className="relative flex items-center justify-between">
-            <div className="text-sm font-medium flex items-center select-none  pointer-cursor">
-              {isToday && (
-                <Sparkles
-                  size={16}
-                  className="mr-1 text-yellow-100 animate-pulse"
-                />
-              )}
+            <div className="flex select-none items-center text-xs font-semibold text-pink-700 dark:text-pink-200">
+              {isToday ? <Sparkles size={14} className="mr-1.5" /> : null}
               {isToday
                   ? "Сьогоднішнє повідомлення"
                   : date ? formatDistanceToNow(date, { addSuffix: true, locale: uk }) : ""}
             </div>
-            {isExtraMessage && (
-              <span className=" absolute  select-none  pointer-cursor -right-4 top-10 px-2 py-0.5 text-xs bg-red-500/50 uppercase scale-80 dark:bg-red-600/50 rounded-full flex items-center">
-                <Star size={10} className="mr-1" /> Додаткове
-                <Star size={10} className="ml-1" />
+            {isExtraMessage ? (
+              <span className="flex select-none items-center rounded-full border border-pink-200/70 bg-pink-100/65 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-pink-700 dark:border-pink-800/50 dark:bg-pink-900/35 dark:text-pink-200">
+                <Star size={10} className="mr-1 fill-current" /> Додаткове
               </span>
-            )}
+            ) : null}
           </div>
         </CardHeader>
 
-        <CardContent className="px-6 pb-3 pt-6 relative ">
-          <div className="absolute -left-1 top-4 text-pink-200 rotate-12 opacity-30 dark:text-pink-900">
-            <Heart size={32} fill="currentColor" />
-          </div>
-          <div className="absolute -right-1 bottom-2 text-pink-200 -rotate-12 opacity-30 dark:text-pink-900">
-            <Heart size={32} fill="currentColor" />
-          </div>
-
-          <p
-            className="text-lg leading-relaxed  select-none  pointer-cursor text-foreground relative z-10 font-medium"
-            style={{
-              // fontFamily: "Georgia, serif",
-              textShadow: "0 1px 2px rgba(0,0,0,0.05)",
-            }}
-          >
-            <span className="text-3xl text-pink-400 leading-none mr-1">
-              &quot;
-            </span>{message}
-            
-            <span className="text-3xl text-pink-400 leading-none ml-1">
-              &quot;
-            </span>
+        <CardContent className="relative px-5 pt-5 pb-4">
+          <p className="relative z-10 select-none text-[1.05rem] font-medium leading-7 tracking-[-.01em] text-zinc-800 dark:text-zinc-100">
+            <span className="mr-1 text-2xl leading-none text-pink-400/80">“</span>
+            {message}
+            <span className="ml-1 text-2xl leading-none text-pink-400/80">”</span>
           </p>
         </CardContent>
 
-        <CardFooter className="flex justify-between  py-3 px-6">
-          <span className="text-xs text-muted-foreground select-none pointer-cursor">
+        <CardFooter className="flex justify-between px-5 pt-0 pb-4">
+          <span className="select-none text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
             {date?.toLocaleDateString("uk-UA", {
-              year: "numeric",
-              month: "long",
+              month: "short",
               day: "numeric",
             })}
           </span>
@@ -201,7 +174,8 @@ export function LoveMessageCard({
             variant="ghost"
             size="icon"
             onClick={handleLikeClick}
-            className="text-gray-600 cursor-pointer dark:text-gray-300 hover:text-pink-500 dark:hover:text-pink-400 hover:bg-pink-100/50 dark:hover:bg-pink-900/30 rounded-full"
+            aria-label={isLiked ? "Прибрати вподобання" : "Вподобати повідомлення"}
+            className="h-10 w-10 cursor-pointer rounded-[1rem] border border-white/70 bg-white/50 text-zinc-500 shadow-[inset_0_1px_0_rgba(255,255,255,.85),0_4px_12px_rgba(71,40,62,.08)] hover:bg-pink-50 hover:text-pink-500 dark:border-white/10 dark:bg-white/8 dark:text-zinc-300 dark:hover:bg-pink-900/25 dark:hover:text-pink-300"
           >
             <AnimatePresence mode="wait">
               <motion.div

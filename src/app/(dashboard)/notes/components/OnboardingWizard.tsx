@@ -104,7 +104,7 @@ export default function OnboardingWizard({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="rounded-[1.75rem] border-white/65 bg-white/82 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_20px_60px_rgba(71,40,62,.18)] backdrop-blur-2xl sm:max-w-md dark:border-white/15 dark:bg-zinc-950/86">
         <DialogHeader>
           <DialogTitle>Заповнимо перші нотатки</DialogTitle>
         </DialogHeader>
@@ -117,13 +117,13 @@ export default function OnboardingWizard({
                 ? "Усі питання вже заповнені!"
                 : "Готово! Перші нотатки збережено."}
             </p>
-            <Button onClick={() => handleClose(false)}>Закрити</Button>
+            <Button onClick={() => handleClose(false)} className="h-11 rounded-[1rem] bg-pink-600 px-5 text-white hover:bg-pink-500">Закрити</Button>
           </div>
         ) : (
           <div className="grid gap-4">
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-pink-100 dark:bg-pink-950/40">
               <div
-                className="h-full rounded-full bg-primary transition-all"
+                className="h-full rounded-full bg-pink-500 transition-all"
                 style={{ width: `${((index) / total) * 100}%` }}
               />
             </div>
@@ -138,7 +138,7 @@ export default function OnboardingWizard({
                 onChange={(e) => setAnswer(e.target.value)}
                 placeholder={question.placeholder}
                 rows={4}
-                className="resize-none"
+                className="min-h-28 resize-none rounded-[1rem] border-white/70 bg-white/52 px-4 py-3 focus-visible:border-pink-300 focus-visible:ring-pink-300/25 dark:border-white/12 dark:bg-white/7"
                 autoFocus
               />
             </div>
@@ -152,10 +152,10 @@ export default function OnboardingWizard({
                 Завершити пізніше
               </Button>
               <div className="flex gap-2">
-                <Button type="button" variant="outline" onClick={handleSkip}>
+                <Button type="button" variant="outline" onClick={handleSkip} className="rounded-[.9rem] border-white/70 bg-white/45 dark:border-white/10 dark:bg-white/6">
                   Пропустити
                 </Button>
-                <Button onClick={handleSave} disabled={isSaving}>
+                <Button onClick={handleSave} disabled={isSaving} className="rounded-[.9rem] bg-pink-600 text-white hover:bg-pink-500">
                   {isSaving ? "Збереження..." : "Далі"}
                 </Button>
               </div>

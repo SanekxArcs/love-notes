@@ -2,90 +2,105 @@
 
 import { memo } from "react";
 import Link from "next/link";
-import { CalendarHeart, MailCheck, MailPlus, MessageCircleHeart, NotebookText } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { CustomTooltip } from "@/components/ui/custom-tooltip";
+import { usePathname } from "next/navigation";
+import { motion } from "framer-motion";
+import {
+  CalendarHeart,
+  Heart,
+  Info,
+  MailPlus,
+  MessageCircleHeart,
+  NotebookText,
+  type LucideIcon,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 import { UserMenu } from "./UserMenu";
-import { WraperIfAdmin } from "@/components/auth/WraperIfAdmin";
 
 type NavItem = {
   href: string;
-  icon: React.ReactNode;
+  icon: LucideIcon;
   label: string;
-  adminOnly?: boolean;
 };
 
 const navigationItems: NavItem[] = [
-  {
-    href: "/dashboard",
-    icon: <MessageCircleHeart />,
-    label: "Панель повідомлень",
-  },
-  {
-    href: "/messages",
-    icon: <MailPlus />,
-    label: "Створити повідомлення",
-  },
-  {
-    href: "/history",
-    icon: <MailCheck />,
-    label: "Історія повідомлень",
-  },
-  {
-    href: "/calendar",
-    icon: <CalendarHeart />,
-    label: "Календар",
-  },
-  {
-    href: "/notes",
-    icon: <NotebookText />,
-    label: "Нотатки про партнера",
-  },
+  { href: "/dashboard", icon: MessageCircleHeart, label: "Головна" },
+  { href: "/messages", icon: MailPlus, label: "Повідомлення" },
+  { href: "/calendar", icon: CalendarHeart, label: "Календар" },
+  { href: "/notes", icon: NotebookText, label: "Нотатки" },
 ];
 
-function NavigationButton({ item }: { item: NavItem }) {
-  if (item.adminOnly) {
-    return (
-      <WraperIfAdmin>
-        <CustomTooltip text={item.label}>
-          <Link href={item.href}>
-            <Button size="icon" variant="outline">
-              {item.icon}
-            </Button>
-          </Link>
-        </CustomTooltip>
-      </WraperIfAdmin>
-    );
-  }
+function NavigationLink({ item, active }: { item: NavItem; active: boolean }) {
+  const Icon = item.icon;
 
   return (
-    <CustomTooltip text={item.label}>
-      <Link href={item.href}>
-        <Button size="icon" variant="outline">
-          {item.icon}
-        </Button>
-      </Link>
-    </CustomTooltip>
+    <Link
+      href={item.href}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "group relative flex h-10 items-center gap-2 rounded-[1rem] px-3 text-xs font-semibold transition-colors",
+        active
+          ? "text-pink-700 dark:text-pink-200"
+          : "text-zinc-600 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-white",
+      )}
+    >
+      {active ? (
+        <motion.span
+          layoutId="desktop-nav-active"
+          className="absolute inset-0 rounded-[1rem] border border-white/65 bg-white/62 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_5px_16px_rgba(71,40,62,.08)] dark:border-white/10 dark:bg-white/9"
+          transition={{ type: "spring", stiffness: 420, damping: 34 }}
+        />
+      ) : null}
+      <Icon className="relative z-10 h-4 w-4 stroke-[1.9] transition-transform group-active:scale-90" />
+      <span className="relative z-10 hidden lg:inline">{item.label}</span>
+    </Link>
   );
 }
 
 function HeaderComponent() {
+  const pathname = usePathname();
+
   return (
-    <header className="mx-auto lg:px-8 max-w-3xl  px-4 pt-6 flex flex-col  md:flex-row gap-6 justify-between">
-      <CustomTooltip text="Повернутися на головну">
-        <Link href="/dashboard">
-          <h1 className="flex flex-col text-xl items-center text-pink-700 font-bold md:items-start gap-4 select-none ">
-            Щоденні повідомлення кохання
-          </h1>
+    <header className="sticky top-0 z-40 hidden px-5 pt-4 md:block lg:px-8">
+      <div className="mx-auto flex h-16 w-full max-w-5xl items-center gap-3 rounded-[1.75rem] border border-white/60 bg-white/55 px-3 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_12px_38px_rgba(71,40,62,.14)] backdrop-blur-2xl backdrop-saturate-150 dark:border-white/15 dark:bg-zinc-950/58">
+        <Link
+          href="/dashboard"
+          aria-label="Love Notes — на головну"
+          className="group flex min-w-0 items-center gap-2.5 rounded-[1rem] pr-2"
+        >
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[1rem] bg-[linear-gradient(145deg,rgba(255,120,176,.98),rgba(225,52,118,.94))] text-white shadow-[inset_0_1px_1px_rgba(255,255,255,.65),0_7px_18px_rgba(207,49,112,.24)] transition-transform group-active:scale-95">
+            <Heart className="h-[1.15rem] w-[1.15rem] fill-current" />
+          </span>
+          <span className="hidden min-w-0 xl:block">
+            <span className="block truncate text-sm font-bold tracking-tight">Love Notes</span>
+            <span className="block truncate text-[10px] text-muted-foreground">Щоденні слова кохання</span>
+          </span>
         </Link>
-      </CustomTooltip>
 
-      <div className="flex flex-row justify-end items-end gap-2 px-4 md:px-0 lg:px-0">
-        {navigationItems.map((item, index) => (
-          <NavigationButton key={index} item={item} />
-        ))}
+        <nav aria-label="Основна навігація" className="flex min-w-0 flex-1 items-center justify-center gap-1">
+          {navigationItems.map((item) => (
+            <NavigationLink
+              key={item.href}
+              item={item}
+              active={
+                item.href === "/dashboard"
+                  ? pathname === item.href
+                  : pathname.startsWith(item.href)
+              }
+            />
+          ))}
+        </nav>
 
-        <UserMenu />
+        <div className="flex shrink-0 items-center gap-1.5">
+          <Link
+            href="/help"
+            aria-label="Про застосунок"
+            title="Про застосунок"
+            className="flex h-10 w-10 items-center justify-center rounded-[1rem] border border-white/60 bg-white/42 text-pink-700 transition-all hover:bg-white/72 active:scale-90 dark:border-white/10 dark:bg-white/6 dark:text-pink-200 dark:hover:bg-white/10"
+          >
+            <Info className="h-[1.05rem] w-[1.05rem] stroke-[1.9]" />
+          </Link>
+          <UserMenu />
+        </div>
       </div>
     </header>
   );

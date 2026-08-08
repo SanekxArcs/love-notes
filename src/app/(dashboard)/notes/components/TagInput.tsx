@@ -28,7 +28,7 @@ export default function TagInput({ value, onChange }: TagInputProps) {
     <div className="grid gap-2">
       <div className="flex flex-wrap gap-1.5">
         {value.map((tag) => (
-          <Badge key={tag} variant="secondary" className="gap-1">
+          <Badge key={tag} variant="secondary" className="gap-1 border border-pink-200/70 bg-pink-50 text-pink-700 dark:border-pink-400/20 dark:bg-pink-950/35 dark:text-pink-200">
             {tag}
             <button
               type="button"
@@ -54,6 +54,7 @@ export default function TagInput({ value, onChange }: TagInputProps) {
         }}
         onBlur={commitDraft}
         placeholder="Додай тег і натисни Enter..."
+        className="h-12 rounded-[1rem] border-white/70 bg-white/52 px-4 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_5px_16px_rgba(71,40,62,.06)] focus-visible:border-pink-300 focus-visible:ring-pink-300/25 dark:border-white/12 dark:bg-white/7"
       />
     </div>
   );
