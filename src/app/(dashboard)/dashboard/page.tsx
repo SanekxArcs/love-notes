@@ -60,9 +60,10 @@ export default function Dashboard() {
       remainingTime,
       canGetMessage,
       isLoading: isMessageLoading || isSettingsLoading,
+      contactNumber: settings.contactNumber,
     };
     window.dispatchEvent(new CustomEvent(DASHBOARD_STATE_EVENT, { detail }));
-  }, [remainingTime, canGetMessage, isMessageLoading, isSettingsLoading]);
+  }, [remainingTime, canGetMessage, isMessageLoading, isSettingsLoading, settings.contactNumber]);
 
   return (
     <PageContainer className="relative">

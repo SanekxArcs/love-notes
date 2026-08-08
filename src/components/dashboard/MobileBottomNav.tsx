@@ -9,6 +9,7 @@ import {
   Mail,
   MailPlus,
   NotebookText,
+  Phone,
   UserRound,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -39,14 +40,14 @@ function NavItem({
       aria-label={label}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "group relative flex h-12 min-w-0 flex-1 items-center justify-center rounded-[1.15rem] transition-colors duration-300",
+        "group relative flex h-12 min-w-0 flex-1 items-center justify-center rounded-full transition-colors duration-300",
         active ? "text-pink-700 dark:text-pink-200" : "text-zinc-600 dark:text-zinc-300",
       )}
     >
       {active ? (
         <motion.span
           layoutId="mobile-nav-active"
-          className="absolute inset-0 rounded-[1.15rem] bg-white/55 shadow-[inset_0_1px_0_rgba(255,255,255,.8),0_5px_14px_rgba(80,40,70,.08)] dark:bg-white/10"
+          className="absolute inset-0 rounded-full bg-white/55 shadow-[inset_0_1px_0_rgba(255,255,255,.8),0_5px_14px_rgba(80,40,70,.08)] dark:bg-white/10"
           transition={{ type: "spring", stiffness: 420, damping: 34 }}
         />
       ) : null}
@@ -62,7 +63,7 @@ function ReceiveMessageIcon() {
   return (
     <span className="relative block h-9 w-9" aria-hidden="true">
       <motion.span
-        className="absolute left-1/2 top-0 -translate-x-1/2"
+        className="absolute left-1/2 -top-2 -translate-x-1/2"
         animate={{ y: [0, 3, 0] }}
         transition={{ duration: 1.35, ease: "easeInOut", repeat: Number.POSITIVE_INFINITY }}
       >
@@ -80,6 +81,7 @@ export function MobileBottomNav() {
     remainingTime: "--:--:--",
     canGetMessage: true,
     isLoading: true,
+    contactNumber: "",
   });
 
   useEffect(() => {
@@ -92,11 +94,13 @@ export function MobileBottomNav() {
 
   const visualState = !isDashboard
     ? "home"
-    : !dashboardState.canGetMessage
-      ? "timer"
-      : dashboardState.isLoading
-        ? "loading"
-        : "receive";
+    : dashboardState.isLoading
+      ? "loading"
+      : dashboardState.canGetMessage
+        ? "receive"
+        : "call";
+
+  const shortRemainingTime = dashboardState.remainingTime.replace(/:\d{2}$/, "");
 
   const centerContent = (
     <AnimatePresence initial={false} mode="wait">
@@ -108,16 +112,7 @@ export function MobileBottomNav() {
         exit={{ opacity: 0, scale: 0.7, y: -8, filter: "blur(5px)" }}
         transition={{ type: "spring", stiffness: 430, damping: 30 }}
       >
-        {visualState === "timer" ? (
-          <span className="flex flex-col items-center leading-none">
-            <span className="text-[9px] font-semibold uppercase tracking-[.14em] opacity-70">
-              завтра
-            </span>
-            <span className="mt-1 font-mono text-[11px] font-bold tracking-tight">
-              {dashboardState.remainingTime || "--:--:--"}
-            </span>
-          </span>
-        ) : visualState === "loading" ? (
+        {visualState === "loading" ? (
           <motion.span
             animate={{ scale: [1, 1.16, 1] }}
             transition={{ duration: 0.9, repeat: Number.POSITIVE_INFINITY }}
@@ -126,6 +121,8 @@ export function MobileBottomNav() {
           </motion.span>
         ) : visualState === "receive" ? (
           <ReceiveMessageIcon />
+        ) : visualState === "call" ? (
+          <Phone className="h-6 w-6" />
         ) : (
           <Heart className="h-6 w-6 fill-current" />
         )}
@@ -136,7 +133,7 @@ export function MobileBottomNav() {
   const centerLabel = isDashboard
     ? dashboardState.canGetMessage
       ? "Отримати повідомлення"
-      : `Наступне повідомлення через ${dashboardState.remainingTime}`
+      : "Зателефонувати партнеру"
     : "На головну";
 
   const requestMessage = useCallback(() => {
@@ -144,15 +141,15 @@ export function MobileBottomNav() {
   }, []);
 
   const centerClassName = cn(
-    "relative z-20 -mt-5 flex h-[4.35rem] shrink-0 items-center justify-center overflow-hidden text-white",
+    "relative z-20 flex h-[4.35rem] shrink-0 items-center justify-center overflow-hidden rounded-full text-white",
     "border border-white/60 bg-[linear-gradient(145deg,rgba(255,120,176,.98),rgba(225,52,118,.94))]",
     "shadow-[inset_0_1px_1px_rgba(255,255,255,.75),inset_0_-10px_24px_rgba(139,15,71,.16),0_12px_30px_rgba(207,49,112,.34)]",
     "disabled:cursor-default",
   );
 
   const centerShape = {
-    width: visualState === "timer" ? 82.4 : 69.6,
-    borderRadius: visualState === "timer" ? 24.8 : 26.4,
+    width: 69.6,
+    borderRadius: 9999,
   };
 
   return (
@@ -160,7 +157,7 @@ export function MobileBottomNav() {
       aria-label="Основна навігація"
       className="fixed inset-x-0 bottom-0 z-50 px-3 pb-[max(.75rem,env(safe-area-inset-bottom))] md:hidden"
     >
-      <div className="mx-auto flex h-17 max-w-md items-center gap-1 rounded-[2rem] border border-white/60 bg-white/55 px-2 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_12px_42px_rgba(71,40,62,.18)] backdrop-blur-2xl backdrop-saturate-150 dark:border-white/15 dark:bg-zinc-950/55">
+      <div className="mx-auto flex h-17 max-w-md items-center gap-1 rounded-full border border-white/60 bg-white/55 px-2 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_12px_42px_rgba(71,40,62,.18)] backdrop-blur-2xl backdrop-saturate-150 dark:border-white/15 dark:bg-zinc-950/55">
         <div className="flex min-w-0 flex-1 items-center">
           {navItems.slice(0, 2).map((item) => (
             <NavItem key={item.href} {...item} active={pathname.startsWith(item.href)} />
@@ -168,25 +165,43 @@ export function MobileBottomNav() {
         </div>
 
         {isDashboard ? (
-          <motion.button
-            type="button"
-            aria-label={centerLabel}
-            title={centerLabel}
-            className={centerClassName}
-            animate={centerShape}
-            transition={{ type: "spring", stiffness: 380, damping: 30 }}
-            whileTap={{ scale: 0.94 }}
-            disabled={dashboardState.isLoading || !dashboardState.canGetMessage}
-            onClick={requestMessage}
-          >
-            {centerContent}
-          </motion.button>
+          <div className="relative z-20 -mt-5 flex shrink-0 items-center">
+            {!dashboardState.canGetMessage && !dashboardState.isLoading ? (
+              <span className="pointer-events-none absolute bottom-full left-1/2 mb-1 -translate-x-1/2 rounded-full border border-white/70 bg-white/75 px-2.5 py-1 font-mono text-[10px] font-bold tracking-tight text-pink-700 shadow-[0_5px_14px_rgba(71,40,62,.12)] backdrop-blur-xl dark:border-white/15 dark:bg-zinc-950/75 dark:text-pink-200">
+                {shortRemainingTime || "--:--"}
+              </span>
+            ) : null}
+            <motion.button
+              type="button"
+              aria-label={centerLabel}
+              title={centerLabel}
+              className={centerClassName}
+              initial={centerShape}
+              animate={centerShape}
+              transition={{ type: "spring", stiffness: 380, damping: 30 }}
+              whileTap={{ scale: 0.94 }}
+              disabled={
+                dashboardState.isLoading ||
+                (!dashboardState.canGetMessage && !dashboardState.contactNumber)
+              }
+              onClick={
+                dashboardState.canGetMessage
+                  ? requestMessage
+                  : () => {
+                      window.location.href = `tel:${dashboardState.contactNumber}`;
+                    }
+              }
+            >
+              {centerContent}
+            </motion.button>
+          </div>
         ) : (
           <MotionLink
             href="/dashboard"
             aria-label={centerLabel}
             title={centerLabel}
-            className={centerClassName}
+            className={cn(centerClassName, "-mt-5")}
+            initial={centerShape}
             animate={centerShape}
             transition={{ type: "spring", stiffness: 380, damping: 30 }}
             whileTap={{ scale: 0.94 }}

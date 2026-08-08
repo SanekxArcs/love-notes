@@ -5,4 +5,5 @@ export type DashboardNavState = {
   remainingTime: string;
   canGetMessage: boolean;
   isLoading: boolean;
+  contactNumber: string;
 };
