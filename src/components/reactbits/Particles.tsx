@@ -116,7 +116,15 @@ const Particles: React.FC<ParticlesProps> = ({
     const container = containerRef.current;
     if (!container) return;
 
-    const renderer = new Renderer({ depth: false, alpha: true });
+    const mobileQuery = window.matchMedia("(max-width: 767px), (pointer: coarse)");
+    const reducedMotionQuery = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    );
+    const renderer = new Renderer({
+      depth: false,
+      alpha: true,
+      dpr: Math.min(window.devicePixelRatio || 1, 1.5),
+    });
     const gl = renderer.gl;
     container.appendChild(gl.canvas);
     gl.clearColor(0, 0, 0, 0);
@@ -124,27 +132,42 @@ const Particles: React.FC<ParticlesProps> = ({
     const camera = new Camera(gl, { fov: 15 });
     camera.position.set(0, 0, cameraDistance);
 
+    let containerRect = container.getBoundingClientRect();
+    let renderWhenPaused: (() => void) | undefined;
     const resize = () => {
       const width = container.clientWidth;
       const height = container.clientHeight;
+      if (!width || !height) return;
+      containerRect = container.getBoundingClientRect();
       renderer.setSize(width, height);
-      camera.perspective({ aspect: gl.canvas.width / gl.canvas.height });
+      camera.perspective({ aspect: width / height });
+      renderWhenPaused?.();
     };
-    window.addEventListener("resize", resize, false);
+    const resizeObserver = new ResizeObserver(resize);
+    resizeObserver.observe(container);
     resize();
 
-    const handleMouseMove = (e: MouseEvent) => {
-      const rect = container.getBoundingClientRect();
-      const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      const y = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
+    const refreshContainerRect = () => {
+      containerRect = container.getBoundingClientRect();
+    };
+    const handlePointerMove = (e: PointerEvent) => {
+      if (!containerRect.width || !containerRect.height) return;
+      const x = ((e.clientX - containerRect.left) / containerRect.width) * 2 - 1;
+      const y = -(
+        ((e.clientY - containerRect.top) / containerRect.height) * 2 -
+        1
+      );
       mouseRef.current = { x, y };
     };
 
     if (moveParticlesOnHover) {
-      container.addEventListener("mousemove", handleMouseMove);
+      container.addEventListener("pointerenter", refreshContainerRect);
+      container.addEventListener("pointermove", handlePointerMove);
     }
 
-    const count = particleCount;
+    const count = mobileQuery.matches
+      ? Math.min(particleCount, 150)
+      : particleCount;
     const positions = new Float32Array(count * 3);
     const randoms = new Float32Array(count * 4);
     const colors = new Float32Array(count * 3);
@@ -193,16 +216,17 @@ const Particles: React.FC<ParticlesProps> = ({
 
     const particles = new Mesh(gl, { mode: gl.POINTS, geometry, program });
 
-    let animationFrameId: number;
+    let animationFrameId = 0;
     let lastTime = performance.now();
+    let lastRenderedAt = 0;
     let elapsed = 0;
+    let isRunning = false;
+    let isIntersecting = true;
+    let isDocumentVisible = document.visibilityState === "visible";
+    let prefersReducedMotion = reducedMotionQuery.matches;
+    const frameInterval = mobileQuery.matches ? 1000 / 30 : 1000 / 60;
 
-    const update = (t: number) => {
-      animationFrameId = requestAnimationFrame(update);
-      const delta = t - lastTime;
-      lastTime = t;
-      elapsed += delta * speed;
-
+    const render = () => {
       program.uniforms.uTime.value = elapsed * 0.001;
 
       if (moveParticlesOnHover) {
@@ -221,18 +245,75 @@ const Particles: React.FC<ParticlesProps> = ({
 
       renderer.render({ scene: particles, camera });
     };
+    renderWhenPaused = () => {
+      if (!isRunning) render();
+    };
 
-    animationFrameId = requestAnimationFrame(update);
+    const update = (t: number) => {
+      animationFrameId = requestAnimationFrame(update);
+      if (t - lastRenderedAt < frameInterval) return;
+
+      const delta = Math.min(t - lastTime, 50);
+      lastTime = t;
+      lastRenderedAt = t;
+      elapsed += delta * speed;
+      render();
+    };
+
+    const syncAnimation = () => {
+      const shouldRun =
+        isDocumentVisible && isIntersecting && !prefersReducedMotion;
+
+      if (shouldRun && !isRunning) {
+        isRunning = true;
+        lastTime = performance.now();
+        lastRenderedAt = 0;
+        animationFrameId = requestAnimationFrame(update);
+      } else if (!shouldRun && isRunning) {
+        isRunning = false;
+        cancelAnimationFrame(animationFrameId);
+      }
+
+      if (!shouldRun && isDocumentVisible && isIntersecting) render();
+    };
+
+    const handleVisibilityChange = () => {
+      isDocumentVisible = document.visibilityState === "visible";
+      syncAnimation();
+    };
+    const handleReducedMotionChange = (event: MediaQueryListEvent) => {
+      prefersReducedMotion = event.matches;
+      syncAnimation();
+    };
+    const intersectionObserver = new IntersectionObserver(([entry]) => {
+      isIntersecting = entry?.isIntersecting ?? false;
+      syncAnimation();
+    });
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    reducedMotionQuery.addEventListener("change", handleReducedMotionChange);
+    intersectionObserver.observe(container);
+    render();
+    syncAnimation();
 
     return () => {
-      window.removeEventListener("resize", resize);
+      resizeObserver.disconnect();
+      intersectionObserver.disconnect();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      reducedMotionQuery.removeEventListener(
+        "change",
+        handleReducedMotionChange,
+      );
       if (moveParticlesOnHover) {
-        container.removeEventListener("mousemove", handleMouseMove);
+        container.removeEventListener("pointerenter", refreshContainerRect);
+        container.removeEventListener("pointermove", handlePointerMove);
       }
       cancelAnimationFrame(animationFrameId);
+      renderWhenPaused = undefined;
       if (container.contains(gl.canvas)) {
         container.removeChild(gl.canvas);
       }
+      gl.getExtension("WEBGL_lose_context")?.loseContext();
     };
   }, [
     particleCount,

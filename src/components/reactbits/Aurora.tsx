@@ -141,7 +141,8 @@ export default function Aurora(props: AuroraProps) {
     const renderer = new Renderer({
       alpha: true,
       premultipliedAlpha: true,
-      antialias: true,
+      antialias: false,
+      dpr: Math.min(window.devicePixelRatio || 1, 1.5),
     });
     const gl = renderer.gl;
     gl.clearColor(0, 0, 0, 0);
@@ -149,18 +150,10 @@ export default function Aurora(props: AuroraProps) {
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     gl.canvas.style.backgroundColor = "transparent";
 
-    let program: Program | undefined ;
-
-    function resize() {
-      if (!ctn) return;
-      const width = ctn.offsetWidth;
-      const height = ctn.offsetHeight;
-      renderer.setSize(width, height);
-      if (program) {
-        program.uniforms.uResolution.value = [width, height];
-      }
-    }
-    window.addEventListener("resize", resize);
+    const mobileQuery = window.matchMedia("(max-width: 767px), (pointer: coarse)");
+    const reducedMotionQuery = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    );
 
     const geometry = new Triangle(gl);
     if (geometry.attributes.uv) {
@@ -177,7 +170,7 @@ export default function Aurora(props: AuroraProps) {
       return [c.r, c.g, c.b];
     });
 
-    program = new Program(gl, {
+    const program = new Program(gl, {
       vertex: VERT,
       fragment: FRAG,
       uniforms: {
@@ -192,29 +185,100 @@ export default function Aurora(props: AuroraProps) {
     const mesh = new Mesh(gl, { geometry, program });
     ctn.appendChild(gl.canvas);
 
+    let cachedStopsKey = colorStops.join("|");
     let animateId = 0;
-    const update = (t: number) => {
-      animateId = requestAnimationFrame(update);
-      const { time = t * 0.01, speed = 1.0 } = propsRef.current;
-      if (program) {
-        program.uniforms.uTime.value = time * speed * 0.1;
-        program.uniforms.uAmplitude.value = propsRef.current.amplitude ?? 1.0;
-        program.uniforms.uBlend.value = propsRef.current.blend ?? blend;
-        const stops = propsRef.current.colorStops ?? colorStops;
+    let isRunning = false;
+    let isIntersecting = true;
+    let isDocumentVisible = document.visibilityState === "visible";
+    let prefersReducedMotion = reducedMotionQuery.matches;
+    let lastRenderedAt = 0;
+    const frameInterval = mobileQuery.matches ? 1000 / 30 : 1000 / 60;
+
+    const syncUniforms = () => {
+      program.uniforms.uAmplitude.value = propsRef.current.amplitude ?? 1.0;
+      program.uniforms.uBlend.value = propsRef.current.blend ?? 0.5;
+
+      const stops = propsRef.current.colorStops ?? colorStops;
+      const stopsKey = stops.join("|");
+      if (stopsKey !== cachedStopsKey) {
+        cachedStopsKey = stopsKey;
         program.uniforms.uColorStops.value = stops.map((hex: string) => {
-          const c = new Color(hex);
-          return [c.r, c.g, c.b];
+          const color = new Color(hex);
+          return [color.r, color.g, color.b];
         });
-        renderer.render({ scene: mesh });
       }
     };
-    animateId = requestAnimationFrame(update);
+
+    const render = (t: number) => {
+      const { time = t * 0.01, speed = 1.0 } = propsRef.current;
+      program.uniforms.uTime.value = time * speed * 0.1;
+      syncUniforms();
+      renderer.render({ scene: mesh });
+    };
+
+    const resize = () => {
+      const width = ctn.clientWidth;
+      const height = ctn.clientHeight;
+      if (!width || !height) return;
+      renderer.setSize(width, height);
+      program.uniforms.uResolution.value = [gl.canvas.width, gl.canvas.height];
+      if (!isRunning) render(0);
+    };
+    const resizeObserver = new ResizeObserver(resize);
+    resizeObserver.observe(ctn);
+
+    const update = (t: number) => {
+      animateId = requestAnimationFrame(update);
+      if (t - lastRenderedAt < frameInterval) return;
+      lastRenderedAt = t;
+      render(t);
+    };
+
+    const syncAnimation = () => {
+      const shouldRun =
+        isDocumentVisible && isIntersecting && !prefersReducedMotion;
+
+      if (shouldRun && !isRunning) {
+        isRunning = true;
+        lastRenderedAt = 0;
+        animateId = requestAnimationFrame(update);
+      } else if (!shouldRun && isRunning) {
+        isRunning = false;
+        cancelAnimationFrame(animateId);
+      }
+
+      if (!shouldRun && isDocumentVisible && isIntersecting) render(0);
+    };
+
+    const handleVisibilityChange = () => {
+      isDocumentVisible = document.visibilityState === "visible";
+      syncAnimation();
+    };
+    const handleReducedMotionChange = (event: MediaQueryListEvent) => {
+      prefersReducedMotion = event.matches;
+      syncAnimation();
+    };
+    const intersectionObserver = new IntersectionObserver(([entry]) => {
+      isIntersecting = entry?.isIntersecting ?? false;
+      syncAnimation();
+    });
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    reducedMotionQuery.addEventListener("change", handleReducedMotionChange);
+    intersectionObserver.observe(ctn);
 
     resize();
+    syncAnimation();
 
     return () => {
       cancelAnimationFrame(animateId);
-      window.removeEventListener("resize", resize);
+      resizeObserver.disconnect();
+      intersectionObserver.disconnect();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      reducedMotionQuery.removeEventListener(
+        "change",
+        handleReducedMotionChange,
+      );
       if (ctn && gl.canvas.parentNode === ctn) {
         ctn.removeChild(gl.canvas);
       }
