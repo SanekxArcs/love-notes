@@ -4,6 +4,7 @@ export interface PartnerNote {
   description: string;
   tags?: string[];
   onboardingQuestionId?: string;
+  mirroredFromNoteKey?: string;
   isShared?: boolean;
   createdAt?: string;
   updatedAt?: string;
@@ -11,7 +12,11 @@ export interface PartnerNote {
 
 export type NewPartnerNote = Pick<
   PartnerNote,
-  "title" | "description" | "tags" | "onboardingQuestionId"
+  | "title"
+  | "description"
+  | "tags"
+  | "onboardingQuestionId"
+  | "mirroredFromNoteKey"
 >;
 
 export type EditPartnerNotePayload = Pick<
@@ -24,6 +29,17 @@ export interface SharedPartnerNote {
   title: string;
   description: string;
   tags?: string[];
+  onboardingQuestionId?: string;
+}
+
+export interface NoteSuggestion {
+  key: string;
+  title: string;
+  question: string;
+  tags: string[];
+  onboardingQuestionId?: string;
+  createdAt?: string;
+  partnerName: string;
 }
 
 export interface ChatTurn {

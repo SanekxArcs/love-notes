@@ -106,6 +106,29 @@ export const userType = defineType({
       description: "Private notes this user keeps about their partner (never shared with the partner)",
     }),
     defineField({
+      name: "compatibilityAnalysis",
+      title: "Saved compatibility analysis",
+      type: "object",
+      description: "Latest AI compatibility analysis generated for this user",
+      fields: [
+        defineField({ name: "text", title: "Analysis", type: "text" }),
+        defineField({ name: "generatedAt", title: "Generated at", type: "datetime" }),
+        defineField({ name: "ownNotesCount", title: "Own notes count", type: "number" }),
+        defineField({
+          name: "partnerNotesCount",
+          title: "Partner notes count",
+          type: "number",
+        }),
+      ],
+    }),
+    defineField({
+      name: "dismissedNoteSuggestionKeys",
+      title: "Dismissed partner note suggestions",
+      type: "array",
+      of: [{ type: "string" }],
+      hidden: true,
+    }),
+    defineField({
       name: "geminiApiKey",
       title: "Gemini API Key",
       type: "string",

@@ -3,6 +3,8 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
@@ -36,6 +38,17 @@ import { getLanguage } from "@/lib/languages";
 import SpecificDateField from "./SpecificDateField";
 
 type ScanMode = "local" | "ai";
+type MessageLength = "short" | "medium" | "long";
+
+const MESSAGE_LENGTHS: Array<{
+  value: MessageLength;
+  label: string;
+  description: string;
+}> = [
+  { value: "short", label: "Коротке", description: "1 речення" },
+  { value: "medium", label: "Середнє", description: "2–3 речення" },
+  { value: "long", label: "Вільне", description: "Без обмежень" },
+];
 
 const MAX_SCAN_IMAGE_DIMENSION = 1600;
 const UNIQUENESS_DEBOUNCE_MS = 400;
@@ -102,7 +115,10 @@ export default function AddMessageDialog({
   const [uniquenessScore, setUniquenessScore] = useState<number | null>(null);
   const [isGeneratePromptOpen, setIsGeneratePromptOpen] = useState(false);
   const [generatePrompt, setGeneratePrompt] = useState("");
+  const [includePartnerNotes, setIncludePartnerNotes] = useState(true);
+  const [messageLengthIndex, setMessageLengthIndex] = useState(1);
   const generatePromptId = useId();
+  const includePartnerNotesId = useId();
   const categoryId = useId();
   const messageId = useId();
   const [newMessage, setNewMessage] = useState({
@@ -144,6 +160,9 @@ export default function AddMessageDialog({
       specificDate: "",
     });
     setUniquenessScore(null);
+    setGeneratePrompt("");
+    setIncludePartnerNotes(true);
+    setMessageLengthIndex(1);
   };
 
   const handleGenerate = async (prompt?: string) => {
@@ -152,7 +171,11 @@ export default function AddMessageDialog({
       const response = await fetch("/api/messages/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: prompt?.trim() || undefined }),
+        body: JSON.stringify({
+          prompt: prompt?.trim() || undefined,
+          includePartnerNotes,
+          length: MESSAGE_LENGTHS[messageLengthIndex].value,
+        }),
       });
       const data = await response.json();
 
@@ -392,8 +415,8 @@ export default function AddMessageDialog({
                     {isGenerating ? "Генерація..." : "Згенерувати AI"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent align="end" className="w-80 rounded-[1.25rem] border-white/65 bg-white/80 shadow-xl backdrop-blur-2xl dark:border-white/15 dark:bg-zinc-950/85">
-                  <div className="grid gap-2">
+                <PopoverContent align="end" className="w-[calc(100vw-2rem)] max-w-96 rounded-[1.35rem] border-white/65 bg-white/85 p-4 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_16px_45px_rgba(71,40,62,.18)] backdrop-blur-2xl dark:border-white/15 dark:bg-zinc-950/88">
+                  <div className="grid gap-4">
                     <label htmlFor={generatePromptId} className="text-sm font-medium">
                       Що хочете сказати партнеру?
                     </label>
@@ -404,7 +427,61 @@ export default function AddMessageDialog({
                       onChange={(e) => setGeneratePrompt(e.target.value)}
                       placeholder="Наприклад: дякую за підтримку сьогодні"
                     />
-                    <div className="flex justify-end gap-2 mt-1">
+
+                    <div className="rounded-[1.15rem] border border-white/65 bg-white/42 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,.85)] dark:border-white/10 dark:bg-white/5">
+                      <div className="mb-3 flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-medium">Довжина повідомлення</p>
+                          <p className="mt-0.5 text-[11px] text-muted-foreground">
+                            {MESSAGE_LENGTHS[messageLengthIndex].description}
+                          </p>
+                        </div>
+                        <span className="rounded-full bg-pink-100/80 px-2.5 py-1 text-[11px] font-semibold text-pink-700 dark:bg-pink-950/45 dark:text-pink-200">
+                          {MESSAGE_LENGTHS[messageLengthIndex].label}
+                        </span>
+                      </div>
+                      <Slider
+                        min={0}
+                        max={2}
+                        step={1}
+                        value={[messageLengthIndex]}
+                        onValueChange={([value]) => setMessageLengthIndex(value)}
+                        aria-label="Довжина AI повідомлення"
+                        className="[&_[data-slot=slider-range]]:bg-linear-to-r [&_[data-slot=slider-range]]:from-pink-400 [&_[data-slot=slider-range]]:to-rose-500 [&_[data-slot=slider-thumb]]:size-5 [&_[data-slot=slider-thumb]]:border-pink-500 [&_[data-slot=slider-thumb]]:bg-white [&_[data-slot=slider-track]]:h-2 [&_[data-slot=slider-track]]:bg-pink-100 dark:[&_[data-slot=slider-thumb]]:bg-zinc-950 dark:[&_[data-slot=slider-track]]:bg-white/10"
+                      />
+                      <div className="mt-2 grid grid-cols-3 text-[10px] font-medium text-muted-foreground">
+                        {MESSAGE_LENGTHS.map((option, index) => (
+                          <span
+                            key={option.value}
+                            className={`${index === 0 ? "text-left" : index === 1 ? "text-center" : "text-right"} ${index === messageLengthIndex ? "text-pink-700 dark:text-pink-200" : ""}`}
+                          >
+                            {option.label}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <label
+                      htmlFor={includePartnerNotesId}
+                      className="flex cursor-pointer items-center justify-between gap-3 rounded-[1.15rem] border border-white/65 bg-white/42 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,.85)] dark:border-white/10 dark:bg-white/5"
+                    >
+                      <span>
+                        <span className="block text-sm font-medium">
+                          Врахувати нотатки про партнера
+                        </span>
+                        <span className="mt-0.5 block text-[11px] leading-4 text-muted-foreground">
+                          AI вибере деталі з усіх нотаток для більш особистого й унікального листа.
+                        </span>
+                      </span>
+                      <Switch
+                        id={includePartnerNotesId}
+                        checked={includePartnerNotes}
+                        onCheckedChange={setIncludePartnerNotes}
+                        className="data-[state=checked]:bg-pink-600"
+                      />
+                    </label>
+
+                    <div className="flex justify-end gap-2">
                       <Button
                         type="button"
                         variant="ghost"

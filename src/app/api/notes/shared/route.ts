@@ -21,17 +21,22 @@ export async function GET() {
 
     const partner = await sanityClient.fetch(
       `*[_type == "user" && partnerIdToSend == $partnerId][0]{
+        name,
         "notes": partnerNotes[isShared == true]{
           _key,
           title,
           description,
-          tags
+          tags,
+          onboardingQuestionId
         }
       }`,
       { partnerId }
     );
 
-    return NextResponse.json({ notes: partner?.notes ?? [] });
+    return NextResponse.json({
+      notes: partner?.notes ?? [],
+      partnerName: partner?.name ?? "Партнер",
+    });
   } catch (error) {
     console.error("Error fetching partner's shared notes:", error);
     return NextResponse.json(

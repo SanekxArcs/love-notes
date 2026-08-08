@@ -15,9 +15,14 @@ export interface NoteFormValue {
 interface NoteFormFieldsProps {
   form: NoteFormValue;
   setForm: (form: NoteFormValue) => void;
+  availableTags?: string[];
 }
 
-export default function NoteFormFields({ form, setForm }: NoteFormFieldsProps) {
+export default function NoteFormFields({
+  form,
+  setForm,
+  availableTags,
+}: NoteFormFieldsProps) {
   const titleId = useId();
   const descriptionId = useId();
 
@@ -53,6 +58,7 @@ export default function NoteFormFields({ form, setForm }: NoteFormFieldsProps) {
         <TagInput
           value={form.tags}
           onChange={(tags) => setForm({ ...form, tags })}
+          suggestions={availableTags}
         />
       </div>
     </>

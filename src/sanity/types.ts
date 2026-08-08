@@ -21,6 +21,7 @@ export type PartnerNote = {
   description?: string;
   tags?: Array<string>;
   onboardingQuestionId?: string;
+  mirroredFromNoteKey?: string;
   isShared?: boolean;
   createdAt?: string;
   updatedAt?: string;
@@ -111,6 +112,13 @@ export type User = {
       _key: string;
     } & PartnerNote
   >;
+  compatibilityAnalysis?: {
+    text?: string;
+    generatedAt?: string;
+    ownNotesCount?: number;
+    partnerNotesCount?: number;
+  };
+  dismissedNoteSuggestionKeys?: Array<string>;
   geminiApiKey?: string;
   partnerInfo?: string;
   aiScanLanguage?: "uk" | "en" | "ru" | "pl" | "de" | "es" | "fr";

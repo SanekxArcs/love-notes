@@ -16,6 +16,7 @@ interface EditNoteDialogProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   onSubmit: (key: string, data: EditPartnerNotePayload) => Promise<boolean>;
+  availableTags?: string[];
 }
 
 export default function EditNoteDialog({
@@ -23,6 +24,7 @@ export default function EditNoteDialog({
   isOpen,
   setIsOpen,
   onSubmit,
+  availableTags,
 }: EditNoteDialogProps) {
   const [form, setForm] = useState<NoteFormValue | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -59,7 +61,11 @@ export default function EditNoteDialog({
           <DialogTitle>Редагувати нотатку</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="grid gap-4 py-2">
-          <NoteFormFields form={form} setForm={setForm} />
+          <NoteFormFields
+            form={form}
+            setForm={setForm}
+            availableTags={availableTags}
+          />
 
           <div className="mt-2 grid grid-cols-2 gap-2">
             <Button type="button" variant="outline" onClick={() => setIsOpen(false)} className="h-11 rounded-[1rem] border-white/70 bg-white/45 dark:border-white/10 dark:bg-white/6">

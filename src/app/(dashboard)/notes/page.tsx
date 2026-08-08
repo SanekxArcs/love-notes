@@ -17,10 +17,12 @@ import AiChatDialog from "./components/AiChatDialog";
 import MatchAnalysisDialog from "./components/MatchAnalysisDialog";
 import OnboardingWizard from "./components/OnboardingWizard";
 import SharedNotesDialog from "./components/SharedNotesDialog";
+import NoteSuggestions from "./components/NoteSuggestions";
 import { ONBOARDING_QUESTIONS } from "./data/onboarding-questions";
 import type {
   EditPartnerNotePayload,
   NewPartnerNote,
+  NoteSuggestion,
   PartnerNote,
   SharedPartnerNote,
 } from "./types";
@@ -39,6 +41,19 @@ function categoryLabel(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
+function normalizeSearchText(value: string) {
+  return value
+    .normalize("NFKD")
+    .toLocaleLowerCase("uk")
+    .replace(/[’ʼ'`]/g, "")
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .trim();
+}
+
+const onboardingQuestionById = new Map(
+  ONBOARDING_QUESTIONS.map((question) => [question.id, question]),
+);
+
 export default function NotesPage() {
   const [notes, setNotes] = useState<PartnerNote[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -53,6 +68,9 @@ export default function NotesPage() {
   const [editingNote, setEditingNote] = useState<PartnerNote | null>(null);
   const [deletingNote, setDeletingNote] = useState<PartnerNote | null>(null);
   const [sharedNotes, setSharedNotes] = useState<SharedPartnerNote[]>([]);
+  const [sharedPartnerName, setSharedPartnerName] = useState("Партнер");
+  const [noteSuggestions, setNoteSuggestions] = useState<NoteSuggestion[]>([]);
+  const [activeSuggestion, setActiveSuggestion] = useState<NoteSuggestion | null>(null);
 
   const fetchNotes = useCallback(async () => {
     try {
@@ -86,8 +104,20 @@ export default function NotesPage() {
       const response = await fetch("/api/notes/shared");
       const data = await response.json();
       setSharedNotes(data.notes ?? []);
+      setSharedPartnerName(data.partnerName ?? "Партнер");
     } catch (error) {
       console.error("Error fetching partner's shared notes:", error);
+    }
+  }, []);
+
+  const fetchNoteSuggestions = useCallback(async () => {
+    try {
+      const response = await fetch("/api/notes/suggestions", { cache: "no-store" });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      setNoteSuggestions(data.suggestions ?? []);
+    } catch (error) {
+      console.error("Error fetching note suggestions:", error);
     }
   }, []);
 
@@ -95,7 +125,8 @@ export default function NotesPage() {
     fetchNotes();
     fetchGeminiKeyStatus();
     fetchSharedNotes();
-  }, [fetchGeminiKeyStatus, fetchNotes, fetchSharedNotes]);
+    fetchNoteSuggestions();
+  }, [fetchGeminiKeyStatus, fetchNoteSuggestions, fetchNotes, fetchSharedNotes]);
 
   const handleAddNote = async (data: NewPartnerNote): Promise<boolean> => {
     try {
@@ -112,6 +143,11 @@ export default function NotesPage() {
       }
 
       setNotes((prev) => [result.note, ...prev]);
+      if (result.note.mirroredFromNoteKey) {
+        setNoteSuggestions((prev) =>
+          prev.filter((suggestion) => suggestion.key !== result.note.mirroredFromNoteKey),
+        );
+      }
       toast.success("Нотатку успішно додано!");
       return true;
     } catch (error) {
@@ -119,6 +155,29 @@ export default function NotesPage() {
       toast.error("Сталася помилка під час додавання нотатки");
       return false;
     }
+  };
+
+  const handleDismissSuggestion = async (suggestion: NoteSuggestion) => {
+    const previousSuggestions = noteSuggestions;
+    setNoteSuggestions((prev) => prev.filter((item) => item.key !== suggestion.key));
+
+    try {
+      const response = await fetch("/api/notes/suggestions", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ suggestionKey: suggestion.key }),
+      });
+      if (!response.ok) throw new Error("Failed to dismiss suggestion");
+    } catch (error) {
+      console.error("Error dismissing note suggestion:", error);
+      setNoteSuggestions(previousSuggestions);
+      toast.error("Не вдалося приховати пропозицію");
+    }
+  };
+
+  const handleAcceptSuggestion = (suggestion: NoteSuggestion) => {
+    setActiveSuggestion(suggestion);
+    setIsAddOpen(true);
   };
 
   const handleEditNote = async (
@@ -234,13 +293,27 @@ export default function NotesPage() {
   };
 
   const filteredNotes = useMemo(() => {
-    const query = search.trim().toLowerCase();
+    const query = normalizeSearchText(search);
     if (!query) return notes;
 
     return notes.filter((note) => {
-      const haystack = [note.title, note.description, ...(note.tags ?? [])]
-        .join(" ")
-        .toLowerCase();
+      const category = note.tags?.[0]?.trim() || "Без категорії";
+      const onboardingQuestion = note.onboardingQuestionId
+        ? onboardingQuestionById.get(note.onboardingQuestionId)
+        : undefined;
+      const haystack = normalizeSearchText(
+        [
+          note.title,
+          category,
+          categoryLabel(category.toLocaleLowerCase("uk")),
+          note.description,
+          ...(note.tags ?? []),
+          onboardingQuestion?.category,
+          onboardingQuestion?.question,
+        ]
+          .filter(Boolean)
+          .join(" "),
+      );
       return haystack.includes(query);
     });
   }, [notes, search]);
@@ -266,6 +339,21 @@ export default function NotesPage() {
         notes: categoryNotes,
       }));
   }, [filteredNotes]);
+
+  const availableTags = useMemo(() => {
+    const uniqueTags = new Map<string, string>();
+    for (const note of notes) {
+      for (const tag of note.tags ?? []) {
+        const trimmedTag = tag.trim();
+        if (!trimmedTag) continue;
+        const key = trimmedTag.toLocaleLowerCase("uk");
+        if (!uniqueTags.has(key)) uniqueTags.set(key, trimmedTag);
+      }
+    }
+    return [...uniqueTags.values()].sort((left, right) =>
+      left.localeCompare(right, "uk"),
+    );
+  }, [notes]);
 
   const allShared = notes.length > 0 && notes.every((note) => note.isShared);
 
@@ -306,7 +394,16 @@ export default function NotesPage() {
               Мої нотатки
             </p>
             <div className="grid gap-2 sm:grid-cols-2">
-              <AddNoteDialog isOpen={isAddOpen} setIsOpen={setIsAddOpen} onSubmit={handleAddNote} />
+              <AddNoteDialog
+                isOpen={isAddOpen}
+                setIsOpen={(open) => {
+                  setIsAddOpen(open);
+                  if (!open) setActiveSuggestion(null);
+                }}
+                onSubmit={handleAddNote}
+                availableTags={availableTags}
+                suggestion={activeSuggestion}
+              />
               {unansweredQuestionsCount > 0 && (
                 <Button
                   variant="outline"
@@ -331,6 +428,8 @@ export default function NotesPage() {
                 {sharedNotes.length > 0 && (
                   <SharedNotesDialog
                     notes={sharedNotes}
+                    ownNotes={notes}
+                    partnerName={sharedPartnerName}
                     isOpen={isSharedOpen}
                     setIsOpen={setIsSharedOpen}
                   />
@@ -368,12 +467,18 @@ export default function NotesPage() {
         </div>
       </motion.section>
 
+      <NoteSuggestions
+        suggestions={noteSuggestions}
+        onAccept={handleAcceptSuggestion}
+        onDismiss={handleDismissSuggestion}
+      />
+
       <div className="relative mb-4 rounded-[1.25rem] border border-white/60 bg-white/50 shadow-[inset_0_1px_1px_rgba(255,255,255,.85),0_8px_24px_rgba(71,40,62,.08)] backdrop-blur-xl dark:border-white/12 dark:bg-zinc-950/45">
         <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-pink-700 dark:text-pink-200" />
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Пошук за заголовком, описом чи тегом..."
+          placeholder="Пошук за назвою, категорією або текстом..."
           className="h-12 rounded-[1.25rem] border-0 bg-transparent pr-4 pl-11 shadow-none focus-visible:ring-pink-400/30"
         />
       </div>
@@ -434,6 +539,7 @@ export default function NotesPage() {
           if (!open) setEditingNote(null);
         }}
         onSubmit={handleEditNote}
+        availableTags={availableTags}
       />
 
       <DeleteNoteDialog
@@ -449,7 +555,17 @@ export default function NotesPage() {
         isOpen={isOnboardingOpen}
         setIsOpen={setIsOnboardingOpen}
         existingNotes={notes}
-        onNoteCreated={(note) => setNotes((prev) => [note, ...prev])}
+        onNoteCreated={(note) => {
+          setNotes((prev) => [note, ...prev]);
+          if (note.onboardingQuestionId) {
+            setNoteSuggestions((prev) =>
+              prev.filter(
+                (suggestion) =>
+                  suggestion.onboardingQuestionId !== note.onboardingQuestionId,
+              ),
+            );
+          }
+        }}
       />
     </PageContainer>
   );

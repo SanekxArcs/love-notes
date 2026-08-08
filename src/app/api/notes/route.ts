@@ -21,6 +21,7 @@ export async function GET() {
           description,
           tags,
           onboardingQuestionId,
+          mirroredFromNoteKey,
           isShared,
           createdAt,
           updatedAt
@@ -50,7 +51,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { title, description, tags, onboardingQuestionId } =
+    const { title, description, tags, onboardingQuestionId, mirroredFromNoteKey } =
       await request.json();
 
     if (!title?.trim() || !description?.trim()) {
@@ -68,6 +69,10 @@ export async function POST(request: Request) {
       description: description.trim(),
       tags: Array.isArray(tags) ? tags.filter(Boolean) : undefined,
       onboardingQuestionId: onboardingQuestionId || undefined,
+      mirroredFromNoteKey:
+        typeof mirroredFromNoteKey === "string"
+          ? mirroredFromNoteKey.trim() || undefined
+          : undefined,
       isShared: false,
       createdAt: now,
       updatedAt: now,

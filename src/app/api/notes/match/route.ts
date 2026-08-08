@@ -11,6 +11,13 @@ interface NoteForPrompt {
   tags?: string[];
 }
 
+interface CompatibilityAnalysis {
+  text: string;
+  generatedAt: string;
+  ownNotesCount: number;
+  partnerNotesCount: number;
+}
+
 function formatNotes(notes: NoteForPrompt[]): string {
   return notes
     .map((note) => {
@@ -36,6 +43,7 @@ function buildPrompt(
     "2) Що доповнює одне одного — відмінності, які можуть бути сильною стороною пари.",
     "3) На що варто звернути увагу — потенційні розбіжності, нестикування чи теми для обговорення (без драматизації, конструктивно).",
     "4) Практичні поради — 3-5 конкретних кроків, які допоможуть зміцнити стосунки, спираючись саме на ці нотатки.",
+    "Починай кожен розділ саме з його номера та назви. Практичні кроки позначай маркером •, а не додатковою нумерацією.",
     "Пиши українською, тепло, конкретно, спираючись на факти з нотаток, а не загальними фразами.",
     "",
     `Нотатки ${userName} про ${partnerName}:`,
@@ -44,6 +52,40 @@ function buildPrompt(
     `Нотатки ${partnerName} про ${userName} (показані ${userName}):`,
     formatNotes(partnerNotesAboutUser),
   ].join("\n");
+}
+
+export async function GET() {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 },
+      );
+    }
+
+    const analysis = await sanityClient.fetch<CompatibilityAnalysis | null>(
+      `*[_type == "user" && _id == $userId][0].compatibilityAnalysis{
+        text,
+        generatedAt,
+        ownNotesCount,
+        partnerNotesCount
+      }`,
+      { userId: session.user.id },
+    );
+
+    return NextResponse.json(
+      { analysis: analysis ?? null },
+      { headers: { "Cache-Control": "no-store" } },
+    );
+  } catch (error) {
+    console.error("Error fetching compatibility analysis:", error);
+    return NextResponse.json(
+      { error: "Не вдалося завантажити аналіз сумісності" },
+      { status: 500 },
+    );
+  }
 }
 
 export async function POST() {
@@ -156,11 +198,19 @@ export async function POST() {
       );
     }
 
-    return NextResponse.json({
+    const analysis: CompatibilityAnalysis = {
       text: analysisText,
+      generatedAt: new Date().toISOString(),
       ownNotesCount: ownNotes.length,
       partnerNotesCount: partnerNotesAboutUser.length,
-    });
+    };
+
+    await sanityClient
+      .patch(session.user.id)
+      .set({ compatibilityAnalysis: analysis })
+      .commit();
+
+    return NextResponse.json({ analysis, ...analysis });
   } catch (error) {
     console.error("Error running compatibility match analysis:", error);
     return NextResponse.json(

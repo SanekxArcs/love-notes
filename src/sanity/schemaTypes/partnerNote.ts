@@ -36,6 +36,14 @@ export const partnerNoteType = defineType({
       description: "Заповнюється автоматично, якщо нотатку створено через стартовий опитувальник",
     }),
     defineField({
+      name: "mirroredFromNoteKey",
+      title: "Створено з пропозиції партнера",
+      type: "string",
+      description:
+        "Технічний ключ приватної нотатки партнера, яка запропонувала цю тему. Вміст нотатки не копіюється.",
+      hidden: true,
+    }),
+    defineField({
       name: "isShared",
       title: "Показано партнеру",
       type: "boolean",
