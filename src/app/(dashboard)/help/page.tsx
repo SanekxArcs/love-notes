@@ -1,9 +1,9 @@
 "use client";
 
-import { startTransition, useState } from "react";
+import { startTransition, useEffect, useRef, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
+import { motion, type PanInfo } from "framer-motion";
 import Link from "next/link";
 import {
   Heart,
@@ -26,6 +26,7 @@ import { ViewTransition } from "react";
 
 export default function HelpPage() {
   const [currentStep, setCurrentStep] = useState(0);
+  const stepTabsRef = useRef<HTMLDivElement>(null);
 
   const steps = [
     // Про Love Notes
@@ -533,11 +534,40 @@ export default function HelpPage() {
       }
     });
 
+  const handleCardDragEnd = (
+    _event: MouseEvent | TouchEvent | PointerEvent,
+    info: PanInfo,
+  ) => {
+    const swipeDistance = Math.abs(info.offset.x);
+    const swipeVelocity = Math.abs(info.velocity.x);
+
+    if (swipeDistance < 50 && swipeVelocity < 500) return;
+
+    if (info.offset.x < 0 || info.velocity.x < -500) {
+      nextStep();
+    } else {
+      prevStep();
+    }
+  };
+
+  useEffect(() => {
+    const activeTab = stepTabsRef.current?.querySelector<HTMLElement>(
+      `[data-help-step="${currentStep}"]`,
+    );
+
+    activeTab?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "center",
+    });
+  }, [currentStep]);
+
   return (
-    <PageContainer size="medium" className="overflow-hidden">
+    <PageContainer size="default" className="overflow-hidden">
       <div className="mb-4 flex items-center justify-between">
         <BackButton text="Початок користування" />
       </div>
+      
       <ViewTransition
         onUpdate={(instance) => {
           instance.old.animate(
@@ -555,11 +585,15 @@ export default function HelpPage() {
           );
         }}
       >
-        <div className="custom-scrollbar mb-4 flex gap-2 overflow-x-auto rounded-[1.5rem] border border-white/60 bg-white/48 p-2 shadow-[inset_0_1px_1px_rgba(255,255,255,.88),0_9px_28px_rgba(71,40,62,.08)] backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/42">
+        <div
+          ref={stepTabsRef}
+          className="custom-scrollbar mb-2 flex gap-2 overflow-x-auto rounded-[1.5rem] border border-white/60 bg-white/48 p-2 shadow-[inset_0_1px_1px_rgba(255,255,255,.88),0_9px_28px_rgba(71,40,62,.08)] backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/42"
+        >
           {steps.map((step, index) => (
             <motion.button
               key={step.title}
               type="button"
+              data-help-step={index}
               className={`flex h-10 shrink-0 items-center gap-2 rounded-[1rem] px-3 text-xs font-semibold transition-colors ${
                 index === currentStep
                   ? "bg-white/75 text-pink-700 shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_5px_14px_rgba(71,40,62,.08)] dark:bg-white/10 dark:text-pink-200"
@@ -577,12 +611,17 @@ export default function HelpPage() {
           ))}
         </div>
       </ViewTransition>
-
       <motion.div
         key={currentStep}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.18}
+        dragDirectionLock
+        className="touch-pan-y cursor-grab active:cursor-grabbing"
+        onDragEnd={handleCardDragEnd}
       >
         <Card className="overflow-hidden rounded-[1.75rem] border-white/60 bg-white/52 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_12px_34px_rgba(71,40,62,.1)] backdrop-blur-2xl dark:border-white/12 dark:bg-zinc-950/48">
           <CardContent className="p-5 sm:p-6">

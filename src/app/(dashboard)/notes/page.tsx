@@ -443,7 +443,7 @@ export default function NotesPage() {
   ).length;
 
   return (
-    <PageContainer size="medium">
+    <PageContainer size="default">
       <BackButton text="Нотатки про партнера" />
 
       <motion.section

@@ -73,7 +73,7 @@ export default function LandingPage() {
       <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_50%_15%,rgba(255,255,255,.7),transparent_48%)] dark:bg-[radial-gradient(circle_at_50%_15%,rgba(75,32,61,.35),transparent_48%)]" />
 
       <div className="min-h-svh px-4 pb-10 pt-4 sm:px-6 lg:px-8">
-        <header className="mx-auto flex w-full max-w-6xl items-center justify-between">
+        <header className="mx-auto flex w-full max-w-3xl items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[linear-gradient(145deg,#ff87b5,#e13476)] text-white shadow-[0_7px_18px_rgba(207,49,112,.25)]">
               <Heart className="h-4 w-4 fill-current" />

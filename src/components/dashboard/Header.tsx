@@ -61,7 +61,7 @@ function HeaderComponent() {
 
   return (
     <header className="sticky top-0 z-40 hidden px-5 pt-4 md:block lg:px-8">
-      <div className="mx-auto flex h-16 w-full max-w-5xl items-center gap-3 rounded-[1.75rem] border border-white/60 bg-white/55 px-3 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_12px_38px_rgba(71,40,62,.14)] backdrop-blur-2xl backdrop-saturate-150 dark:border-white/15 dark:bg-zinc-950/58">
+      <div className="mx-auto flex h-16 w-full max-w-3xl items-center gap-3 rounded-[1.75rem] border border-white/60 bg-white/55 px-3 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_12px_38px_rgba(71,40,62,.14)] backdrop-blur-2xl backdrop-saturate-150 dark:border-white/15 dark:bg-zinc-950/58">
         <Link
           href="/dashboard"
           aria-label="Love Notes — на головну"

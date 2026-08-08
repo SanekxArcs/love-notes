@@ -133,7 +133,7 @@ export default function CalendarPage() {
   );
 
   return (
-    <PageContainer size="wide">
+    <PageContainer size="default">
       <BackButton text="Спільний календар" />
 
       <motion.section
