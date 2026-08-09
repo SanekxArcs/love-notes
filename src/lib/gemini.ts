@@ -3,7 +3,7 @@ import { sanityClient } from "@/lib/sanity";
 export const GEMINI_MODEL = "gemini-3.5-flash-lite";
 
 type GeminiKeyResult =
-  | { ok: true; apiKey: string }
+  | { ok: true; apiKey: string; source: "own" | "partner" }
   | { ok: false; error: string; status: number };
 
 // HTTP header values must be Latin1/ASCII — validating here catches a
@@ -15,28 +15,50 @@ export async function getValidatedGeminiApiKey(
   userId: string
 ): Promise<GeminiKeyResult> {
   const user = await sanityClient.fetch(
-    `*[_type == "user" && _id == $userId][0]{ geminiApiKey }`,
+    `*[_type == "user" && _id == $userId][0]{
+      geminiApiKey,
+      partnerIdToReceiveFrom
+    }`,
     { userId }
   );
 
-  const apiKey: string | undefined = user?.geminiApiKey?.trim();
+  const ownApiKey: string | undefined = user?.geminiApiKey?.trim();
+  const partnerId: string | undefined = user?.partnerIdToReceiveFrom?.trim();
+  const ownKeyIsValid = Boolean(ownApiKey && HEADER_SAFE.test(ownApiKey));
+  const partner = !ownKeyIsValid && partnerId
+    ? await sanityClient.fetch(
+        `*[_type == "user" && partnerIdToSend == $partnerId][0]{ geminiApiKey }`,
+        { partnerId }
+      )
+    : null;
+  const partnerApiKey: string | undefined = partner?.geminiApiKey?.trim();
+  const partnerKeyIsValid = Boolean(
+    partnerApiKey && HEADER_SAFE.test(partnerApiKey),
+  );
+  const apiKey = ownKeyIsValid
+    ? ownApiKey
+    : partnerKeyIsValid
+      ? partnerApiKey
+      : undefined;
+  const source = ownKeyIsValid ? "own" : "partner";
 
   if (!apiKey) {
     return {
       ok: false,
-      error: "Спочатку додайте Gemini API ключ у налаштуваннях профілю",
+      error:
+        "Додайте Gemini API ключ у своєму профілі або попросіть підключеного партнера додати його",
       status: 400,
     };
   }
 
-  if (!HEADER_SAFE.test(apiKey)) {
+  if ((ownApiKey || partnerApiKey) && !apiKey) {
     return {
       ok: false,
       error:
-        "Gemini API ключ у профілі містить неприпустимі символи. Перевірте, чи скопійовано правильний ключ, і збережіть його знову.",
+        "Gemini API ключ містить неприпустимі символи. Перевірте, чи скопійовано правильний ключ, і збережіть його знову.",
       status: 400,
     };
   }
 
-  return { ok: true, apiKey };
+  return { ok: true, apiKey, source };
 }

@@ -11,7 +11,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import NoteFormFields, { type NoteFormValue } from "./NoteFormFields";
-import type { NewPartnerNote } from "../types";
+import type { NewPartnerNote, NotePromptSuggestion } from "../types";
 
 const EMPTY_FORM: NoteFormValue = { title: "", description: "", tags: [] };
 
@@ -20,13 +20,7 @@ interface AddNoteDialogProps {
   setIsOpen: (isOpen: boolean) => void;
   onSubmit: (data: NewPartnerNote) => Promise<boolean>;
   availableTags?: string[];
-  suggestion?: {
-    key: string;
-    title: string;
-    question: string;
-    tags: string[];
-    onboardingQuestionId?: string;
-  } | null;
+  suggestion?: NotePromptSuggestion | null;
 }
 
 export default function AddNoteDialog({

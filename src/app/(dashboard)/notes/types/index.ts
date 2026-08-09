@@ -42,15 +42,21 @@ export interface SharedPartnerNote {
   corrections?: NoteCorrection[];
 }
 
-export interface NoteSuggestion {
-  key: string;
+export interface NotePromptSuggestion {
   title: string;
   question: string;
   tags: string[];
   onboardingQuestionId?: string;
+  key?: string;
+}
+
+export interface NoteSuggestion extends NotePromptSuggestion {
+  key: string;
   createdAt?: string;
   partnerName: string;
 }
+
+export interface AiNoteTopic extends NotePromptSuggestion {}
 
 export interface ChatTurn {
   role: "user" | "model";

@@ -115,7 +115,21 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const partner = await sanityClient.fetch<{ _id: string } | null>(
+    const ownNoteOwner = await sanityClient.fetch<{ _id: string } | null>(
+      `*[
+        _type == "user" &&
+        _id == $userId &&
+        count(partnerNotes[
+          _key == $noteKey &&
+          count(corrections[_key == $correctionKey]) > 0
+        ]) > 0
+      ][0]{ _id }`,
+      { userId: session.user.id, noteKey, correctionKey },
+    );
+
+    const correctionAuthorPartner = ownNoteOwner
+      ? null
+      : await sanityClient.fetch<{ _id: string } | null>(
       `*[
         _type == "user" &&
         partnerIdToSend == $partnerId &&
@@ -133,21 +147,104 @@ export async function DELETE(request: NextRequest) {
       },
     );
 
-    if (!partner) {
+    const noteOwner = ownNoteOwner ?? correctionAuthorPartner;
+    if (!noteOwner) {
       return NextResponse.json(
-        { error: "Уточнення не знайдено або його створив інший користувач" },
+        { error: "Уточнення не знайдено або воно недоступне" },
         { status: 404 },
       );
     }
 
     const correctionPath = `partnerNotes[_key=="${noteKey}"].corrections[_key=="${correctionKey}"]`;
-    await sanityClient.patch(partner._id).unset([correctionPath]).commit();
+    await sanityClient.patch(noteOwner._id).unset([correctionPath]).commit();
 
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting partner note correction:", error);
     return NextResponse.json(
       { error: "Не вдалося видалити уточнення" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 },
+      );
+    }
+
+    const body = await request.json().catch(() => ({}));
+    const noteKey = typeof body?.noteKey === "string" ? body.noteKey.trim() : "";
+    const correctionKey =
+      typeof body?.correctionKey === "string" ? body.correctionKey.trim() : "";
+    const mode = body?.mode;
+
+    if (
+      !NOTE_KEY_PATTERN.test(noteKey) ||
+      !CORRECTION_KEY_PATTERN.test(correctionKey) ||
+      (mode !== "append" && mode !== "replace")
+    ) {
+      return NextResponse.json(
+        { error: "Некоректні дані для прийняття уточнення" },
+        { status: 400 },
+      );
+    }
+
+    const result = await sanityClient.fetch<{
+      _id: string;
+      note?: {
+        description?: string;
+        correction?: { text?: string };
+      };
+    } | null>(
+      `*[_type == "user" && _id == $userId][0]{
+        _id,
+        "note": partnerNotes[_key == $noteKey][0]{
+          description,
+          "correction": corrections[_key == $correctionKey][0]{ text }
+        }
+      }`,
+      { userId: session.user.id, noteKey, correctionKey },
+    );
+
+    const correctionText = result?.note?.correction?.text?.trim();
+    if (!result || !correctionText) {
+      return NextResponse.json(
+        { error: "Уточнення не знайдено" },
+        { status: 404 },
+      );
+    }
+
+    const description =
+      mode === "append"
+        ? [result.note?.description?.trim(), correctionText]
+            .filter(Boolean)
+            .join("\n\n")
+        : correctionText;
+    const updatedAt = new Date().toISOString();
+    const notePath = `partnerNotes[_key=="${noteKey}"]`;
+    const correctionPath = `${notePath}.corrections[_key=="${correctionKey}"]`;
+
+    await sanityClient
+      .patch(result._id)
+      .set({
+        [`${notePath}.description`]: description,
+        [`${notePath}.updatedAt`]: updatedAt,
+      })
+      .unset([correctionPath])
+      .commit();
+
+    return NextResponse.json({ note: { _key: noteKey, description, updatedAt } });
+  } catch (error) {
+    console.error("Error accepting partner note correction:", error);
+    return NextResponse.json(
+      { error: "Не вдалося прийняти уточнення" },
       { status: 500 },
     );
   }

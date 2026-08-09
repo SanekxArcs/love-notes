@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { sanityClient } from "@/lib/sanity";
+import { getValidatedGeminiApiKey } from "@/lib/gemini";
 
 export async function GET() {
   try {
@@ -13,12 +13,12 @@ export async function GET() {
       );
     }
 
-    const user = await sanityClient.fetch(
-      `*[_type == "user" && _id == $userId][0]{ geminiApiKey }`,
-      { userId: session.user.id }
-    );
+    const keyResult = await getValidatedGeminiApiKey(session.user.id);
 
-    return NextResponse.json({ hasKey: Boolean(user?.geminiApiKey?.trim()) });
+    return NextResponse.json({
+      hasKey: keyResult.ok,
+      source: keyResult.ok ? keyResult.source : null,
+    });
   } catch (error) {
     console.error("Error checking Gemini API key:", error);
     return NextResponse.json(

@@ -3,13 +3,12 @@
 import {
   type FormEvent,
   type KeyboardEvent,
-  useCallback,
   useMemo,
   useState,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  ArrowLeft,
+  Check,
   CornerDownRight,
   Eye,
   Heart,
@@ -17,6 +16,7 @@ import {
   MessageCircleWarning,
   MessagesSquare,
   PencilLine,
+  Pencil,
   Send,
   Trash2,
   UserRound,
@@ -64,6 +64,12 @@ interface SharedNotesDialogProps {
     noteKey: string,
     correctionKey: string,
   ) => Promise<boolean>;
+  onAcceptCorrection: (
+    noteKey: string,
+    correctionKey: string,
+    mode: "append" | "replace",
+  ) => Promise<boolean>;
+  onEditOwnNote: (note: PartnerNote) => void;
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
 }
@@ -97,10 +103,14 @@ export default function SharedNotesDialog({
   onCreateNote,
   onAddCorrection,
   onDeleteCorrection,
+  onAcceptCorrection,
+  onEditOwnNote,
   isOpen,
   setIsOpen,
 }: SharedNotesDialogProps) {
-  const [isComparing, setIsComparing] = useState(false);
+  // The notes-only screen remains below as a dormant fallback. For now the
+  // partner entry point always opens the more useful comparison view.
+  const [isComparing, setIsComparing] = useState(true);
   const [correctionTarget, setCorrectionTarget] =
     useState<SharedPartnerNote | null>(null);
 
@@ -115,13 +125,12 @@ export default function SharedNotesDialog({
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
-    if (!open) {
-      setIsComparing(false);
+    if (open) {
+      setIsComparing(true);
+    } else {
       setCorrectionTarget(null);
     }
   };
-  const showComparison = useCallback(() => setIsComparing(true), []);
-  const hideComparison = useCallback(() => setIsComparing(false), []);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -135,17 +144,6 @@ export default function SharedNotesDialog({
       </DialogTrigger>
       <DialogContent className="custom-scrollbar max-h-[90svh] overflow-y-auto rounded-[1.75rem] border-white/65 bg-white/82 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_20px_60px_rgba(71,40,62,.18)] backdrop-blur-2xl sm:max-w-3xl dark:border-white/15 dark:bg-zinc-950/86">
         <DialogHeader className="text-left">
-          {isComparing ? (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={hideComparison}
-              className="mb-1 h-9 w-fit rounded-[.85rem] px-2 text-muted-foreground"
-            >
-              <ArrowLeft className="h-4 w-4" /> До нотаток
-            </Button>
-          ) : null}
           <DialogTitle>
             {isComparing ? "Порівняння відповідей" : "Нотатки від партнера"}
           </DialogTitle>
@@ -167,6 +165,8 @@ export default function SharedNotesDialog({
               onCreateNote={onCreateNote}
               onCorrectionRequest={setCorrectionTarget}
               onDeleteCorrection={onDeleteCorrection}
+              onAcceptCorrection={onAcceptCorrection}
+              onEditOwnNote={onEditOwnNote}
             />
           ) : (
             <motion.div
@@ -176,19 +176,6 @@ export default function SharedNotesDialog({
               exit={{ opacity: 0, x: -8 }}
               className="grid gap-3 py-2"
             >
-              {notes.length > 0 ? (
-                <Button
-                  type="button"
-                  onClick={showComparison}
-                  className="h-11 w-full rounded-[1rem] border border-white/55 bg-[linear-gradient(145deg,rgba(255,120,176,.98),rgba(225,52,118,.94))] text-white shadow-[inset_0_1px_1px_rgba(255,255,255,.55),0_8px_22px_rgba(207,49,112,.22)] hover:brightness-105"
-                >
-                  <MessagesSquare className="h-4 w-4" /> Порівняти всі відповіді
-                  <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px]">
-                    {comparisons.size} збігів
-                  </span>
-                </Button>
-              ) : null}
-
               {notes.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   Партнер поки що не показав жодної нотатки.
@@ -247,6 +234,8 @@ function ComparisonView({
   onCreateNote,
   onCorrectionRequest,
   onDeleteCorrection,
+  onAcceptCorrection,
+  onEditOwnNote,
 }: {
   partnerNotes: SharedPartnerNote[];
   ownNotes: PartnerNote[];
@@ -258,6 +247,12 @@ function ComparisonView({
     noteKey: string,
     correctionKey: string,
   ) => Promise<boolean>;
+  onAcceptCorrection: (
+    noteKey: string,
+    correctionKey: string,
+    mode: "append" | "replace",
+  ) => Promise<boolean>;
+  onEditOwnNote: (note: PartnerNote) => void;
 }) {
   const pairs: NoteComparison[] = partnerNotes.flatMap((partnerNote) => {
     const ownNote = comparisons.get(partnerNote._key);
@@ -291,6 +286,8 @@ function ComparisonView({
             partnerName={partnerName}
             onCorrectionRequest={onCorrectionRequest}
             onDeleteCorrection={onDeleteCorrection}
+            onAcceptCorrection={onAcceptCorrection}
+            onEditOwnNote={onEditOwnNote}
           />
         ))}
       </section>
@@ -322,7 +319,12 @@ function ComparisonView({
           ) : null}
 
           {unmatchedOwn.length > 0 ? (
-            <UnmatchedColumn title="Мої нотатки без пари" notes={unmatchedOwn} />
+            <UnmatchedColumn
+              title="Мої нотатки без пари"
+              notes={unmatchedOwn}
+              onEditOwnNote={onEditOwnNote}
+              onAcceptCorrection={onAcceptCorrection}
+            />
           ) : null}
         </section>
       ) : null}
@@ -339,6 +341,8 @@ function ComparisonPair({
   partnerName,
   onCorrectionRequest,
   onDeleteCorrection,
+  onAcceptCorrection,
+  onEditOwnNote,
 }: {
   comparison: NoteComparison;
   partnerName: string;
@@ -347,6 +351,12 @@ function ComparisonPair({
     noteKey: string,
     correctionKey: string,
   ) => Promise<boolean>;
+  onAcceptCorrection: (
+    noteKey: string,
+    correctionKey: string,
+    mode: "append" | "replace",
+  ) => Promise<boolean>;
+  onEditOwnNote: (note: PartnerNote) => void;
 }) {
   return (
     <article className="grid gap-3 rounded-[1.4rem] border border-white/60 bg-white/30 p-3 dark:border-white/8 dark:bg-white/3">
@@ -393,12 +403,29 @@ function ComparisonPair({
             <Heart className="h-4 w-4 fill-current" />
           </span>
           <div className="min-w-0 flex-1 text-right md:text-left">
-            <p className="mb-1.5 text-[11px] font-semibold text-pink-700 dark:text-pink-200">
-              Моя нотатка
-            </p>
+            <div className="mb-1.5 flex items-center justify-end gap-1 md:justify-start">
+              <p className="text-[11px] font-semibold text-pink-700 dark:text-pink-200">
+                Моя нотатка
+              </p>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => onEditOwnNote(comparison.ownNote)}
+                aria-label={`Редагувати мою нотатку ${comparison.ownNote.title}`}
+                className="h-7 w-7 rounded-full text-pink-700/70 hover:bg-pink-100 hover:text-pink-700 dark:text-pink-200/70 dark:hover:bg-pink-950/35"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
+            </div>
             <div className="rounded-[1.35rem] rounded-tr-[.35rem] bg-[linear-gradient(145deg,rgba(255,120,176,.98),rgba(225,52,118,.94))] p-4 text-left text-sm leading-6 text-white shadow-[inset_0_1px_1px_rgba(255,255,255,.5),0_8px_22px_rgba(207,49,112,.2)] md:rounded-tr-[1.35rem] md:rounded-tl-[.35rem]">
               <p className="whitespace-pre-wrap">{comparison.ownNote.description}</p>
             </div>
+            <ReadonlyCorrectionAnnotations
+              noteKey={comparison.ownNote._key}
+              corrections={comparison.ownNote.corrections}
+              onAccept={onAcceptCorrection}
+            />
           </div>
         </div>
       </div>
@@ -409,9 +436,17 @@ function ComparisonPair({
 function UnmatchedColumn({
   title,
   notes,
+  onEditOwnNote,
+  onAcceptCorrection,
 }: {
   title: string;
-  notes: Array<PartnerNote | SharedPartnerNote>;
+  notes: PartnerNote[];
+  onEditOwnNote: (note: PartnerNote) => void;
+  onAcceptCorrection: (
+    noteKey: string,
+    correctionKey: string,
+    mode: "append" | "replace",
+  ) => Promise<boolean>;
 }) {
   return (
     <div className="grid gap-2">
@@ -430,10 +465,27 @@ function UnmatchedColumn({
             key={note._key}
             className="rounded-[1.1rem] border border-pink-200/60 bg-pink-50/55 p-3 dark:border-pink-400/15 dark:bg-pink-950/20"
           >
-            <p className="text-xs font-semibold">{note.title}</p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs font-semibold">{note.title}</p>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => onEditOwnNote(note)}
+                aria-label={`Редагувати мою нотатку ${note.title}`}
+                className="-mr-1 h-7 w-7 shrink-0 rounded-full text-pink-700/70 hover:bg-pink-100 hover:text-pink-700 dark:text-pink-200/70 dark:hover:bg-pink-950/35"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
+            </div>
             <p className="mt-1 line-clamp-3 whitespace-pre-wrap text-xs leading-5 text-muted-foreground">
               {note.description}
             </p>
+            <ReadonlyCorrectionAnnotations
+              noteKey={note._key}
+              corrections={note.corrections}
+              onAccept={onAcceptCorrection}
+            />
           </div>
         ))
       )}
@@ -611,6 +663,77 @@ function CorrectionAnnotations({
                     className="rounded-[.9rem] bg-red-600 text-white hover:bg-red-500"
                   >
                     Видалити
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+          <p className="mt-1 whitespace-pre-wrap text-xs leading-5 text-amber-950 dark:text-amber-50">
+            {correction.text}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ReadonlyCorrectionAnnotations({
+  noteKey,
+  corrections,
+  onAccept,
+}: {
+  noteKey: string;
+  corrections: PartnerNote["corrections"];
+  onAccept: (
+    noteKey: string,
+    correctionKey: string,
+    mode: "append" | "replace",
+  ) => Promise<boolean>;
+}) {
+  if (!corrections?.length) return null;
+
+  return (
+    <div className="mt-2 grid gap-2 text-left">
+      {corrections.map((correction) => (
+        <div
+          key={correction._key}
+          className="rounded-[1rem] rounded-tr-[.3rem] border border-amber-200/70 bg-amber-50/85 px-3 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,.8)] dark:border-amber-300/15 dark:bg-amber-950/25"
+        >
+          <div className="flex items-start justify-between gap-2">
+            <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[.08em] text-amber-700 dark:text-amber-200">
+              <CornerDownRight className="h-3 w-3" /> Уточнення від {correction.authorName}
+            </p>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  aria-label="Прийняти уточнення та прибрати його"
+                  className="-mt-1 -mr-1 h-8 shrink-0 rounded-full border-emerald-200/75 bg-emerald-50/80 px-2.5 text-[10px] font-bold text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 dark:border-emerald-300/20 dark:bg-emerald-950/25 dark:text-emerald-200 dark:hover:bg-emerald-950/45"
+                >
+                  <Check className="h-3.5 w-3.5" /> Прийняти
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="rounded-[1.5rem] border-white/65 bg-white/90 backdrop-blur-2xl dark:border-white/15 dark:bg-zinc-950/92">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Прийняти уточнення?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Обери, як застосувати текст уточнення. Після цього уточнення зникне для вас обох.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="rounded-[.9rem]">Скасувати</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => void onAccept(noteKey, correction._key, "append")}
+                    className="rounded-[.9rem] bg-emerald-600 text-white hover:bg-emerald-500"
+                  >
+                    <Check className="h-4 w-4" /> Додати до нотатки
+                  </AlertDialogAction>
+                  <AlertDialogAction
+                    onClick={() => void onAccept(noteKey, correction._key, "replace")}
+                    className="rounded-[.9rem] bg-pink-600 text-white hover:bg-pink-500"
+                  >
+                    <Pencil className="h-4 w-4" /> Замінити нотатку
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>

@@ -14,6 +14,7 @@ import AddNoteDialog from "./components/AddNoteDialog";
 import EditNoteDialog from "./components/EditNoteDialog";
 import DeleteNoteDialog from "./components/DeleteNoteDialog";
 import AiChatDialog from "./components/AiChatDialog";
+import AiTopicDialog from "./components/AiTopicDialog";
 import MatchAnalysisDialog from "./components/MatchAnalysisDialog";
 import OnboardingWizard from "./components/OnboardingWizard";
 import SharedNotesDialog from "./components/SharedNotesDialog";
@@ -23,6 +24,8 @@ import type {
   EditPartnerNotePayload,
   NewPartnerNote,
   NoteCorrection,
+  AiNoteTopic,
+  NotePromptSuggestion,
   NoteSuggestion,
   PartnerNote,
   SharedPartnerNote,
@@ -64,6 +67,7 @@ export default function NotesPage() {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isMatchOpen, setIsMatchOpen] = useState(false);
+  const [isTopicOpen, setIsTopicOpen] = useState(false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [isSharedOpen, setIsSharedOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<PartnerNote | null>(null);
@@ -71,7 +75,7 @@ export default function NotesPage() {
   const [sharedNotes, setSharedNotes] = useState<SharedPartnerNote[]>([]);
   const [sharedPartnerName, setSharedPartnerName] = useState("Партнер");
   const [noteSuggestions, setNoteSuggestions] = useState<NoteSuggestion[]>([]);
-  const [activeSuggestion, setActiveSuggestion] = useState<NoteSuggestion | null>(null);
+  const [activeSuggestion, setActiveSuggestion] = useState<NotePromptSuggestion | null>(null);
 
   const fetchNotes = useCallback(async () => {
     try {
@@ -213,23 +217,75 @@ export default function NotesPage() {
         return false;
       }
 
-      setSharedNotes((previous) =>
-        previous.map((note) =>
-          note._key === noteKey
-            ? {
-                ...note,
-                corrections: note.corrections?.filter(
-                  (correction) => correction._key !== correctionKey,
-                ),
-              }
-            : note,
-        ),
-      );
+      const removeCorrectionFromNote = <T extends PartnerNote | SharedPartnerNote>(
+        note: T,
+      ) =>
+        note._key === noteKey
+          ? {
+              ...note,
+              corrections: note.corrections?.filter(
+                (correction) => correction._key !== correctionKey,
+              ),
+            }
+          : note;
+
+      setSharedNotes((previous) => previous.map(removeCorrectionFromNote));
+      setNotes((previous) => previous.map(removeCorrectionFromNote));
       toast.success("Уточнення видалено");
       return true;
     } catch (error) {
       console.error("Error deleting note correction:", error);
       toast.error("Не вдалося видалити уточнення");
+      return false;
+    }
+  };
+
+  const handleAcceptCorrection = async (
+    noteKey: string,
+    correctionKey: string,
+    mode: "append" | "replace",
+  ): Promise<boolean> => {
+    try {
+      const response = await fetch("/api/notes/corrections", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ noteKey, correctionKey, mode }),
+      });
+      const result: {
+        note?: { _key: string; description: string; updatedAt: string };
+        error?: string;
+      } = await response.json();
+
+      if (!response.ok || !result.note) {
+        toast.error(result.error || "Не вдалося прийняти уточнення");
+        return false;
+      }
+      const acceptedNote = result.note;
+
+      const updateAcceptedNote = <T extends PartnerNote | SharedPartnerNote>(
+        note: T,
+      ) =>
+        note._key === noteKey
+          ? {
+              ...note,
+              description: acceptedNote.description,
+              corrections: note.corrections?.filter(
+                (correction) => correction._key !== correctionKey,
+              ),
+            }
+          : note;
+
+      setNotes((previous) => previous.map(updateAcceptedNote));
+      setSharedNotes((previous) => previous.map(updateAcceptedNote));
+      toast.success(
+        mode === "append"
+          ? "Текст уточнення додано до нотатки"
+          : "Текст нотатки замінено уточненням",
+      );
+      return true;
+    } catch (error) {
+      console.error("Error accepting note correction:", error);
+      toast.error("Не вдалося прийняти уточнення");
       return false;
     }
   };
@@ -254,6 +310,11 @@ export default function NotesPage() {
 
   const handleAcceptSuggestion = (suggestion: NoteSuggestion) => {
     setActiveSuggestion(suggestion);
+    setIsAddOpen(true);
+  };
+
+  const handleChooseAiTopic = (topic: AiNoteTopic) => {
+    setActiveSuggestion(topic);
     setIsAddOpen(true);
   };
 
@@ -510,6 +571,8 @@ export default function NotesPage() {
                     onCreateNote={handleAddNote}
                     onAddCorrection={handleAddCorrection}
                     onDeleteCorrection={handleDeleteCorrection}
+                    onAcceptCorrection={handleAcceptCorrection}
+                    onEditOwnNote={setEditingNote}
                     isOpen={isSharedOpen}
                     setIsOpen={setIsSharedOpen}
                   />
@@ -538,6 +601,11 @@ export default function NotesPage() {
               </p>
               <div className="grid grid-cols-2 gap-2 [&>*:only-child]:col-span-2">
                 <AiChatDialog isOpen={isChatOpen} setIsOpen={setIsChatOpen} />
+                <AiTopicDialog
+                  isOpen={isTopicOpen}
+                  setIsOpen={setIsTopicOpen}
+                  onChoose={handleChooseAiTopic}
+                />
                 {notes.length > 0 && sharedNotes.length > 0 && (
                   <MatchAnalysisDialog isOpen={isMatchOpen} setIsOpen={setIsMatchOpen} />
                 )}
