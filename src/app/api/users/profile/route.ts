@@ -86,3 +86,48 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: 'Failed to update user profile' }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { password } = await request.json();
+    if (typeof password !== "string" || !password) {
+      return NextResponse.json({ error: "Password is required" }, { status: 400 });
+    }
+
+    const user = await sanityClient.fetch<{
+      _id: string;
+      password: string;
+      partnerIdToSend?: string;
+    } | null>(
+      '*[_type == "user" && _id == $userId][0]{ _id, password, partnerIdToSend }',
+      { userId: session.user.id },
+    );
+
+    if (!user || user.password !== password) {
+      return NextResponse.json({ error: "Неправильний пароль" }, { status: 403 });
+    }
+
+    const linkedUsers = user.partnerIdToSend
+      ? await sanityClient.fetch<Array<{ _id: string }>>(
+          '*[_type == "user" && partnerIdToReceiveFrom == $partnerId]{ _id }',
+          { partnerId: user.partnerIdToSend },
+        )
+      : [];
+
+    const transaction = sanityClient.transaction();
+    for (const linkedUser of linkedUsers) {
+      transaction.patch(linkedUser._id, (patch) => patch.unset(["partnerIdToReceiveFrom"]));
+    }
+    await transaction.delete(user._id).commit();
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting user profile:", error);
+    return NextResponse.json({ error: "Failed to delete user profile" }, { status: 500 });
+  }
+}

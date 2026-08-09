@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Heart, Clock, Phone } from "lucide-react";
+import { Heart, Clock, Phone, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { SpinnerIcon } from "@sanity/icons/Spinner";
 import { MessageList } from "@/components/ui-app/message-list";
@@ -15,6 +15,8 @@ import {
   type DashboardNavState,
 } from "@/components/dashboard/mobile-nav-events";
 import { PageContainer } from "@/components/ui/page-container";
+import { FirstVisitTour } from "@/components/onboarding/FirstVisitTour";
+import { InvitePartnerDialog } from "@/components/partner/InvitePartnerDialog";
 
 export default function Dashboard() {
   const { settings, isLoading: isSettingsLoading } = useUserSettings();
@@ -32,6 +34,7 @@ export default function Dashboard() {
 
   const remainingTime = useCountdown();
   const canGetMessage = messageCount < settings.dailyMessageLimit && !noMessagesAvailable;
+  const hasPartner = Boolean(settings.partnerIdToReceiveFrom);
 
   useEffect(() => {
     if (settings.partnerIdToReceiveFrom) {
@@ -67,6 +70,11 @@ export default function Dashboard() {
 
   return (
     <PageContainer className="relative">
+      <FirstVisitTour tour="dashboard" />
+      {!isSettingsLoading && !hasPartner ? (
+        <NoPartnerState partnerId={settings.partnerIdToSend} userName={settings.userName} />
+      ) : (
+        <>
       <MobileDashboardOverview
         messageCount={messageCount}
         dailyLimit={settings.dailyMessageLimit}
@@ -105,7 +113,38 @@ export default function Dashboard() {
         animationDelay={0.5}
         isSettingsLoading={isSettingsLoading}
       />
+        </>
+      )}
     </PageContainer>
+  );
+}
+
+function NoPartnerState({ partnerId, userName }: { partnerId: string; userName: string }) {
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 16, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ type: "spring", stiffness: 240, damping: 25 }}
+      className="my-auto overflow-hidden rounded-[2rem] border border-white/65 bg-white/58 p-5 text-center shadow-[inset_0_1px_1px_rgba(255,255,255,.95),0_20px_60px_rgba(71,40,62,.14)] backdrop-blur-2xl sm:p-8 dark:border-white/15 dark:bg-zinc-950/58"
+    >
+      <div className="mx-auto flex h-15 w-15 items-center justify-center rounded-[1.35rem] bg-[linear-gradient(145deg,rgba(255,135,181,.98),rgba(225,52,118,.94))] text-white shadow-[inset_0_1px_1px_rgba(255,255,255,.7),0_10px_24px_rgba(207,49,112,.28)]">
+        <Heart className="h-7 w-7 fill-current" />
+      </div>
+      <p className="mt-6 text-xs font-bold uppercase tracking-[.18em] text-pink-600 dark:text-pink-300">Ваш простір для двох</p>
+      <h1 className="mt-2 text-3xl font-bold tracking-[-.05em] text-zinc-900 dark:text-white">Запроси партнера</h1>
+      <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-zinc-600 dark:text-zinc-300">
+        Love Notes оживає, коли ви підключені одне до одного. Надішли персональне запрошення — партнер зареєструється й одразу приєднається до тебе.
+      </p>
+      <div className="mx-auto mt-6 max-w-sm rounded-[1.25rem] border border-pink-100/80 bg-pink-50/55 p-4 text-left dark:border-pink-400/15 dark:bg-pink-950/20">
+        <div className="flex gap-3">
+          <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-pink-500" />
+          <p className="text-xs leading-5 text-muted-foreground">Ви зможете залишати повідомлення-сюрпризи, планувати важливі дати та зберігати нотатки про одне одного.</p>
+        </div>
+      </div>
+      <div className="mx-auto mt-6 max-w-sm">
+        <InvitePartnerDialog partnerId={partnerId} inviterName={userName} />
+      </div>
+    </motion.section>
   );
 }
 

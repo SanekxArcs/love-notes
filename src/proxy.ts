@@ -7,11 +7,12 @@ export default auth((req) => {
   const isAuthPage =
     req.nextUrl.pathname === "/login" || req.nextUrl.pathname === "/register";
   const isHomePage = req.nextUrl.pathname === "/";
+  const isInvitePage = req.nextUrl.pathname === "/invite";
   const isAdminPage = req.nextUrl.pathname.startsWith("/admin");
   const isAdminUser = req.auth?.user?.role === "admin";
 
   // Redirect unauthenticated users to login
-  if (!isLoggedIn && !isAuthPage && !isHomePage) {
+  if (!isLoggedIn && !isAuthPage && !isHomePage && !isInvitePage) {
     console.log("Not logged in, redirecting to login");
     return NextResponse.redirect(new URL("/login", req.nextUrl.origin));
   }

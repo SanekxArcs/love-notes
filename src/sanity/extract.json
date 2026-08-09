@@ -686,6 +686,23 @@
         },
         "optional": true
       },
+      "onboardingProfileCompleted": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "boolean"
+        },
+        "optional": true
+      },
+      "onboardingSeenSteps": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "array",
+          "of": {
+            "type": "string"
+          }
+        },
+        "optional": true
+      },
       "partnerIdToReceiveFrom": {
         "type": "objectAttribute",
         "value": {

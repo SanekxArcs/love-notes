@@ -79,6 +79,20 @@ export const userType = defineType({
       initialValue: 2,
     }),
     defineField({
+      name: "onboardingProfileCompleted",
+      title: "Initial profile onboarding completed",
+      type: "boolean",
+      description: "Used only for the first-use guided tour.",
+      hidden: true,
+    }),
+    defineField({
+      name: "onboardingSeenSteps",
+      title: "Seen onboarding page tours",
+      type: "array",
+      of: [{ type: "string" }],
+      hidden: true,
+    }),
+    defineField({
       name: "partnerIdToReceiveFrom",
       title: "Partner ID to Receive Messages From",
       type: "string",

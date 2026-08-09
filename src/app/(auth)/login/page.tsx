@@ -16,8 +16,10 @@ import { ArrowLeft, HeartIcon, Loader2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useSearchParams } from "next/navigation";
 
 export default function LoginPage() {
+  const searchParams = useSearchParams();
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -66,7 +68,19 @@ export default function LoginPage() {
         setError(errorMessage);
         toast.error(errorMessage);
       } else {
-        window.location.href = result.url || "/dashboard";
+        const invitationPartnerId = searchParams.get("invite")?.trim();
+        if (invitationPartnerId) {
+          window.location.href = `/invite?from=${encodeURIComponent(invitationPartnerId)}`;
+          return;
+        }
+        if (searchParams.get("registered") === "1") {
+          window.location.href = "/profile";
+          return;
+        }
+        const onboarding = await fetch("/api/users/onboarding?step=profile")
+          .then((response) => response.json())
+          .catch(() => ({ show: false }));
+        window.location.href = onboarding.show ? "/profile" : result.url || "/dashboard";
       }
     } catch (error: unknown) {
       console.error("Login error:", error);

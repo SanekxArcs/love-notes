@@ -5,7 +5,7 @@ import type { SanityDocument } from "next-sanity";
 
 export async function POST(request: Request) {
   try {
-    const { name, login, password, phone } = await request.json();
+    const { name, login, password, phone, partnerIdToReceiveFrom } = await request.json();
 
     if (!name || !login || !password) {
       return NextResponse.json(
@@ -27,6 +27,19 @@ export async function POST(request: Request) {
     }
 
     const partnerIdToSend = uuidv4();
+    const invitedPartnerId = typeof partnerIdToReceiveFrom === "string"
+      ? partnerIdToReceiveFrom.trim()
+      : "";
+
+    if (invitedPartnerId) {
+      const inviter = await sanityClient.fetch<{ _id: string } | null>(
+        '*[_type == "user" && partnerIdToSend == $partnerId][0]{ _id }',
+        { partnerId: invitedPartnerId },
+      );
+      if (!inviter) {
+        return NextResponse.json({ message: "Invitation is no longer valid" }, { status: 400 });
+      }
+    }
     
     const result: SanityDocument<{
       _type: string;
@@ -37,6 +50,8 @@ export async function POST(request: Request) {
       partnerIdToSend: string;
       role: string;
       dayMessageLimit: number;
+      onboardingProfileCompleted: boolean;
+      partnerIdToReceiveFrom?: string;
     }> = await sanityClient.create({
       _type: "user",
       name,
@@ -46,6 +61,8 @@ export async function POST(request: Request) {
       partnerIdToSend,
       role: "user",
       dayMessageLimit: 1,
+      onboardingProfileCompleted: false,
+      partnerIdToReceiveFrom: invitedPartnerId || undefined,
     });
 
     return NextResponse.json(

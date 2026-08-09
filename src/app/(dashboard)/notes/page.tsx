@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/ui/back-button";
 import { PageContainer } from "@/components/ui/page-container";
+import { FirstVisitTour } from "@/components/onboarding/FirstVisitTour";
 
 import NoteCard from "./components/NoteCard";
 import AddNoteDialog from "./components/AddNoteDialog";
@@ -542,6 +543,7 @@ export default function NotesPage() {
 
   return (
     <PageContainer size="default">
+      <FirstVisitTour tour="notes" />
       <BackButton text="Нотатки про партнера" />
 
       <motion.section

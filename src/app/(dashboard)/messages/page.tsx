@@ -14,6 +14,7 @@ import DeleteAllDialog from "./components/DeleteAllDialog";
 import type { Message, EditMessagePayload } from "./types";
 import { BackButton } from "@/components/ui/back-button";
 import { PageContainer } from "@/components/ui/page-container";
+import { FirstVisitTour } from "@/components/onboarding/FirstVisitTour";
 
 interface NewMessage {
   text: string;
@@ -186,6 +187,7 @@ export default function AdminMessages() {
 
   return (
     <PageContainer>
+      <FirstVisitTour tour="messages" />
       <BackButton text="Повідомлення для партнера" />
 
       <motion.section

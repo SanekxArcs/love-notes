@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { ArrowLeft, CheckCircle, Eye, EyeOff, HeartIcon, Loader2, XCircle } from "lucide-react";
@@ -14,10 +14,11 @@ import { Label } from "@/components/ui/label";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const invitationPartnerId = searchParams.get("invite")?.trim() ?? "";
   const [name, setName] = useState("");
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
-  const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -27,16 +28,20 @@ export default function RegisterPage() {
   const nameId = useId();
   const loginId = useId();
   const passwordId = useId();
-  const phoneId = useId();
 
-  const generatePassword = () => {
+  const generatePassword = async () => {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
     let generatedPassword = "";
     for (let i = 0; i < 8; i++) {
       generatedPassword += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     setPassword(generatedPassword);
-    toast.info("Пароль згенеровано!");
+    try {
+      await navigator.clipboard.writeText(generatedPassword);
+      toast.success("Пароль згенеровано та скопійовано в буфер обміну. Його можна вставити на сторінці входу.");
+    } catch {
+      toast.info("Пароль згенеровано. Збережіть його, щоб увійти до акаунта.");
+    }
   };
 
   const checkLoginAvailability = async (loginToCheck: string) => {
@@ -118,7 +123,7 @@ export default function RegisterPage() {
           name,
           login,
           password,
-          phone,
+          partnerIdToReceiveFrom: invitationPartnerId || undefined,
         }),
       });
 
@@ -129,7 +134,7 @@ export default function RegisterPage() {
       }
 
       toast.success("Реєстрація успішна!");
-      router.push("/help");
+      router.push(`/login?registered=1${invitationPartnerId ? `&invite=${encodeURIComponent(invitationPartnerId)}` : ""}`);
     } catch (error) {
       console.error("Registration error:", error);
       let errorMessage = "Failed to register";
@@ -262,19 +267,6 @@ export default function RegisterPage() {
             <p className="pl-2 text-[10px] text-red-500">
               Не пиши свій справжній пароль!
             </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor={phoneId}>Номер телефону (необов&apos;язково)</Label>
-            <Input
-              id={phoneId}
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="+123456789"
-              autoComplete="tel"
-              className="h-12 rounded-[1rem] border-white/70 bg-white/45 px-4 shadow-[inset_0_1px_0_rgba(255,255,255,.75)] dark:border-white/10 dark:bg-white/6"
-            />
           </div>
 
           {error ? (

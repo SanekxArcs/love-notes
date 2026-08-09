@@ -5,12 +5,16 @@ interface Settings {
   dailyMessageLimit: number;
   contactNumber: string;
   partnerIdToReceiveFrom: string;
+  partnerIdToSend: string;
+  userName: string;
 }
 
 const DEFAULT_SETTINGS: Settings = {
   dailyMessageLimit: 1,
   contactNumber: "",
   partnerIdToReceiveFrom: "",
+  partnerIdToSend: "",
+  userName: "",
 };
 
 export function useUserSettings() {
@@ -53,11 +57,9 @@ export function useUserSettings() {
             dailyMessageLimit: 0,
             contactNumber: userData.phone || "",
             partnerIdToReceiveFrom: "",
+            partnerIdToSend: userData.partnerIdToSend || "",
+            userName: userData.name || "",
           });
-
-          toast.warning(
-            "ID партнера не встановлено. Відвідайте сторінку допомоги, щоб дізнатися, як встановити ID партнера."
-          );
           setIsLoading(false);
           return;
         }
@@ -77,6 +79,8 @@ export function useUserSettings() {
             dailyMessageLimit: 0,
             contactNumber: userData.phone || "",
             partnerIdToReceiveFrom: partnerIdToReceiveFrom,
+            partnerIdToSend: userData.partnerIdToSend || "",
+            userName: userData.name || "",
           });
           setIsLoading(false);
           return;
@@ -87,6 +91,8 @@ export function useUserSettings() {
             partnerData.dayMessageLimit || DEFAULT_SETTINGS.dailyMessageLimit,
           contactNumber: partnerData.phone || DEFAULT_SETTINGS.contactNumber,
           partnerIdToReceiveFrom: partnerIdToReceiveFrom,
+          partnerIdToSend: userData.partnerIdToSend || "",
+          userName: userData.name || "",
         });
       } catch (error) {
         console.error("Error fetching user settings:", error);

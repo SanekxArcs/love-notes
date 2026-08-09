@@ -6,6 +6,7 @@ import { CalendarHeart, Heart, LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
 import { BackButton } from "@/components/ui/back-button";
 import { PageContainer } from "@/components/ui/page-container";
+import { FirstVisitTour } from "@/components/onboarding/FirstVisitTour";
 import CalendarView, { getEventsForDay } from "./components/CalendarView";
 import DayEventsPanel from "./components/DayEventsPanel";
 import AddEventDialog from "./components/AddEventDialog";
@@ -134,6 +135,7 @@ export default function CalendarPage() {
 
   return (
     <PageContainer size="default">
+      <FirstVisitTour tour="calendar" />
       <BackButton text="Спільний календар" />
 
       <motion.section

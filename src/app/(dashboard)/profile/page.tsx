@@ -1,7 +1,7 @@
 "use client";
 
-import { type ReactNode, useEffect, useRef, useState } from "react";
-import { useSession } from "next-auth/react";
+import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import { signOut, useSession } from "next-auth/react";
 import QRCode from "react-qr-code";
 import jsQR from "jsqr";
 import { Button } from "@/components/ui/button";
@@ -22,9 +22,12 @@ import {
   Share2,
   HeartHandshake,
   Sparkles,
+  LogOut,
+  Trash2,
   UserRound,
 } from "lucide-react";
 import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { CustomTooltip } from "@/components/ui/custom-tooltip";
 import { BackButton } from "@/components/ui/back-button";
 import { PageContainer } from "@/components/ui/page-container";
@@ -43,6 +46,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SCAN_LANGUAGES } from "@/lib/languages";
+import { FirstVisitTour } from "@/components/onboarding/FirstVisitTour";
+import { InvitePartnerDialog } from "@/components/partner/InvitePartnerDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface ProfileSectionProps {
   icon: ReactNode;
@@ -93,6 +108,7 @@ interface UserData {
   partnerInfo: string;
   aiScanLanguage: string;
   localScanLanguage: string;
+  onboardingProfileCompleted?: boolean;
   image?: {
     asset?: {
       _ref: string;
@@ -114,6 +130,7 @@ interface ExtendedSession {
 }
 
 export default function UserProfile() {
+  const router = useRouter();
   const { data: session } = useSession({
     required: true,
     onUnauthenticated() {
@@ -134,7 +151,37 @@ export default function UserProfile() {
   const [loadingPartner, setLoadingPartner] = useState(false);
   const [isQrDialogOpen, setIsQrDialogOpen] = useState(false);
   const [isScanningQr, setIsScanningQr] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
   const qrFileInputRef = useRef<HTMLInputElement>(null);
+  const handleSignOut = useCallback(
+    () => signOut({ callbackUrl: "/login" }),
+    [],
+  );
+
+  const deleteAccount = async () => {
+    if (!deletePassword) {
+      toast.error("Введіть пароль для підтвердження");
+      return;
+    }
+    setIsDeleting(true);
+    try {
+      const response = await fetch("/api/users/profile", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: deletePassword }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Не вдалося видалити акаунт");
+      toast.success("Акаунт і пов’язані дані видалено");
+      await signOut({ callbackUrl: "/" });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Не вдалося видалити акаунт");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   useEffect(() => {
     async function fetchUserData() {
@@ -368,7 +415,8 @@ export default function UserProfile() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!userData || !hasChanges()) return;
+    const isFirstSetup = userData?.onboardingProfileCompleted === false;
+    if (!userData || (!hasChanges() && !isFirstSetup)) return;
 
     try {
       setIsSaving(true);
@@ -386,6 +434,14 @@ export default function UserProfile() {
 
       setOriginalUserData(JSON.parse(JSON.stringify(userData)));
       toast.success("Профіль успішно оновлено!");
+      if (isFirstSetup) {
+        await fetch("/api/users/onboarding", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "complete-profile" }),
+        });
+        router.push("/messages");
+      }
     } catch (error) {
       console.error("Помилка оновлення профілю:", error);
       toast.error("Не вдалося оновити профіль");
@@ -422,6 +478,7 @@ export default function UserProfile() {
     <PageContainer>
       <BackButton text="Профіль" />
       <ThemeSetting />
+      <FirstVisitTour tour="profile" />
       <form
         onSubmit={handleSubmit}
         className="space-y-4 [&_input]:h-11 [&_input]:rounded-[1rem] [&_input]:border-white/70 [&_input]:bg-white/45 [&_input]:shadow-[inset_0_1px_0_rgba(255,255,255,.75)] [&_textarea]:rounded-[1rem] [&_textarea]:border-white/70 [&_textarea]:bg-white/45 [&_textarea]:shadow-[inset_0_1px_0_rgba(255,255,255,.75)] dark:[&_input]:border-white/10 dark:[&_input]:bg-white/6 dark:[&_textarea]:border-white/10 dark:[&_textarea]:bg-white/6"
@@ -716,6 +773,13 @@ export default function UserProfile() {
               </p>
             </div>
 
+            {!loadingPartner && !partnerName ? (
+              <InvitePartnerDialog
+                partnerId={userData?.partnerIdToSend || ""}
+                inviterName={userData?.name || ""}
+              />
+            ) : null}
+
             <div className="space-y-2">
               <Label htmlFor="partnerIdToReceiveFrom">
                 ID вашого партнера
@@ -776,10 +840,10 @@ export default function UserProfile() {
         <div className="flex flex-col gap-2 rounded-[1.5rem] border border-white/60 bg-white/55 p-2 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_10px_30px_rgba(71,40,62,.1)] backdrop-blur-2xl sm:flex-row dark:border-white/15 dark:bg-zinc-950/55">
               <Button
                 type="submit"
-                disabled={isSaving || !hasChanges()}
+                disabled={isSaving || (!hasChanges() && userData?.onboardingProfileCompleted !== false)}
                 className="h-11 flex-1 rounded-[1rem] bg-[linear-gradient(145deg,rgba(255,120,176,.98),rgba(225,52,118,.94))] text-white shadow-[inset_0_1px_1px_rgba(255,255,255,.6),0_8px_20px_rgba(207,49,112,.2)] hover:brightness-105"
               >
-                {isSaving ? "Збереження..." : "Зберегти профіль"}
+                {isSaving ? "Збереження..." : userData?.onboardingProfileCompleted === false ? "Почати користуватися" : "Зберегти профіль"}
               </Button>
 
               {hasChanges() ? (
@@ -795,6 +859,55 @@ export default function UserProfile() {
               ) : null}
         </div>
       </form>
+
+      <div className="mt-5 border-t border-white/60 pt-5 dark:border-white/10">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleSignOut}
+          className="h-11 w-full rounded-[1rem] border-red-200/70 bg-red-50/55 text-red-600 hover:bg-red-100/70 hover:text-red-700 dark:border-red-400/15 dark:bg-red-950/20 dark:text-red-300 dark:hover:bg-red-950/35"
+        >
+          <LogOut className="h-4 w-4" /> Вийти з акаунта
+        </Button>
+      </div>
+
+      <section className="mt-5 rounded-[1.5rem] border border-red-200/70 bg-red-50/45 p-4 shadow-[inset_0_1px_1px_rgba(255,255,255,.75)] dark:border-red-400/15 dark:bg-red-950/15">
+        <div className="flex gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[1rem] bg-red-100/80 text-red-600 dark:bg-red-950/50 dark:text-red-300">
+            <Trash2 className="h-4 w-4" />
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold text-red-800 dark:text-red-200">Небезпечна зона</h2>
+            <p className="mt-1 text-xs leading-5 text-red-700/80 dark:text-red-200/75">Видалення акаунта назавжди прибере твої повідомлення, нотатки, події та налаштування. Відновити ці дані неможливо.</p>
+          </div>
+        </div>
+        <Button type="button" variant="outline" onClick={() => setIsDeleteDialogOpen(true)} className="mt-4 h-11 w-full rounded-[1rem] border-red-200/80 bg-white/45 text-red-600 hover:bg-red-100/70 hover:text-red-700 dark:border-red-400/20 dark:bg-red-950/15 dark:text-red-300 dark:hover:bg-red-950/35">
+          <Trash2 className="h-4 w-4" /> Видалити акаунт
+        </Button>
+      </section>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent className="rounded-[1.75rem] border-red-200/70 bg-white/85 p-5 shadow-[0_20px_60px_rgba(120,30,55,.22)] backdrop-blur-2xl dark:border-red-400/20 dark:bg-zinc-950/85">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-red-700 dark:text-red-300">Видалити акаунт назавжди?</AlertDialogTitle>
+            <AlertDialogDescription className="leading-6">Ми видалимо всі твої дані та від’єднаємо партнера. Після цього їх не можна буде відновити. Введи свій пароль, щоб продовжити.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <Input
+            type="password"
+            value={deletePassword}
+            onChange={(event) => setDeletePassword(event.target.value)}
+            placeholder="Твій пароль"
+            autoComplete="current-password"
+            className="h-11 rounded-[1rem] border-red-200/70 bg-red-50/35 dark:border-red-400/20 dark:bg-red-950/15"
+          />
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeletePassword("")} className="h-11 rounded-[1rem]">Скасувати</AlertDialogCancel>
+            <AlertDialogAction onClick={(event) => { event.preventDefault(); void deleteAccount(); }} disabled={!deletePassword || isDeleting} className="h-11 rounded-[1rem] bg-red-600 text-white hover:bg-red-700">
+              {isDeleting ? "Видалення…" : "Видалити назавжди"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={isQrDialogOpen} onOpenChange={setIsQrDialogOpen}>
         <DialogContent className="rounded-[1.75rem] border-white/65 bg-white/70 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_20px_60px_rgba(71,40,62,.18)] backdrop-blur-2xl sm:max-w-xs dark:border-white/15 dark:bg-zinc-950/75">

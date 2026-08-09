@@ -106,6 +106,8 @@ export type User = {
   partnerIdToSend?: string;
   phone?: string;
   dayMessageLimit?: number;
+  onboardingProfileCompleted?: boolean;
+  onboardingSeenSteps?: Array<string>;
   partnerIdToReceiveFrom?: string;
   messages?: Array<
     {
