@@ -254,15 +254,26 @@ function ComparisonView({
   ) => Promise<boolean>;
   onEditOwnNote: (note: PartnerNote) => void;
 }) {
-  const pairs: NoteComparison[] = partnerNotes.flatMap((partnerNote) => {
-    const ownNote = comparisons.get(partnerNote._key);
-    return ownNote ? [{ partnerNote, ownNote }] : [];
-  });
+  const pairs: NoteComparison[] = partnerNotes
+    .flatMap((partnerNote) => {
+      const ownNote = comparisons.get(partnerNote._key);
+      return ownNote ? [{ partnerNote, ownNote }] : [];
+    })
+    .sort(
+      (left, right) =>
+        (right.ownNote.corrections?.length ?? 0) -
+        (left.ownNote.corrections?.length ?? 0),
+    );
   const matchedOwnKeys = new Set(pairs.map((pair) => pair.ownNote._key));
   const unmatchedPartner = partnerNotes.filter(
     (note) => !comparisons.has(note._key),
   );
-  const unmatchedOwn = ownNotes.filter((note) => !matchedOwnKeys.has(note._key));
+  const unmatchedOwn = ownNotes
+    .filter((note) => !matchedOwnKeys.has(note._key))
+    .sort(
+      (left, right) =>
+        (right.corrections?.length ?? 0) - (left.corrections?.length ?? 0),
+    );
 
   return (
     <motion.div

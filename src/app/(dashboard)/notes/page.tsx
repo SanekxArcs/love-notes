@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, Hash, LoaderCircle, NotebookPen, Search, Sparkles } from "lucide-react";
+import { BellRing, Eye, EyeOff, Hash, LoaderCircle, NotebookPen, Search, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,12 @@ function notesCountLabel(count: number) {
   if (last === 1) return `${count} нотатка`;
   if (last >= 2 && last <= 4) return `${count} нотатки`;
   return `${count} нотаток`;
+}
+
+function correctionsCountLabel(count: number) {
+  if (count === 1) return "1 уточнення";
+  if (count >= 2 && count <= 4) return `${count} уточнення`;
+  return `${count} уточнень`;
 }
 
 function categoryLabel(value: string) {
@@ -456,10 +462,32 @@ export default function NotesPage() {
     });
   }, [notes, search]);
 
+  const notesWithPartnerCorrections = useMemo(
+    () =>
+      filteredNotes
+        .filter((note) => Boolean(note.corrections?.length))
+        .sort(
+          (left, right) =>
+            (right.corrections?.length ?? 0) - (left.corrections?.length ?? 0),
+        ),
+    [filteredNotes],
+  );
+
+  const partnerCorrectionsCount = useMemo(
+    () =>
+      notes.reduce(
+        (count, note) => count + (note.corrections?.length ?? 0),
+        0,
+      ),
+    [notes],
+  );
+
   const groupedNotes = useMemo(() => {
     const groups = new Map<string, PartnerNote[]>();
 
-    for (const note of filteredNotes) {
+    for (const note of filteredNotes.filter(
+      (note) => !note.corrections?.length,
+    )) {
       const category = note.tags?.[0]?.trim().toLocaleLowerCase("uk") || "__uncategorized";
       const group = groups.get(category) ?? [];
       group.push(note);
@@ -590,6 +618,31 @@ export default function NotesPage() {
                     )}
                   </Button>
                 )}
+                {partnerCorrectionsCount > 0 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="col-span-2 h-auto min-h-11 justify-between rounded-[1rem] border-amber-200/70 bg-amber-50/65 px-3 py-2.5 text-left text-amber-900 shadow-[inset_0_1px_0_rgba(255,255,255,.8)] hover:bg-amber-100/70 dark:border-amber-300/15 dark:bg-amber-950/20 dark:text-amber-50 dark:hover:bg-amber-950/30"
+                    onClick={() => setIsSharedOpen(true)}
+                  >
+                    <span className="flex min-w-0 items-center gap-2">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[.7rem] bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-200">
+                        <BellRing className="h-3.5 w-3.5" />
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block text-xs font-semibold">
+                          Уточнення від партнера
+                        </span>
+                        <span className="block text-[10px] text-amber-700/75 dark:text-amber-200/70">
+                          {correctionsCountLabel(partnerCorrectionsCount)} очікує на тебе
+                        </span>
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-[10px] font-bold text-amber-700 dark:text-amber-200">
+                      Перевірити
+                    </span>
+                  </Button>
+                )}
               </div>
             </div>
           )}
@@ -651,6 +704,40 @@ export default function NotesPage() {
         <div className="rounded-[1.5rem] border border-dashed border-white/60 bg-white/35 py-10 text-center text-sm text-muted-foreground dark:border-white/10 dark:bg-white/4">Нічого не знайдено.</div>
       ) : (
         <div className="grid gap-4">
+          {notesWithPartnerCorrections.length > 0 && (
+            <section className="grid gap-2.5">
+              <div className="flex items-center gap-2 px-1">
+                <span className="flex h-7 w-7 items-center justify-center rounded-[.75rem] border border-amber-200/70 bg-amber-50/70 text-amber-700 dark:border-amber-300/15 dark:bg-amber-950/25 dark:text-amber-200">
+                  <BellRing className="h-3.5 w-3.5" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-sm font-semibold">Уточнення від партнера</h2>
+                  <p className="text-[10px] text-muted-foreground">
+                    Ці нотатки винесені нагору, поки уточнення не прийняті або не видалені.
+                  </p>
+                </div>
+                <span className="rounded-full bg-amber-100/75 px-2.5 py-1 text-[10px] font-bold text-amber-700 dark:bg-amber-950/40 dark:text-amber-200">
+                  {correctionsCountLabel(
+                    notesWithPartnerCorrections.reduce(
+                      (count, note) => count + (note.corrections?.length ?? 0),
+                      0,
+                    ),
+                  )}
+                </span>
+              </div>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                {notesWithPartnerCorrections.map((note) => (
+                  <NoteCard
+                    key={note._key}
+                    note={note}
+                    onEdit={setEditingNote}
+                    onDelete={setDeletingNote}
+                    onToggleShare={handleToggleShare}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
           {groupedNotes.map((group) => (
             <section key={group.category} className="grid gap-2.5">
               <div className="flex items-center gap-2 px-1">
