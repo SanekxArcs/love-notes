@@ -3,13 +3,25 @@
 import { useId } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import TagInput from "./TagInput";
+import {
+  NOTE_CONFIDENCE_OPTIONS,
+  type NoteConfidence,
+} from "../types";
 
 export interface NoteFormValue {
   title: string;
   description: string;
   tags: string[];
+  confidence: NoteConfidence;
 }
 
 interface NoteFormFieldsProps {
@@ -25,10 +37,11 @@ export default function NoteFormFields({
 }: NoteFormFieldsProps) {
   const titleId = useId();
   const descriptionId = useId();
+  const confidenceId = useId();
 
   return (
     <>
-      <div className="grid gap-2">
+      <div className="grid min-w-0 gap-2">
         <Label htmlFor={titleId}>Заголовок</Label>
         <Input
           id={titleId}
@@ -40,7 +53,7 @@ export default function NoteFormFields({
         />
       </div>
 
-      <div className="grid gap-2">
+      <div className="grid min-w-0 gap-2">
         <Label htmlFor={descriptionId}>Опис</Label>
         <Textarea
           id={descriptionId}
@@ -53,13 +66,40 @@ export default function NoteFormFields({
         />
       </div>
 
-      <div className="grid gap-2">
+      <div className="grid min-w-0 gap-2">
         <Label>Теги</Label>
         <TagInput
           value={form.tags}
           onChange={(tags) => setForm({ ...form, tags })}
           suggestions={availableTags}
         />
+      </div>
+
+      <div className="grid min-w-0 gap-2">
+        <Label htmlFor={confidenceId}>Рівень впевненості</Label>
+        <Select
+          value={form.confidence}
+          onValueChange={(confidence: NoteConfidence) =>
+            setForm({ ...form, confidence })
+          }
+        >
+          <SelectTrigger
+            id={confidenceId}
+            className="h-12 rounded-[1rem] border-white/70 bg-white/52 px-4 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_5px_16px_rgba(71,40,62,.06)] dark:border-white/12 dark:bg-white/7"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {NOTE_CONFIDENCE_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                <span>{option.label}</span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="text-[11px] leading-4 text-muted-foreground">
+          Видно лише тобі — партнер не бачить цей статус.
+        </p>
       </div>
     </>
   );

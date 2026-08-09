@@ -24,7 +24,7 @@ import type {
   EditPartnerNotePayload,
   NewPartnerNote,
   NoteCorrection,
-  AiNoteTopic,
+  AiNoteGap,
   NotePromptSuggestion,
   NoteSuggestion,
   PartnerNote,
@@ -313,7 +313,7 @@ export default function NotesPage() {
     setIsAddOpen(true);
   };
 
-  const handleChooseAiTopic = (topic: AiNoteTopic) => {
+  const handleChooseAiTopic = (topic: AiNoteGap) => {
     setActiveSuggestion(topic);
     setIsAddOpen(true);
   };

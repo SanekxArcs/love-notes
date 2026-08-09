@@ -36,6 +36,27 @@
           },
           "optional": true
         },
+        "confidence": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "union",
+            "of": [
+              {
+                "type": "string",
+                "value": "certain"
+              },
+              {
+                "type": "string",
+                "value": "likely"
+              },
+              {
+                "type": "string",
+                "value": "needs-check"
+              }
+            ]
+          },
+          "optional": true
+        },
         "onboardingQuestionId": {
           "type": "objectAttribute",
           "value": {

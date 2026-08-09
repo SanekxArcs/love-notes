@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { ArrowRight, Lightbulb, LoaderCircle, RefreshCcw, Sparkles } from "lucide-react";
+import { ArrowRight, Compass, Lightbulb, LoaderCircle, RefreshCcw, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,12 +13,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import type { AiNoteTopic } from "../types";
+import type { AiNoteGap } from "../types";
 
 interface AiTopicDialogProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  onChoose: (topic: AiNoteTopic) => void;
+  onChoose: (topic: AiNoteGap) => void;
 }
 
 export default function AiTopicDialog({
@@ -26,7 +26,7 @@ export default function AiTopicDialog({
   setIsOpen,
   onChoose,
 }: AiTopicDialogProps) {
-  const [topic, setTopic] = useState<AiNoteTopic | null>(null);
+  const [gaps, setGaps] = useState<AiNoteGap[]>([]);
   const [seenTopics, setSeenTopics] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -39,30 +39,31 @@ export default function AiTopicDialog({
         body: JSON.stringify({ excluded: seenTopics }),
       });
       const data = await response.json();
-      if (!response.ok || !data.topic) {
-        toast.error(data.error || "Не вдалося підібрати тему");
+      if (!response.ok || !Array.isArray(data.gaps)) {
+        toast.error(data.error || "Не вдалося знайти прогалини");
         return;
       }
 
-      setTopic(data.topic);
+      setGaps(data.gaps);
       setSeenTopics((previous) => [
         ...previous,
-        `${data.topic.title}: ${data.topic.question}`,
+        ...data.gaps.map(
+          (gap: AiNoteGap) => `${gap.title}: ${gap.question}`,
+        ),
       ]);
     } catch (error) {
       console.error("Error loading AI note topic:", error);
-      toast.error("Не вдалося підібрати тему");
+      toast.error("Не вдалося знайти прогалини");
     } finally {
       setIsLoading(false);
     }
   }, [seenTopics]);
 
   useEffect(() => {
-    if (isOpen && !topic) void loadTopic();
-  }, [isOpen, topic, loadTopic]);
+    if (isOpen && gaps.length === 0) void loadTopic();
+  }, [isOpen, gaps.length, loadTopic]);
 
-  const chooseTopic = () => {
-    if (!topic) return;
+  const chooseTopic = (topic: AiNoteGap) => {
     onChoose(topic);
     setIsOpen(false);
   };
@@ -82,42 +83,44 @@ export default function AiTopicDialog({
           <div className="mb-1 flex h-11 w-11 items-center justify-center rounded-[1.05rem] bg-amber-100 text-amber-700 shadow-[0_8px_20px_rgba(180,110,20,.14)] dark:bg-amber-950/45 dark:text-amber-200">
             <Lightbulb className="h-5 w-5" />
           </div>
-          <DialogTitle>Нова тема для нотатки</DialogTitle>
+          <DialogTitle>Чого ще бракує в нотатках</DialogTitle>
           <DialogDescription>
-            AI бачить лише назви та теги ваших тем — не тексти відповідей.
+            AI бачить лише назви та теги ваших тем — не тексти відповідей — і шукає напрямки, яких ще бракує.
           </DialogDescription>
         </DialogHeader>
 
         {isLoading ? (
           <div className="flex min-h-48 flex-col items-center justify-center gap-3 text-center">
             <LoaderCircle className="h-7 w-7 animate-spin text-amber-600 dark:text-amber-300" />
-            <p className="text-sm text-muted-foreground">Шукаємо цікаву наступну тему…</p>
+            <p className="text-sm text-muted-foreground">Шукаємо корисні прогалини…</p>
           </div>
-        ) : topic ? (
+        ) : gaps.length > 0 ? (
           <div className="grid gap-4">
-            <article className="rounded-[1.4rem] border border-amber-200/70 bg-amber-50/55 p-4 shadow-[inset_0_1px_1px_rgba(255,255,255,.88)] dark:border-amber-300/15 dark:bg-amber-950/18">
-              <p className="text-[10px] font-bold uppercase tracking-[.1em] text-amber-700 dark:text-amber-200">Запропонована тема</p>
-              <h3 className="mt-1.5 text-base font-semibold">{topic.title}</h3>
-              <p className="mt-3 text-sm leading-6 text-zinc-700 dark:text-zinc-300">{topic.question}</p>
-              {topic.tags.length > 0 ? (
-                <div className="mt-3 flex flex-wrap gap-1.5">
-                  {topic.tags.map((tag) => <Badge key={tag} variant="secondary">{tag}</Badge>)}
+            {gaps.map((gap) => (
+              <article key={`${gap.area}-${gap.title}`} className="rounded-[1.35rem] border border-amber-200/70 bg-amber-50/55 p-4 shadow-[inset_0_1px_1px_rgba(255,255,255,.88)] dark:border-amber-300/15 dark:bg-amber-950/18">
+                <div className="flex items-start gap-2.5">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[.9rem] bg-amber-100 text-amber-700 dark:bg-amber-950/45 dark:text-amber-200"><Compass className="h-4 w-4" /></span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] font-bold uppercase tracking-[.1em] text-amber-700 dark:text-amber-200">{gap.area}</p>
+                    <h3 className="mt-1 text-sm font-semibold">{gap.title}</h3>
+                  </div>
                 </div>
-              ) : null}
-            </article>
-            <div className="grid grid-cols-2 gap-2">
-              <Button type="button" variant="outline" onClick={loadTopic} className="h-11 rounded-[1rem] border-white/70 bg-white/55 dark:border-white/10 dark:bg-white/7">
-                <RefreshCcw className="h-4 w-4" /> Наступне
-              </Button>
-              <Button type="button" onClick={chooseTopic} className="h-11 rounded-[1rem] bg-amber-600 text-white hover:bg-amber-500">
-                Відповісти <ArrowRight className="h-4 w-4" />
-              </Button>
-            </div>
+                <p className="mt-2 text-[11px] leading-4 text-muted-foreground">{gap.reason}</p>
+                <p className="mt-3 text-sm leading-6 text-zinc-700 dark:text-zinc-300">{gap.question}</p>
+                <div className="mt-3 flex items-end justify-between gap-3">
+                  {gap.tags.length > 0 ? <div className="flex flex-wrap gap-1.5">{gap.tags.map((tag) => <Badge key={tag} variant="secondary">{tag}</Badge>)}</div> : <span />}
+                  <Button type="button" onClick={() => chooseTopic(gap)} className="h-9 shrink-0 rounded-[.85rem] bg-amber-600 px-3 text-xs text-white hover:bg-amber-500">Відповісти <ArrowRight className="h-3.5 w-3.5" /></Button>
+                </div>
+              </article>
+            ))}
+            <Button type="button" variant="outline" onClick={loadTopic} className="h-11 rounded-[1rem] border-white/70 bg-white/55 dark:border-white/10 dark:bg-white/7">
+              <RefreshCcw className="h-4 w-4" /> Показати інші напрямки
+            </Button>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-3 py-6 text-center">
             <Sparkles className="h-7 w-7 text-amber-600 dark:text-amber-300" />
-            <p className="text-sm text-muted-foreground">AI ще не зміг підібрати тему.</p>
+            <p className="text-sm text-muted-foreground">AI ще не зміг знайти прогалини.</p>
             <Button type="button" onClick={loadTopic} className="rounded-[1rem] bg-amber-600 text-white hover:bg-amber-500">Спробувати знову</Button>
           </div>
         )}

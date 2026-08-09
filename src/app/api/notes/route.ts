@@ -2,6 +2,14 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { arrayKey, sanityClient } from "@/lib/sanity";
 
+const CONFIDENCE_VALUES = new Set(["certain", "likely", "needs-check"]);
+
+function normalizeConfidence(value: unknown) {
+  return typeof value === "string" && CONFIDENCE_VALUES.has(value)
+    ? value
+    : "certain";
+}
+
 export async function GET() {
   try {
     const session = await auth();
@@ -25,6 +33,7 @@ export async function GET() {
           isShared,
           createdAt,
           updatedAt,
+          confidence,
           corrections[]{ _key, authorId, authorName, text, createdAt }
         }
       }`,
@@ -52,7 +61,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { title, description, tags, onboardingQuestionId, mirroredFromNoteKey } =
+    const { title, description, tags, onboardingQuestionId, mirroredFromNoteKey, confidence } =
       await request.json();
 
     if (!title?.trim() || !description?.trim()) {
@@ -75,6 +84,7 @@ export async function POST(request: Request) {
           ? mirroredFromNoteKey.trim() || undefined
           : undefined,
       isShared: false,
+      confidence: normalizeConfidence(confidence),
       createdAt: now,
       updatedAt: now,
     };
@@ -116,7 +126,7 @@ export async function PUT(request: Request) {
       );
     }
 
-    const { title, description, tags } = await request.json();
+    const { title, description, tags, confidence } = await request.json();
 
     if (!title?.trim() || !description?.trim()) {
       return NextResponse.json(
@@ -129,6 +139,7 @@ export async function PUT(request: Request) {
       title: title.trim(),
       description: description.trim(),
       tags: Array.isArray(tags) ? tags.filter(Boolean) : [],
+      confidence: normalizeConfidence(confidence),
       updatedAt: new Date().toISOString(),
     };
 
@@ -138,6 +149,7 @@ export async function PUT(request: Request) {
         [`partnerNotes[_key=="${key}"].title`]: updatedFields.title,
         [`partnerNotes[_key=="${key}"].description`]: updatedFields.description,
         [`partnerNotes[_key=="${key}"].tags`]: updatedFields.tags,
+        [`partnerNotes[_key=="${key}"].confidence`]: updatedFields.confidence,
         [`partnerNotes[_key=="${key}"].updatedAt`]: updatedFields.updatedAt,
       })
       .commit();

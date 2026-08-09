@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CustomTooltip } from "@/components/ui/custom-tooltip";
 import type { PartnerNote } from "../types";
+import { NOTE_CONFIDENCE_OPTIONS } from "../types";
 
 interface NoteCardProps {
   note: PartnerNote;
@@ -20,6 +21,11 @@ export default function NoteCard({
   onDelete,
   onToggleShare,
 }: NoteCardProps) {
+  const confidence = note.confidence ?? "needs-check";
+  const confidenceLabel = NOTE_CONFIDENCE_OPTIONS.find(
+    (option) => option.value === confidence,
+  )?.label;
+
   return (
     <Card className="gap-0 rounded-[1.5rem] border-white/60 bg-white/50 py-0 shadow-[inset_0_1px_1px_rgba(255,255,255,.88),0_9px_26px_rgba(71,40,62,.08)] backdrop-blur-xl transition-transform duration-200 hover:-translate-y-0.5 dark:border-white/10 dark:bg-zinc-950/45">
       <CardHeader className="flex-row items-start justify-between gap-2 space-y-0 px-4 pt-4 pb-2">
@@ -86,6 +92,9 @@ export default function NoteCard({
           </div>
         )}
         <div className="flex flex-wrap items-center gap-1.5">
+          <Badge className="border border-violet-200/65 bg-violet-50/70 text-violet-700 dark:border-violet-400/15 dark:bg-violet-950/30 dark:text-violet-200">
+            {confidenceLabel}
+          </Badge>
           {Boolean(note.isShared) && <Badge className="border-0 bg-pink-100 text-pink-700 dark:bg-pink-950/45 dark:text-pink-200">Показано партнеру</Badge>}
           {note.tags?.map((tag) => (
             <Badge key={tag} variant="secondary" className="border border-white/60 bg-white/50 dark:border-white/10 dark:bg-white/7">

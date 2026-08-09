@@ -30,6 +30,20 @@ export const partnerNoteType = defineType({
       options: { layout: "tags" },
     }),
     defineField({
+      name: "confidence",
+      title: "Рівень впевненості",
+      type: "string",
+      description: "Приватний статус для автора нотатки; партнер його не бачить",
+      options: {
+        list: [
+          { title: "Точно знаю", value: "certain" },
+          { title: "Здається", value: "likely" },
+          { title: "Треба уточнити", value: "needs-check" },
+        ],
+      },
+      initialValue: "certain",
+    }),
+    defineField({
       name: "onboardingQuestionId",
       title: "ID питання з опитувальника",
       type: "string",

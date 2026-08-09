@@ -1,3 +1,27 @@
+export type NoteConfidence = "certain" | "likely" | "needs-check";
+
+export const NOTE_CONFIDENCE_OPTIONS: Array<{
+  value: NoteConfidence;
+  label: string;
+  description: string;
+}> = [
+  {
+    value: "certain",
+    label: "Точно знаю",
+    description: "Це перевірений факт",
+  },
+  {
+    value: "likely",
+    label: "Здається",
+    description: "Є підстава так думати, але без повної впевненості",
+  },
+  {
+    value: "needs-check",
+    label: "Треба уточнити",
+    description: "Краще запитати або перевірити",
+  },
+];
+
 export interface NoteCorrection {
   _key: string;
   authorId: string;
@@ -16,6 +40,7 @@ export interface PartnerNote {
   isShared?: boolean;
   createdAt?: string;
   updatedAt?: string;
+  confidence?: NoteConfidence;
   corrections?: NoteCorrection[];
 }
 
@@ -26,11 +51,12 @@ export type NewPartnerNote = Pick<
   | "tags"
   | "onboardingQuestionId"
   | "mirroredFromNoteKey"
+  | "confidence"
 >;
 
 export type EditPartnerNotePayload = Pick<
   PartnerNote,
-  "title" | "description" | "tags"
+  "title" | "description" | "tags" | "confidence"
 >;
 
 export interface SharedPartnerNote {
@@ -57,6 +83,11 @@ export interface NoteSuggestion extends NotePromptSuggestion {
 }
 
 export interface AiNoteTopic extends NotePromptSuggestion {}
+
+export interface AiNoteGap extends AiNoteTopic {
+  area: string;
+  reason: string;
+}
 
 export interface ChatTurn {
   role: "user" | "model";

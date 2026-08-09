@@ -8,7 +8,9 @@ interface TopicSourceNote {
   tags?: string[];
 }
 
-interface AiTopic {
+interface AiTopicGap {
+  area: string;
+  reason: string;
   title: string;
   question: string;
   tags: string[];
@@ -21,7 +23,7 @@ function topicSnapshot(notes: TopicSourceNote[]) {
   }));
 }
 
-function parseTopic(raw: string): AiTopic | null {
+function parseGaps(raw: string): AiTopicGap[] | null {
   const json = raw
     .trim()
     .replace(/^```json\s*/i, "")
@@ -30,23 +32,37 @@ function parseTopic(raw: string): AiTopic | null {
 
   try {
     const value = JSON.parse(json);
-    const title = typeof value?.title === "string" ? value.title.trim() : "";
-    const question =
-      typeof value?.question === "string" ? value.question.trim() : "";
-    const tags = Array.isArray(value?.tags)
-      ? value.tags
-          .filter((tag: unknown): tag is string => typeof tag === "string")
-          .map((tag: string) => tag.trim())
-          .filter(Boolean)
-          .slice(0, 3)
-      : [];
+    if (!Array.isArray(value?.gaps)) return null;
 
-    if (!title || !question) return null;
-    return {
-      title: title.slice(0, 80),
-      question: question.slice(0, 240),
-      tags: tags.map((tag: string) => tag.slice(0, 30)),
-    };
+    const gaps = value.gaps.flatMap((gap: unknown) => {
+      if (!gap || typeof gap !== "object") return [];
+      const candidate = gap as Record<string, unknown>;
+      const area = typeof candidate.area === "string" ? candidate.area.trim() : "";
+      const reason =
+        typeof candidate.reason === "string" ? candidate.reason.trim() : "";
+      const title =
+        typeof candidate.title === "string" ? candidate.title.trim() : "";
+      const question =
+        typeof candidate.question === "string" ? candidate.question.trim() : "";
+      const tags = Array.isArray(candidate.tags)
+        ? candidate.tags
+            .filter((tag): tag is string => typeof tag === "string")
+            .map((tag) => tag.trim())
+            .filter(Boolean)
+            .slice(0, 3)
+        : [];
+
+      if (!area || !reason || !title || !question) return [];
+      return [{
+        area: area.slice(0, 50),
+        reason: reason.slice(0, 160),
+        title: title.slice(0, 80),
+        question: question.slice(0, 240),
+        tags: tags.map((tag) => tag.slice(0, 30)),
+      }];
+    });
+
+    return gaps.length >= 3 ? gaps.slice(0, 3) : null;
   } catch {
     return null;
   }
@@ -110,10 +126,11 @@ export async function POST(request: Request) {
 
     const prompt = [
       "Ти допомагаєш парі доповнювати нотатки про одне одного.",
-      "На основі ЛИШЕ назв і тегів нижче запропонуй одну нову, конкретну й не дубльовану тему для нотатки.",
-      "Не вигадуй фактів і не проси текст відповіді. Поверни лише JSON без markdown:",
-      '{"title":"коротка тема","question":"одне тепле конкретне питання українською?","tags":["до 3 коротких тегів"]}',
-      "Не повторюй назви чи питання зі списку виключень.",
+      "На основі ЛИШЕ назв і тегів нижче знайди 3 різні прогалини у знаннях про партнера та запропонуй для кожної нову, конкретну й не дубльовану тему нотатки.",
+      "Не вигадуй фактів, не проси текст відповіді й не роби висновків про зміст існуючих нотаток.",
+      "Поверни лише JSON без markdown:",
+      '{"gaps":[{"area":"напрямок, наприклад Побут","reason":"чому ця тема доповнить наявні назви й теги","title":"коротка тема","question":"одне тепле конкретне питання українською?","tags":["до 3 коротких тегів"]}]}',
+      "У масиві має бути рівно 3 обʼєкти з різними напрямками. Не повторюй назви чи питання зі списку виключень.",
       "Наявні теми (це метадані, не відповіді):",
       JSON.stringify(topics),
       "Виключення:",
@@ -145,15 +162,15 @@ export async function POST(request: Request) {
 
     const data = await geminiResponse.json();
     const text: string | undefined = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    const topic = text ? parseTopic(text) : null;
-    if (!topic) {
+    const gaps = text ? parseGaps(text) : null;
+    if (!gaps) {
       return NextResponse.json(
-        { error: "AI повернув тему в неочікуваному форматі. Спробуйте ще раз." },
+        { error: "AI повернув прогалини в неочікуваному форматі. Спробуйте ще раз." },
         { status: 502 },
       );
     }
 
-    return NextResponse.json({ topic });
+    return NextResponse.json({ gaps });
   } catch (error) {
     console.error("Error suggesting note topic:", error);
     return NextResponse.json(

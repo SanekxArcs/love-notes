@@ -13,7 +13,12 @@ import {
 import NoteFormFields, { type NoteFormValue } from "./NoteFormFields";
 import type { NewPartnerNote, NotePromptSuggestion } from "../types";
 
-const EMPTY_FORM: NoteFormValue = { title: "", description: "", tags: [] };
+const EMPTY_FORM: NoteFormValue = {
+  title: "",
+  description: "",
+  tags: [],
+  confidence: "likely",
+};
 
 interface AddNoteDialogProps {
   isOpen: boolean;
@@ -43,6 +48,7 @@ export default function AddNoteDialog({
             title: suggestion.title,
             description: "",
             tags: suggestion.tags,
+            confidence: "likely",
           }
         : EMPTY_FORM,
     );

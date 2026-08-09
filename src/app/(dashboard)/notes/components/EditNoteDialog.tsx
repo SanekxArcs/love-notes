@@ -35,6 +35,7 @@ export default function EditNoteDialog({
         title: note.title,
         description: note.description,
         tags: note.tags ?? [],
+        confidence: note.confidence ?? "needs-check",
       });
     }
   }, [note]);
@@ -56,11 +57,11 @@ export default function EditNoteDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="custom-scrollbar max-h-[90svh] overflow-y-auto rounded-[1.75rem] border-white/65 bg-white/78 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_20px_60px_rgba(71,40,62,.18)] backdrop-blur-2xl sm:max-w-md dark:border-white/15 dark:bg-zinc-950/82">
+      <DialogContent className="custom-scrollbar max-h-[90svh] min-w-0 overflow-x-hidden overflow-y-auto rounded-[1.75rem] border-white/65 bg-white/78 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_20px_60px_rgba(71,40,62,.18)] backdrop-blur-2xl sm:max-w-md dark:border-white/15 dark:bg-zinc-950/82">
         <DialogHeader>
           <DialogTitle>Редагувати нотатку</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="grid gap-4 py-2">
+        <form onSubmit={handleSubmit} className="grid min-w-0 gap-4 py-2">
           <NoteFormFields
             form={form}
             setForm={setForm}
