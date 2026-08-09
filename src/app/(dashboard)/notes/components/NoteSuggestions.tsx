@@ -36,8 +36,8 @@ export default function NoteSuggestions({
             </span>
           </div>
           <p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">
-            Партнер записав щось приватне на ці теми. Ви можете відповісти своєю
-            окремою нотаткою.
+            Партнер записав приватну нотатку про тебе. Додай окрему відповідь
+            про свого партнера на цю саму тему.
           </p>
         </div>
       </div>
@@ -78,7 +78,7 @@ export default function NoteSuggestions({
               onClick={() => onAccept(suggestion)}
               className="mt-3 h-9 w-full rounded-[.85rem] border-white/70 bg-white/55 text-xs text-violet-700 hover:bg-white/80 hover:text-violet-800 dark:border-white/10 dark:bg-white/7 dark:text-violet-200 dark:hover:bg-white/11 dark:hover:text-violet-100"
             >
-              Створити свою нотатку <ArrowRight className="h-3.5 w-3.5" />
+              Відповісти про партнера <ArrowRight className="h-3.5 w-3.5" />
             </Button>
           </article>
         ))}

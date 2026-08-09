@@ -36,6 +36,23 @@
           },
           "optional": true
         },
+        "perspective": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "union",
+            "of": [
+              {
+                "type": "string",
+                "value": "partner"
+              },
+              {
+                "type": "string",
+                "value": "self"
+              }
+            ]
+          },
+          "optional": true
+        },
         "confidence": {
           "type": "objectAttribute",
           "value": {

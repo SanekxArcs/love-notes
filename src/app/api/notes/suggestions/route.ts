@@ -15,6 +15,7 @@ interface OwnNote {
   title: string;
   onboardingQuestionId?: string;
   mirroredFromNoteKey?: string;
+  perspective?: string;
 }
 
 function normalized(value: string | undefined) {
@@ -41,7 +42,7 @@ export async function GET() {
         dismissedKeys?: string[];
       }>(
         `*[_type == "user" && _id == $userId][0]{
-          "notes": partnerNotes[]{ title, onboardingQuestionId, mirroredFromNoteKey },
+          "notes": partnerNotes[]{ title, onboardingQuestionId, mirroredFromNoteKey, perspective },
           "dismissedKeys": dismissedNoteSuggestionKeys
         }`,
         { userId: session.user.id },
@@ -49,7 +50,7 @@ export async function GET() {
       sanityClient.fetch<{ name?: string; notes?: SourceNote[] } | null>(
         `*[_type == "user" && partnerIdToSend == $partnerId][0]{
           name,
-          "notes": partnerNotes[isShared != true]{
+          "notes": partnerNotes[isShared != true && (!defined(perspective) || perspective == "partner")]{
             _key,
             title,
             tags,
@@ -63,7 +64,9 @@ export async function GET() {
 
     if (!partner) return NextResponse.json({ suggestions: [] });
 
-    const ownNotes = me?.notes ?? [];
+    const ownNotes = (me?.notes ?? []).filter(
+      (note) => note.perspective !== "self",
+    );
     const dismissed = new Set(me?.dismissedKeys ?? []);
     const questionById = new Map(
       ONBOARDING_QUESTIONS.map((question) => [question.id, question]),

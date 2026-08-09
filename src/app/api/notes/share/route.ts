@@ -28,16 +28,29 @@ export async function PATCH(request: Request) {
     const key = searchParams.get("key");
 
     if (key) {
+      const note = await sanityClient.fetch<{
+        perspective?: string;
+      } | null>(
+        `*[_type == "user" && _id == $userId][0].partnerNotes[_key == $key][0]{ perspective }`,
+        { userId: session.user.id, key },
+      );
+      if (!note) {
+        return NextResponse.json({ error: "Note not found" }, { status: 404 });
+      }
+
+      const nextShared = note.perspective === "self" ? true : isShared;
       await sanityClient
         .patch(session.user.id)
-        .set({ [`partnerNotes[_key=="${key}"].isShared`]: isShared })
+        .set({ [`partnerNotes[_key=="${key}"].isShared`]: nextShared })
         .commit();
 
-      return NextResponse.json({ key, isShared }, { status: 200 });
+      return NextResponse.json({ key, isShared: nextShared }, { status: 200 });
     }
 
     const user = await sanityClient.fetch(
-      `*[_type == "user" && _id == $userId][0]{ "keys": partnerNotes[]._key }`,
+      `*[_type == "user" && _id == $userId][0]{
+        "keys": partnerNotes[!defined(perspective) || perspective == "partner"]._key
+      }`,
       { userId: session.user.id }
     );
     const keys: string[] = user?.keys ?? [];

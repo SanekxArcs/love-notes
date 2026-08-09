@@ -30,6 +30,20 @@ export const partnerNoteType = defineType({
       options: { layout: "tags" },
     }),
     defineField({
+      name: "perspective",
+      title: "Про кого нотатка",
+      type: "string",
+      description:
+        "«Про партнера» — приватне спостереження; «Про себе» автоматично показується партнеру.",
+      options: {
+        list: [
+          { title: "Про партнера", value: "partner" },
+          { title: "Про себе", value: "self" },
+        ],
+      },
+      initialValue: "partner",
+    }),
+    defineField({
       name: "confidence",
       title: "Рівень впевненості",
       type: "string",

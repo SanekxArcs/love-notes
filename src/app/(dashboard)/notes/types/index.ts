@@ -1,4 +1,22 @@
 export type NoteConfidence = "certain" | "likely" | "needs-check";
+export type NotePerspective = "partner" | "self";
+
+export const NOTE_PERSPECTIVE_OPTIONS: Array<{
+  value: NotePerspective;
+  label: string;
+  description: string;
+}> = [
+  {
+    value: "partner",
+    label: "Про партнера",
+    description: "Твої спостереження, побажання й знання про партнера",
+  },
+  {
+    value: "self",
+    label: "Про себе",
+    description: "Твоя власна відповідь, яку партнер побачить автоматично",
+  },
+];
 
 export const NOTE_CONFIDENCE_OPTIONS: Array<{
   value: NoteConfidence;
@@ -41,6 +59,7 @@ export interface PartnerNote {
   createdAt?: string;
   updatedAt?: string;
   confidence?: NoteConfidence;
+  perspective?: NotePerspective;
   corrections?: NoteCorrection[];
 }
 
@@ -52,11 +71,12 @@ export type NewPartnerNote = Pick<
   | "onboardingQuestionId"
   | "mirroredFromNoteKey"
   | "confidence"
+  | "perspective"
 >;
 
 export type EditPartnerNotePayload = Pick<
   PartnerNote,
-  "title" | "description" | "tags" | "confidence"
+  "title" | "description" | "tags" | "confidence" | "perspective"
 >;
 
 export interface SharedPartnerNote {
@@ -65,6 +85,7 @@ export interface SharedPartnerNote {
   description: string;
   tags?: string[];
   onboardingQuestionId?: string;
+  perspective?: NotePerspective;
   corrections?: NoteCorrection[];
 }
 

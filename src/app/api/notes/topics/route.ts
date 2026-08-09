@@ -98,7 +98,7 @@ export async function POST(request: Request) {
     } | null>(
       `*[_type == "user" && _id == $userId][0]{
         partnerIdToReceiveFrom,
-        "notes": partnerNotes[]{ title, tags }
+        "notes": partnerNotes[!defined(perspective) || perspective == "partner"]{ title, tags }
       }`,
       { userId: session.user.id },
     );
@@ -107,7 +107,7 @@ export async function POST(request: Request) {
     const partner = partnerId
       ? await sanityClient.fetch<{ notes?: TopicSourceNote[] } | null>(
           `*[_type == "user" && partnerIdToSend == $partnerId][0]{
-            "notes": partnerNotes[isShared == true]{ title, tags }
+            "notes": partnerNotes[isShared == true && (!defined(perspective) || perspective == "partner")]{ title, tags }
           }`,
           { partnerId },
         )
@@ -125,8 +125,9 @@ export async function POST(request: Request) {
     }
 
     const prompt = [
-      "Ти допомагаєш парі доповнювати нотатки про одне одного.",
+      "Ти допомагаєш людині доповнювати її нотатки ПРО ПАРТНЕРА.",
       "На основі ЛИШЕ назв і тегів нижче знайди 3 різні прогалини у знаннях про партнера та запропонуй для кожної нову, конкретну й не дубльовану тему нотатки.",
+      "Питання завжди адресуй користувачу про його партнера: наприклад «Що допомагає твоєму партнеру відновитися після важкого дня?». Не питай користувача про нього самого.",
       "Не вигадуй фактів, не проси текст відповіді й не роби висновків про зміст існуючих нотаток.",
       "Поверни лише JSON без markdown:",
       '{"gaps":[{"area":"напрямок, наприклад Побут","reason":"чому ця тема доповнить наявні назви й теги","title":"коротка тема","question":"одне тепле конкретне питання українською?","tags":["до 3 коротких тегів"]}]}',

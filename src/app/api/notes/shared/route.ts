@@ -28,6 +28,7 @@ export async function GET() {
           description,
           tags,
           onboardingQuestionId,
+          perspective,
           corrections[]{ _key, authorId, authorName, text, createdAt }
         }
       }`,

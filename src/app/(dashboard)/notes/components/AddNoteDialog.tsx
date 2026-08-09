@@ -18,6 +18,7 @@ const EMPTY_FORM: NoteFormValue = {
   description: "",
   tags: [],
   confidence: "likely",
+  perspective: "partner",
 };
 
 interface AddNoteDialogProps {
@@ -49,6 +50,7 @@ export default function AddNoteDialog({
             description: "",
             tags: suggestion.tags,
             confidence: "likely",
+            perspective: "partner",
           }
         : EMPTY_FORM,
     );
@@ -90,7 +92,7 @@ export default function AddNoteDialog({
       <DialogContent className="custom-scrollbar max-h-[90svh] overflow-y-auto rounded-[1.75rem] border-white/65 bg-white/78 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_20px_60px_rgba(71,40,62,.18)] backdrop-blur-2xl sm:max-w-md dark:border-white/15 dark:bg-zinc-950/82">
         <DialogHeader>
           <DialogTitle>
-            {suggestion ? "Ваша нотатка на цю тему" : "Нова нотатка про партнера"}
+            {suggestion ? "Ваша нотатка на цю тему" : "Нова нотатка"}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="grid gap-4 py-2">
@@ -107,6 +109,7 @@ export default function AddNoteDialog({
             form={form}
             setForm={setForm}
             availableTags={availableTags}
+            lockPerspective={Boolean(suggestion)}
           />
 
           <div className="mt-2 grid grid-cols-2 gap-2">

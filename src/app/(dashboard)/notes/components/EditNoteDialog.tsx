@@ -36,6 +36,7 @@ export default function EditNoteDialog({
         description: note.description,
         tags: note.tags ?? [],
         confidence: note.confidence ?? "needs-check",
+        perspective: note.perspective ?? "partner",
       });
     }
   }, [note]);

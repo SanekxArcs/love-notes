@@ -45,6 +45,7 @@ import {
 } from "@/components/ui/dialog";
 import type {
   NewPartnerNote,
+  NotePerspective,
   PartnerNote,
   SharedPartnerNote,
 } from "../types";
@@ -83,16 +84,21 @@ function normalized(value: string | undefined) {
   return value?.trim().toLocaleLowerCase("uk") ?? "";
 }
 
+function notePerspective(note: { perspective?: NotePerspective }) {
+  return note.perspective === "self" ? "self" : "partner";
+}
+
 function findMatchingOwnNote(
   partnerNote: SharedPartnerNote,
   ownNotes: PartnerNote[],
 ) {
   return ownNotes.find(
     (ownNote) =>
-      (partnerNote.onboardingQuestionId &&
+      notePerspective(ownNote) === notePerspective(partnerNote) &&
+      ((partnerNote.onboardingQuestionId &&
         ownNote.onboardingQuestionId === partnerNote.onboardingQuestionId) ||
       ownNote.mirroredFromNoteKey === partnerNote._key ||
-      normalized(ownNote.title) === normalized(partnerNote.title),
+      normalized(ownNote.title) === normalized(partnerNote.title)),
   );
 }
 
@@ -149,7 +155,7 @@ export default function SharedNotesDialog({
           </DialogTitle>
           <DialogDescription>
             {isComparing
-              ? "Спочатку спільні теми, нижче — нотатки, для яких ще немає пари."
+              ? "Порівнюйте відповіді одного типу: «про партнера» або окремі відповіді «про себе»."
               : `Теми та деталі, якими ${partnerName} ділиться з тобою.`}
           </DialogDescription>
         </DialogHeader>
@@ -314,7 +320,7 @@ function ComparisonView({
           {unmatchedPartner.length > 0 ? (
             <div className="grid gap-3">
               <p className="text-[11px] font-semibold text-violet-700 dark:text-violet-200">
-                Відповісти на нотатки {partnerName} · {unmatchedPartner.length}
+                Нові теми від {partnerName} · {unmatchedPartner.length}
               </p>
               {unmatchedPartner.map((note) => (
                 <UnansweredNoteComposer
@@ -369,6 +375,8 @@ function ComparisonPair({
   ) => Promise<boolean>;
   onEditOwnNote: (note: PartnerNote) => void;
 }) {
+  const isAboutSelf = notePerspective(comparison.partnerNote) === "self";
+
   return (
     <article className="grid gap-3 rounded-[1.4rem] border border-white/60 bg-white/30 p-3 dark:border-white/8 dark:bg-white/3">
       <div className="flex items-center justify-center gap-2">
@@ -386,26 +394,36 @@ function ComparisonPair({
           </span>
           <div className="min-w-0 flex-1">
             <p className="mb-1.5 text-[11px] font-semibold text-violet-700 dark:text-violet-200">
-              {partnerName}
+              {isAboutSelf ? `${partnerName} · про себе` : partnerName}
             </p>
-            <button
-              type="button"
-              onClick={() => onCorrectionRequest(comparison.partnerNote)}
-              aria-label={`Уточнити нотатку ${comparison.partnerNote.title}`}
-              className="group w-full rounded-[1.35rem] rounded-tl-[.35rem] border border-violet-200/70 bg-violet-100/75 p-4 text-left text-sm leading-6 text-violet-950 shadow-[0_7px_20px_rgba(109,70,170,.1)] transition hover:-translate-y-0.5 hover:border-violet-300 hover:shadow-[0_10px_24px_rgba(109,70,170,.16)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/40 dark:border-violet-400/15 dark:bg-violet-950/38 dark:text-violet-50"
-            >
-              <p className="whitespace-pre-wrap">
-                {comparison.partnerNote.description}
-              </p>
-              <span className="mt-2 flex items-center gap-1 text-[10px] font-semibold text-violet-600/75 opacity-75 transition group-hover:opacity-100 dark:text-violet-200/70">
-                <PencilLine className="h-3 w-3" /> Натисни, щоб уточнити
-              </span>
-            </button>
-            <CorrectionAnnotations
-              noteKey={comparison.partnerNote._key}
-              corrections={comparison.partnerNote.corrections}
-              onDelete={onDeleteCorrection}
-            />
+            {isAboutSelf ? (
+              <div className="w-full rounded-[1.35rem] rounded-tl-[.35rem] border border-violet-200/70 bg-violet-100/75 p-4 text-left text-sm leading-6 text-violet-950 shadow-[0_7px_20px_rgba(109,70,170,.1)] dark:border-violet-400/15 dark:bg-violet-950/38 dark:text-violet-50">
+                <p className="whitespace-pre-wrap">
+                  {comparison.partnerNote.description}
+                </p>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => onCorrectionRequest(comparison.partnerNote)}
+                aria-label={`Уточнити нотатку ${comparison.partnerNote.title}`}
+                className="group w-full rounded-[1.35rem] rounded-tl-[.35rem] border border-violet-200/70 bg-violet-100/75 p-4 text-left text-sm leading-6 text-violet-950 shadow-[0_7px_20px_rgba(109,70,170,.1)] transition hover:-translate-y-0.5 hover:border-violet-300 hover:shadow-[0_10px_24px_rgba(109,70,170,.16)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/40 dark:border-violet-400/15 dark:bg-violet-950/38 dark:text-violet-50"
+              >
+                <p className="whitespace-pre-wrap">
+                  {comparison.partnerNote.description}
+                </p>
+                <span className="mt-2 flex items-center gap-1 text-[10px] font-semibold text-violet-600/75 opacity-75 transition group-hover:opacity-100 dark:text-violet-200/70">
+                  <PencilLine className="h-3 w-3" /> Натисни, щоб уточнити
+                </span>
+              </button>
+            )}
+            {!isAboutSelf && (
+              <CorrectionAnnotations
+                noteKey={comparison.partnerNote._key}
+                corrections={comparison.partnerNote.corrections}
+                onDelete={onDeleteCorrection}
+              />
+            )}
           </div>
         </div>
 
@@ -416,7 +434,7 @@ function ComparisonPair({
           <div className="min-w-0 flex-1 text-right md:text-left">
             <div className="mb-1.5 flex items-center justify-end gap-1 md:justify-start">
               <p className="text-[11px] font-semibold text-pink-700 dark:text-pink-200">
-                Моя нотатка
+                {isAboutSelf ? "Я · про себе" : "Моя нотатка"}
               </p>
               <Button
                 type="button"
@@ -432,11 +450,13 @@ function ComparisonPair({
             <div className="rounded-[1.35rem] rounded-tr-[.35rem] bg-[linear-gradient(145deg,rgba(255,120,176,.98),rgba(225,52,118,.94))] p-4 text-left text-sm leading-6 text-white shadow-[inset_0_1px_1px_rgba(255,255,255,.5),0_8px_22px_rgba(207,49,112,.2)] md:rounded-tr-[1.35rem] md:rounded-tl-[.35rem]">
               <p className="whitespace-pre-wrap">{comparison.ownNote.description}</p>
             </div>
-            <ReadonlyCorrectionAnnotations
-              noteKey={comparison.ownNote._key}
-              corrections={comparison.ownNote.corrections}
-              onAccept={onAcceptCorrection}
-            />
+            {!isAboutSelf && (
+              <ReadonlyCorrectionAnnotations
+                noteKey={comparison.ownNote._key}
+                corrections={comparison.ownNote.corrections}
+                onAccept={onAcceptCorrection}
+              />
+            )}
           </div>
         </div>
       </div>
@@ -522,6 +542,7 @@ function UnansweredNoteComposer({
 }) {
   const [answer, setAnswer] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const isAboutSelf = notePerspective(note) === "self";
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -536,6 +557,7 @@ function UnansweredNoteComposer({
         tags: note.tags ?? [],
         onboardingQuestionId: note.onboardingQuestionId,
         mirroredFromNoteKey: note._key,
+        perspective: isAboutSelf ? "self" : "partner",
       });
       if (success) setAnswer("");
     } finally {
@@ -566,24 +588,32 @@ function UnansweredNoteComposer({
         </span>
         <div className="min-w-0 max-w-[88%]">
           <p className="mb-1.5 text-[11px] font-semibold text-violet-700 dark:text-violet-200">
-            {partnerName}
+            {isAboutSelf ? `${partnerName} · про себе` : partnerName}
           </p>
-          <button
-            type="button"
-            onClick={() => onCorrectionRequest(note)}
-            aria-label={`Уточнити нотатку ${note.title}`}
-            className="group w-full rounded-[1.35rem] rounded-tl-[.35rem] border border-violet-200/70 bg-violet-100/75 p-3.5 text-left text-sm leading-6 text-violet-950 transition hover:border-violet-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/40 dark:border-violet-400/15 dark:bg-violet-950/38 dark:text-violet-50"
-          >
-            <p className="whitespace-pre-wrap">{note.description}</p>
-            <span className="mt-2 flex items-center gap-1 text-[10px] font-semibold text-violet-600/75 opacity-75 transition group-hover:opacity-100 dark:text-violet-200/70">
-              <PencilLine className="h-3 w-3" /> Натисни, щоб уточнити
-            </span>
-          </button>
-          <CorrectionAnnotations
-            noteKey={note._key}
-            corrections={note.corrections}
-            onDelete={onDeleteCorrection}
-          />
+          {isAboutSelf ? (
+            <div className="w-full rounded-[1.35rem] rounded-tl-[.35rem] border border-violet-200/70 bg-violet-100/75 p-3.5 text-left text-sm leading-6 text-violet-950 dark:border-violet-400/15 dark:bg-violet-950/38 dark:text-violet-50">
+              <p className="whitespace-pre-wrap">{note.description}</p>
+            </div>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => onCorrectionRequest(note)}
+                aria-label={`Уточнити нотатку ${note.title}`}
+                className="group w-full rounded-[1.35rem] rounded-tl-[.35rem] border border-violet-200/70 bg-violet-100/75 p-3.5 text-left text-sm leading-6 text-violet-950 transition hover:border-violet-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/40 dark:border-violet-400/15 dark:bg-violet-950/38 dark:text-violet-50"
+              >
+                <p className="whitespace-pre-wrap">{note.description}</p>
+                <span className="mt-2 flex items-center gap-1 text-[10px] font-semibold text-violet-600/75 opacity-75 transition group-hover:opacity-100 dark:text-violet-200/70">
+                  <PencilLine className="h-3 w-3" /> Натисни, щоб уточнити
+                </span>
+              </button>
+              <CorrectionAnnotations
+                noteKey={note._key}
+                corrections={note.corrections}
+                onDelete={onDeleteCorrection}
+              />
+            </>
+          )}
         </div>
       </div>
 
@@ -593,14 +623,14 @@ function UnansweredNoteComposer({
       >
         <div className="min-w-0 flex-1">
           <p className="mb-1.5 text-right text-[11px] font-semibold text-pink-700 dark:text-pink-200">
-            Моя відповідь
+            {isAboutSelf ? "Моя відповідь про себе" : "Моя відповідь про партнера"}
           </p>
           <Textarea
             value={answer}
             onChange={(event) => setAnswer(event.target.value)}
             onKeyDown={handleKeyDown}
             rows={2}
-            placeholder="Напиши свою нотатку…"
+            placeholder={isAboutSelf ? "Напиши про себе…" : "Напиши про партнера…"}
             aria-label={`Моя відповідь на тему ${note.title}`}
             className="min-h-16 resize-none rounded-[1.25rem] rounded-tr-[.35rem] border-pink-200/70 bg-pink-50/75 px-4 py-3 text-sm shadow-[inset_0_1px_1px_rgba(255,255,255,.85)] focus-visible:border-pink-400 focus-visible:ring-pink-400/20 dark:border-pink-400/20 dark:bg-pink-950/25"
           />

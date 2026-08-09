@@ -85,7 +85,7 @@ export default function AiTopicDialog({
           </div>
           <DialogTitle>Чого ще бракує в нотатках</DialogTitle>
           <DialogDescription>
-            AI бачить лише назви та теги ваших тем — не тексти відповідей — і шукає напрямки, яких ще бракує.
+            AI бачить лише назви та теги нотаток про партнера — не тексти відповідей — і шукає напрямки, яких ще бракує.
           </DialogDescription>
         </DialogHeader>
 

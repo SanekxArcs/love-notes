@@ -43,7 +43,11 @@ export async function POST(request: NextRequest) {
       `*[
         _type == "user" &&
         partnerIdToSend == $partnerId &&
-        count(partnerNotes[_key == $noteKey && isShared == true]) > 0
+        count(partnerNotes[
+          _key == $noteKey &&
+          isShared == true &&
+          (!defined(perspective) || perspective == "partner")
+        ]) > 0
       ][0]{ _id }`,
       { partnerId, noteKey },
     );

@@ -380,6 +380,7 @@ export default function NotesPage() {
   };
 
   const handleToggleShare = async (note: PartnerNote) => {
+    if (note.perspective === "self") return;
     const nextShared = !note.isShared;
 
     setNotes((prev) =>
@@ -411,7 +412,13 @@ export default function NotesPage() {
 
   const handleBulkShare = async (nextShared: boolean) => {
     const previousNotes = notes;
-    setNotes((prev) => prev.map((n) => ({ ...n, isShared: nextShared })));
+    setNotes((prev) =>
+      prev.map((note) =>
+        note.perspective === "self"
+          ? { ...note, isShared: true }
+          : { ...note, isShared: nextShared },
+      ),
+    );
 
     try {
       const response = await fetch("/api/notes/share", {
@@ -521,7 +528,9 @@ export default function NotesPage() {
     );
   }, [notes]);
 
-  const allShared = notes.length > 0 && notes.every((note) => note.isShared);
+  const partnerNotes = notes.filter((note) => note.perspective !== "self");
+  const allShared =
+    partnerNotes.length > 0 && partnerNotes.every((note) => note.isShared);
 
   const answeredQuestionIds = useMemo(
     () => new Set(notes.map((note) => note.onboardingQuestionId).filter(Boolean)),
@@ -605,7 +614,7 @@ export default function NotesPage() {
                     setIsOpen={setIsSharedOpen}
                   />
                 )}
-                {notes.length > 0 && (
+                {partnerNotes.length > 0 && (
                   <Button
                     variant="outline"
                     className="h-11 w-full rounded-[1rem] border-white/70 bg-white/45 px-3 text-xs shadow-[inset_0_1px_0_rgba(255,255,255,.8)] dark:border-white/10 dark:bg-white/7"

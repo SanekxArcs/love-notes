@@ -20,6 +20,7 @@ export type PartnerNote = {
   title?: string;
   description?: string;
   tags?: Array<string>;
+  perspective?: "partner" | "self";
   confidence?: "certain" | "likely" | "needs-check";
   onboardingQuestionId?: string;
   mirroredFromNoteKey?: string;

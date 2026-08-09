@@ -3,11 +3,18 @@ import { auth } from "@/auth";
 import { arrayKey, sanityClient } from "@/lib/sanity";
 
 const CONFIDENCE_VALUES = new Set(["certain", "likely", "needs-check"]);
+const PERSPECTIVE_VALUES = new Set(["partner", "self"]);
 
 function normalizeConfidence(value: unknown) {
   return typeof value === "string" && CONFIDENCE_VALUES.has(value)
     ? value
     : "certain";
+}
+
+function normalizePerspective(value: unknown) {
+  return typeof value === "string" && PERSPECTIVE_VALUES.has(value)
+    ? value
+    : "partner";
 }
 
 export async function GET() {
@@ -34,6 +41,7 @@ export async function GET() {
           createdAt,
           updatedAt,
           confidence,
+          perspective,
           corrections[]{ _key, authorId, authorName, text, createdAt }
         }
       }`,
@@ -61,7 +69,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { title, description, tags, onboardingQuestionId, mirroredFromNoteKey, confidence } =
+    const { title, description, tags, onboardingQuestionId, mirroredFromNoteKey, confidence, perspective: rawPerspective } =
       await request.json();
 
     if (!title?.trim() || !description?.trim()) {
@@ -72,6 +80,7 @@ export async function POST(request: Request) {
     }
 
     const now = new Date().toISOString();
+    const perspective = normalizePerspective(rawPerspective);
     const newNote = {
       _type: "partnerNote" as const,
       _key: arrayKey(),
@@ -83,7 +92,8 @@ export async function POST(request: Request) {
         typeof mirroredFromNoteKey === "string"
           ? mirroredFromNoteKey.trim() || undefined
           : undefined,
-      isShared: false,
+      perspective,
+      isShared: perspective === "self",
       confidence: normalizeConfidence(confidence),
       createdAt: now,
       updatedAt: now,
@@ -126,7 +136,7 @@ export async function PUT(request: Request) {
       );
     }
 
-    const { title, description, tags, confidence } = await request.json();
+    const { title, description, tags, confidence, perspective: rawPerspective } = await request.json();
 
     if (!title?.trim() || !description?.trim()) {
       return NextResponse.json(
@@ -135,27 +145,32 @@ export async function PUT(request: Request) {
       );
     }
 
+    const perspective = normalizePerspective(rawPerspective);
     const updatedFields = {
       title: title.trim(),
       description: description.trim(),
       tags: Array.isArray(tags) ? tags.filter(Boolean) : [],
       confidence: normalizeConfidence(confidence),
+      perspective,
       updatedAt: new Date().toISOString(),
     };
 
-    await sanityClient
-      .patch(session.user.id)
-      .set({
+    const noteFields = {
         [`partnerNotes[_key=="${key}"].title`]: updatedFields.title,
         [`partnerNotes[_key=="${key}"].description`]: updatedFields.description,
         [`partnerNotes[_key=="${key}"].tags`]: updatedFields.tags,
         [`partnerNotes[_key=="${key}"].confidence`]: updatedFields.confidence,
+        [`partnerNotes[_key=="${key}"].perspective`]: updatedFields.perspective,
         [`partnerNotes[_key=="${key}"].updatedAt`]: updatedFields.updatedAt,
-      })
-      .commit();
+        ...(perspective === "self"
+          ? { [`partnerNotes[_key=="${key}"].isShared`]: true }
+          : {}),
+      };
+
+    await sanityClient.patch(session.user.id).set(noteFields).commit();
 
     return NextResponse.json(
-      { note: { _key: key, ...updatedFields } },
+      { note: { _key: key, ...updatedFields, ...(perspective === "self" ? { isShared: true } : {}) } },
       { status: 200 }
     );
   } catch (error) {
