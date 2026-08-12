@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { sanityClient } from "@/lib/sanity";
+import { getInvitationDetails } from "@/lib/invitations";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -10,16 +10,13 @@ export async function GET(request: Request) {
   }
 
   try {
-    const inviter = await sanityClient.fetch<{ name?: string } | null>(
-      '*[_type == "user" && partnerIdToSend == $partnerId][0]{ name }',
-      { partnerId },
-    );
+    const inviter = await getInvitationDetails(partnerId);
 
     if (!inviter) {
       return NextResponse.json({ error: "Invitation not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ name: inviter.name || "Твій партнер" });
+    return NextResponse.json(inviter);
   } catch (error) {
     console.error("Error loading invitation:", error);
     return NextResponse.json({ error: "Failed to load invitation" }, { status: 500 });

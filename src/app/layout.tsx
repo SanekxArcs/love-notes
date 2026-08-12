@@ -18,6 +18,7 @@ export const metadata: Metadata = {
   ],
   creator: "Love Notes",
   publisher: "Love Notes",
+  applicationName: "Love Notes",
   formatDetection: {
     email: false,
     address: false,
@@ -33,10 +34,10 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: '/og-image.jpg',
+        url: '/og-love-notes.png',
         width: 1200,
         height: 630,
-        alt: 'Love Notes Preview',
+        alt: 'Love Notes — простір для вашої історії',
       }
     ],
   },
@@ -44,7 +45,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Щоденні повідомлення кохання | Love Notes',
     description: 'Діліться повідомленнями кохання щодня та зміцнюйте ваші стосунки через теплі слова.',
-    images: ['/twitter-image.jpg'],
+    images: ['/og-love-notes.png'],
     creator: '@lovenotes',
   },
   robots: {

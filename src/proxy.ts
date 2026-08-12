@@ -7,12 +7,13 @@ export default auth((req) => {
   const isAuthPage =
     req.nextUrl.pathname === "/login" || req.nextUrl.pathname === "/register";
   const isHomePage = req.nextUrl.pathname === "/";
-  const isInvitePage = req.nextUrl.pathname === "/invite";
+  const isInvitePage = req.nextUrl.pathname === "/invite" || req.nextUrl.pathname.startsWith("/invite/");
+  const isOpenGraphAsset = req.nextUrl.pathname === "/og-love-notes.png";
   const isAdminPage = req.nextUrl.pathname.startsWith("/admin");
   const isAdminUser = req.auth?.user?.role === "admin";
 
   // Redirect unauthenticated users to login
-  if (!isLoggedIn && !isAuthPage && !isHomePage && !isInvitePage) {
+  if (!isLoggedIn && !isAuthPage && !isHomePage && !isInvitePage && !isOpenGraphAsset) {
     console.log("Not logged in, redirecting to login");
     return NextResponse.redirect(new URL("/login", req.nextUrl.origin));
   }
@@ -33,5 +34,5 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|invite|join|og-love-notes.png).*)"],
 }

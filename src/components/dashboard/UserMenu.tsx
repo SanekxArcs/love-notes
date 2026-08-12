@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
-import { Database, HelpCircle, LogOut, Moon, Sun, User } from "lucide-react";
+import { Database, HelpCircle, Link2, LogOut, Moon, Sun, User } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -81,6 +81,12 @@ export function UserMenu() {
           </Link>
         </DropdownMenuItem>
         <WraperIfAdmin>
+          <DropdownMenuItem asChild>
+            <Link href="/admin/invites" className="flex items-center gap-2 rounded-[.8rem]">
+              <Link2 size={16} />
+              <span>Публічні запрошення</span>
+            </Link>
+          </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link href="/admin" className="flex items-center gap-2 rounded-[.8rem]">
               <Database size={16} />
