@@ -1,6 +1,7 @@
 "use client";
 
 import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 import QRCode from "react-qr-code";
 import jsQR from "jsqr";
@@ -22,7 +23,9 @@ import {
   Share2,
   HeartHandshake,
   Sparkles,
+  FileText,
   LogOut,
+  ShieldCheck,
   Trash2,
   UserRound,
 } from "lucide-react";
@@ -884,6 +887,26 @@ export default function UserProfile() {
         <Button type="button" variant="outline" onClick={() => setIsDeleteDialogOpen(true)} className="mt-4 h-11 w-full rounded-[1rem] border-red-200/80 bg-white/45 text-red-600 hover:bg-red-100/70 hover:text-red-700 dark:border-red-400/20 dark:bg-red-950/15 dark:text-red-300 dark:hover:bg-red-950/35">
           <Trash2 className="h-4 w-4" /> Видалити акаунт
         </Button>
+      </section>
+
+      <section className="mt-5 rounded-[1.5rem] border border-white/60 bg-white/45 p-4 shadow-[inset_0_1px_1px_rgba(255,255,255,.75)] backdrop-blur-xl dark:border-white/10 dark:bg-white/[.03]">
+        <div className="flex gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[1rem] bg-pink-100/80 text-pink-600 dark:bg-pink-500/15 dark:text-pink-300">
+            <ShieldCheck className="h-4 w-4" />
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold">Правові документи</h2>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">Політика конфіденційності та правила користування Love Notes.</p>
+          </div>
+        </div>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+          <Button asChild type="button" variant="outline" className="h-11 justify-start rounded-[1rem] border-white/70 bg-white/45 dark:border-white/10 dark:bg-white/[.04]">
+            <Link href="/privacy"><ShieldCheck className="h-4 w-4 text-pink-500" /> Конфіденційність</Link>
+          </Button>
+          <Button asChild type="button" variant="outline" className="h-11 justify-start rounded-[1rem] border-white/70 bg-white/45 dark:border-white/10 dark:bg-white/[.04]">
+            <Link href="/terms"><FileText className="h-4 w-4 text-pink-500" /> Умови користування</Link>
+          </Button>
+        </div>
       </section>
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>

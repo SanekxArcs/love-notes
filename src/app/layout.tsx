@@ -4,9 +4,10 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
+const siteUrl = "https://love-notes.o-d.dev";
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://love-notes-three.vercel.app/'),
+  metadataBase: new URL(siteUrl),
   title: {
     default: "Щоденні повідомлення кохання | Love Notes",
     template: "%s | Щоденні повідомлення кохання",
@@ -28,7 +29,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Щоденні повідомлення кохання | Love Notes",
     description: "Діліться повідомленнями кохання щодня та зміцнюйте ваші стосунки через теплі слова.",
-    url: 'https://love-notes-three.vercel.app/',
+    url: siteUrl,
     siteName: 'Love Notes',
     locale: 'uk_UA',
     type: 'website',
@@ -72,9 +73,9 @@ export const metadata: Metadata = {
   },
   manifest: '/manifest.json',
   alternates: {
-    canonical: 'https://love-notes-three.vercel.app/',
+    canonical: siteUrl,
     languages: {
-      'uk-UA': 'https://love-notes-three.vercel.app/',
+      'uk-UA': siteUrl,
     },
   },
   verification: {
