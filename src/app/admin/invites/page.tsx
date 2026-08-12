@@ -26,7 +26,7 @@ export default function AdminInvitesPage() {
   const ogImageUrl = useMemo(() => {
     if (typeof window === "undefined") return "";
     const params = new URLSearchParams({ title: title.trim(), message: message.trim() });
-    return `${window.location.origin}/join/opengraph-image?${params.toString()}`;
+    return `${window.location.origin}/api/og/join?${params.toString()}`;
   }, [message, title]);
   const onTitleChange = useCallback((event: ChangeEvent<HTMLInputElement>) => setTitle(event.target.value), []);
   const onMessageChange = useCallback((event: ChangeEvent<HTMLTextAreaElement>) => setMessage(event.target.value), []);

@@ -22,7 +22,7 @@ export async function generateMetadata({ searchParams }: JoinPageProps): Promise
   const cleanMessage = cleanText(message, "Love Notes — місце для теплих слів, спільних планів і важливих спогадів.", 220);
   const params = new URLSearchParams({ title: cleanTitle, message: cleanMessage });
   if (campaign?.trim()) params.set("campaign", campaign.trim().slice(0, 80));
-  const imageUrl = `/join/opengraph-image?${params.toString()}`;
+  const imageUrl = `/api/og/join?${params.toString()}`;
 
   return {
     title: cleanTitle,
@@ -32,6 +32,7 @@ export async function generateMetadata({ searchParams }: JoinPageProps): Promise
       title: cleanTitle,
       description: cleanMessage,
       type: "website",
+      siteName: "Love Notes",
       images: [{ url: imageUrl, width: 1200, height: 630, alt: cleanTitle }],
     },
     twitter: { card: "summary_large_image", title: cleanTitle, description: cleanMessage, images: [imageUrl] },
