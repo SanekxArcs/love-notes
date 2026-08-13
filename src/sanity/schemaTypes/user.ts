@@ -38,9 +38,10 @@ export const userType = defineType({
     }),
     defineField({
       name: "password",
-      title: "Password",
+      title: "Password hash",
       type: "string",
-      description: "User password (stored in plaintext for now)",
+      description: "Versioned scrypt password hash. Never store plaintext here.",
+      hidden: true,
       validation: (Rule) => Rule.required(),
     }),
     defineField({
@@ -56,6 +57,13 @@ export const userType = defineType({
       },
       initialValue: "user",
       validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: "lastActiveAt",
+      title: "Last active at",
+      type: "datetime",
+      description: "Updated by authenticated activity for retention decisions.",
+      hidden: true,
     }),
     defineField({
       name: "partnerIdToSend",

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { sanityClient } from "@/lib/sanity";
+import { connectPartner } from "@/lib/user-access";
 
 export async function PUT(request: Request) {
   const session = await auth();
@@ -14,16 +14,16 @@ export async function PUT(request: Request) {
   }
 
   try {
-    const partner = await sanityClient.fetch<{ _id: string } | null>(
-      '*[_type == "user" && partnerIdToSend == $partnerId][0]{ _id }',
-      { partnerId: partnerId.trim() },
-    );
-
-    if (!partner || partner._id === session.user.id) {
+    const result = await connectPartner(session.user.id, partnerId);
+    if (!result.ok && result.reason === "partner-already-connected") {
+      return NextResponse.json(
+        { error: "Partner is already connected to another account" },
+        { status: 409 },
+      );
+    }
+    if (!result.ok) {
       return NextResponse.json({ error: "Partner not found" }, { status: 404 });
     }
-
-    await sanityClient.patch(session.user.id).set({ partnerIdToReceiveFrom: partnerId.trim() }).commit();
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error connecting partner:", error);

@@ -1,4 +1,5 @@
 import { sanityClient } from "@/lib/sanity";
+import { getConnectedPartner } from "@/lib/user-access";
 
 export const GEMINI_MODEL = "gemini-3.5-flash-lite";
 
@@ -16,19 +17,20 @@ export async function getValidatedGeminiApiKey(
 ): Promise<GeminiKeyResult> {
   const user = await sanityClient.fetch(
     `*[_type == "user" && _id == $userId][0]{
-      geminiApiKey,
-      partnerIdToReceiveFrom
+      geminiApiKey
     }`,
     { userId }
   );
 
   const ownApiKey: string | undefined = user?.geminiApiKey?.trim();
-  const partnerId: string | undefined = user?.partnerIdToReceiveFrom?.trim();
   const ownKeyIsValid = Boolean(ownApiKey && HEADER_SAFE.test(ownApiKey));
-  const partner = !ownKeyIsValid && partnerId
+  const { partner: connectedPartner } = ownKeyIsValid
+    ? { partner: null }
+    : await getConnectedPartner(userId);
+  const partner = !ownKeyIsValid && connectedPartner
     ? await sanityClient.fetch(
-        `*[_type == "user" && partnerIdToSend == $partnerId][0]{ geminiApiKey }`,
-        { partnerId }
+        `*[_type == "user" && _id == $partnerId][0]{ geminiApiKey }`,
+        { partnerId: connectedPartner._id }
       )
     : null;
   const partnerApiKey: string | undefined = partner?.geminiApiKey?.trim();

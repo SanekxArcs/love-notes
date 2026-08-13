@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { arrayKey, sanityClient } from "@/lib/sanity";
+import { isValidArrayKey } from "@/lib/user-access";
 
 const CONFIDENCE_VALUES = new Set(["certain", "likely", "needs-check"]);
 const PERSPECTIVE_VALUES = new Set(["partner", "self"]);
@@ -129,7 +130,7 @@ export async function PUT(request: Request) {
     const { searchParams } = new URL(request.url);
     const key = searchParams.get("key");
 
-    if (!key) {
+    if (!isValidArrayKey(key)) {
       return NextResponse.json(
         { error: "Note key is required" },
         { status: 400 }
@@ -162,15 +163,13 @@ export async function PUT(request: Request) {
         [`partnerNotes[_key=="${key}"].confidence`]: updatedFields.confidence,
         [`partnerNotes[_key=="${key}"].perspective`]: updatedFields.perspective,
         [`partnerNotes[_key=="${key}"].updatedAt`]: updatedFields.updatedAt,
-        ...(perspective === "self"
-          ? { [`partnerNotes[_key=="${key}"].isShared`]: true }
-          : {}),
+        [`partnerNotes[_key=="${key}"].isShared`]: perspective === "self",
       };
 
     await sanityClient.patch(session.user.id).set(noteFields).commit();
 
     return NextResponse.json(
-      { note: { _key: key, ...updatedFields, ...(perspective === "self" ? { isShared: true } : {}) } },
+      { note: { _key: key, ...updatedFields, isShared: perspective === "self" } },
       { status: 200 }
     );
   } catch (error) {
@@ -196,7 +195,7 @@ export async function DELETE(request: Request) {
     const { searchParams } = new URL(request.url);
     const key = searchParams.get("key");
 
-    if (!key) {
+    if (!isValidArrayKey(key)) {
       return NextResponse.json(
         { error: "Note key is required" },
         { status: 400 }

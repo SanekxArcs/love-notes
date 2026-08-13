@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { sanityClient } from "@/lib/sanity";
+import { isValidArrayKey } from "@/lib/user-access";
 
 // PATCH ?key=<note key>  { isShared } -> toggle a single note
 // PATCH (no key)         { isShared } -> apply to every note at once
@@ -26,6 +27,10 @@ export async function PATCH(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const key = searchParams.get("key");
+
+    if (key && !isValidArrayKey(key)) {
+      return NextResponse.json({ error: "Invalid note key" }, { status: 400 });
+    }
 
     if (key) {
       const note = await sanityClient.fetch<{

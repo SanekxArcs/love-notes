@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { arrayKey, sanityClient } from "@/lib/sanity";
+import { getConnectedPartner } from "@/lib/user-access";
 
 const MAX_CORRECTION_LENGTH = 1000;
 const NOTE_KEY_PATTERN = /^[a-zA-Z0-9_-]{1,100}$/;
@@ -31,7 +32,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const partnerId = session.user.partnerIdToReceiveFrom;
+    const { partner: connectedPartner } = await getConnectedPartner(session.user.id);
+    const partnerId = connectedPartner?._id;
     if (!partnerId) {
       return NextResponse.json(
         { error: "Партнера не підключено" },
@@ -42,7 +44,7 @@ export async function POST(request: NextRequest) {
     const partner = await sanityClient.fetch<{ _id: string } | null>(
       `*[
         _type == "user" &&
-        partnerIdToSend == $partnerId &&
+        _id == $partnerId &&
         count(partnerNotes[
           _key == $noteKey &&
           isShared == true &&
@@ -111,7 +113,8 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const partnerId = session.user.partnerIdToReceiveFrom;
+    const { partner: connectedPartner } = await getConnectedPartner(session.user.id);
+    const partnerId = connectedPartner?._id;
     if (!partnerId) {
       return NextResponse.json(
         { error: "Партнера не підключено" },
@@ -136,7 +139,7 @@ export async function DELETE(request: NextRequest) {
       : await sanityClient.fetch<{ _id: string } | null>(
       `*[
         _type == "user" &&
-        partnerIdToSend == $partnerId &&
+        _id == $partnerId &&
         count(partnerNotes[
           _key == $noteKey &&
           isShared == true &&

@@ -43,7 +43,7 @@ To keep your data under your control:
 
 The optional Gemini features send the data needed for a specific AI request to Google Gemini. Leave the Gemini key empty if you do not want to use those features.
 
-> **Security warning:** registration is currently public, and passwords are stored as plain text by the current application code. Keep a personal deployment access-controlled and do not expose it to the public internet until password hashing and registration protection have been implemented.
+> **Security:** new and changed passwords are stored as versioned scrypt hashes. Existing plaintext passwords are upgraded automatically after the user’s next successful login. Partner data is available only after both accounts have a reciprocal connection. Registration remains public, so use deployment-level access controls when running a private instance.
 
 ## Fork and self-host
 

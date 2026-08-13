@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { sanityClient } from '@/lib/sanity';
 import { auth } from "@/auth";
+import { getConnectedPartner, isValidArrayKey } from "@/lib/user-access";
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const session = await auth();
 
@@ -10,11 +11,15 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { searchParams } = new URL(request.url);
-    const partnerId = searchParams.get('partnerId');
-
-    if (!partnerId) {
-      return NextResponse.json({ error: 'Partner ID is required' }, { status: 400 });
+    const userId = session.user.id as string;
+    const { user, partner: connectedPartner } = await getConnectedPartner(
+      userId,
+    );
+    if (!user || !connectedPartner) {
+      return NextResponse.json(
+        { error: "A reciprocal partner connection is required" },
+        { status: 403 },
+      );
     }
 
     const today = new Date();
@@ -24,7 +29,7 @@ export async function GET(request: Request) {
     const todayMD = `${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
     const partner = await sanityClient.fetch(
-      `*[_type == "user" && partnerIdToSend == $partnerId][0]{
+      `*[_type == "user" && _id == $partnerId][0]{
         _id,
         _rev,
         dayMessageLimit,
@@ -38,7 +43,13 @@ export async function GET(request: Request) {
           shownAt <= $todayEnd
         ])
       }`,
-      { partnerId, userId: session.user.id, todayStart, todayEnd, todayMD }
+      {
+        partnerId: connectedPartner._id,
+        userId,
+        todayStart,
+        todayEnd,
+        todayMD,
+      }
     );
 
     if (!partner?._id) {
@@ -74,7 +85,12 @@ export async function GET(request: Request) {
       );
     }
 
-    const login = session.user.login;
+    if (!isValidArrayKey(randomMessage._key)) {
+      console.error("Invalid message key returned by Sanity");
+      return NextResponse.json({ error: "Invalid message state" }, { status: 500 });
+    }
+
+    const login = user.login;
     const messageType = todayShownCount === 0 ? "daily" : "extra";
     const now = new Date().toISOString();
 
@@ -84,11 +100,11 @@ export async function GET(request: Request) {
       .set({
         [`messages[_key=="${randomMessage._key}"].isShown`]: true,
         [`messages[_key=="${randomMessage._key}"].shownAt`]: now,
-        [`messages[_key=="${randomMessage._key}"].userName`]: session.user.name || login,
+        [`messages[_key=="${randomMessage._key}"].userName`]: user.name || login,
         [`messages[_key=="${randomMessage._key}"].category`]: messageType,
         [`messages[_key=="${randomMessage._key}"].shownBy`]: {
           _type: "reference",
-          _ref: session.user.id,
+          _ref: userId,
         },
       })
       .commit();

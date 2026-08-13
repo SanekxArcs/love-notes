@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "biome lint .",
+    "test:security": "node --test tests/password.test.mjs",
     "predev": "npm run typegen",
     "prebuild": "npm run typegen",
     "typegen": "sanity schema extract --force --path=./src/sanity/extract.json && sanity typegen generate"

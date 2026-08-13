@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { sanityClient } from "@/lib/sanity";
+import { getConnectedPartner } from "@/lib/user-access";
 import { GEMINI_MODEL, getValidatedGeminiApiKey } from "@/lib/gemini";
 
 const MIN_NOTES_PER_SIDE = 3;
@@ -108,7 +109,8 @@ export async function POST() {
     }
     const { apiKey } = keyResult;
 
-    const partnerId = session.user.partnerIdToReceiveFrom;
+    const { partner: connectedPartner } = await getConnectedPartner(session.user.id);
+    const partnerId = connectedPartner?._id;
     if (!partnerId) {
       return NextResponse.json(
         { error: "Спочатку зв'яжіться з партнером у профілі" },
@@ -125,7 +127,7 @@ export async function POST() {
         { userId: session.user.id }
       ),
       sanityClient.fetch(
-        `*[_type == "user" && partnerIdToSend == $partnerId][0]{
+        `*[_type == "user" && _id == $partnerId][0]{
           name,
           "notes": partnerNotes[isShared == true]{ title, description, tags }
         }`,

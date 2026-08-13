@@ -27,7 +27,7 @@ export function useMessages(partnerId: string, dailyLimit: number) {
         return;
       }
       
-      const response = await fetch(`/api/messages/history?partnerId=${partnerId}`);
+      const response = await fetch("/api/messages/history");
       if (!response.ok) throw new Error(toastTextError);
       
       const data = await response.json();
@@ -79,7 +79,7 @@ export function useMessages(partnerId: string, dailyLimit: number) {
     setIsLoading(true);
     
     try {
-      const response = await fetch(`/api/messages/random?partnerId=${partnerId}`);
+      const response = await fetch("/api/messages/random");
 
       if (response.status === 429 || response.status === 409) {
         const errorData = await response.json();

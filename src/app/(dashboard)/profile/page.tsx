@@ -108,6 +108,8 @@ interface UserData {
   partnerIdToReceiveFrom: string;
   dayMessageLimit: number;
   geminiApiKey: string;
+  hasGeminiApiKey: boolean;
+  removeGeminiApiKey: boolean;
   partnerInfo: string;
   aiScanLanguage: string;
   localScanLanguage: string;
@@ -193,7 +195,7 @@ export default function UserProfile() {
       try {
         setIsLoading(true);
         const response = await fetch(
-          `/api/users/profile?login=${session.user.login}`
+          "/api/users/profile"
         );
 
         if (!response.ok) {
@@ -201,8 +203,14 @@ export default function UserProfile() {
         }
 
         const data = await response.json();
-        setUserData(data);
-        setOriginalUserData(JSON.parse(JSON.stringify(data))); 
+        const safeData = {
+          ...data,
+          password: "",
+          geminiApiKey: "",
+          removeGeminiApiKey: false,
+        };
+        setUserData(safeData);
+        setOriginalUserData(JSON.parse(JSON.stringify(safeData)));
       } catch (error) {
         console.error("Помилка при отриманні даних користувача:", error);
         toast.error("Не вдалося завантажити профіль користувача");
@@ -226,7 +234,7 @@ export default function UserProfile() {
       try {
         setLoadingPartner(true);
         const response = await fetch(
-          `/api/users/partner-info?partnerId=${partnerId}`
+          "/api/users/partner-info"
         );
 
         if (!response.ok) {
@@ -254,6 +262,26 @@ export default function UserProfile() {
     setUserData((prev) => (prev ? { ...prev, [name]: value } : null));
   };
 
+  const handleGeminiApiKeyChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const geminiApiKey = event.target.value;
+      setUserData((previous) =>
+        previous
+          ? { ...previous, geminiApiKey, removeGeminiApiKey: false }
+          : null,
+      );
+    },
+    [],
+  );
+
+  const removeSavedGeminiApiKey = useCallback(() => {
+    setUserData((previous) =>
+      previous
+        ? { ...previous, geminiApiKey: "", removeGeminiApiKey: true }
+        : null,
+    );
+  }, []);
+
   const hasChanges = () => {
     if (!userData || !originalUserData) return false;
 
@@ -266,6 +294,7 @@ export default function UserProfile() {
         originalUserData.partnerIdToReceiveFrom ||
       userData.dayMessageLimit !== originalUserData.dayMessageLimit ||
       userData.geminiApiKey !== originalUserData.geminiApiKey ||
+      userData.removeGeminiApiKey !== originalUserData.removeGeminiApiKey ||
       userData.partnerInfo !== originalUserData.partnerInfo ||
       userData.aiScanLanguage !== originalUserData.aiScanLanguage ||
       userData.localScanLanguage !== originalUserData.localScanLanguage
@@ -431,11 +460,22 @@ export default function UserProfile() {
         body: JSON.stringify(userData),
       });
 
+      const result = await response.json();
       if (!response.ok) {
-        throw new Error("Не вдалося оновити профіль");
+        throw new Error(result.error || "Не вдалося оновити профіль");
       }
 
-      setOriginalUserData(JSON.parse(JSON.stringify(userData)));
+      const savedUserData = {
+        ...userData,
+        password: "",
+        geminiApiKey: "",
+        hasGeminiApiKey: userData.removeGeminiApiKey
+          ? false
+          : Boolean(userData.geminiApiKey || userData.hasGeminiApiKey),
+        removeGeminiApiKey: false,
+      };
+      setUserData(savedUserData);
+      setOriginalUserData(JSON.parse(JSON.stringify(savedUserData)));
       toast.success("Профіль успішно оновлено!");
       if (isFirstSetup) {
         await fetch("/api/users/onboarding", {
@@ -522,6 +562,9 @@ export default function UserProfile() {
                   type={showPassword ? "text" : "password"}
                   value={userData?.password || ""}
                   onChange={handleInputChange}
+                  minLength={8}
+                  maxLength={128}
+                  placeholder="Введіть новий пароль"
                   className="min-w-0 flex-1"
                 />
                 <CustomTooltip
@@ -603,7 +646,12 @@ export default function UserProfile() {
                   name="geminiApiKey"
                   type={showGeminiApiKey ? "text" : "password"}
                   value={userData?.geminiApiKey || ""}
-                  onChange={handleInputChange}
+                  onChange={handleGeminiApiKeyChange}
+                  placeholder={
+                    userData?.hasGeminiApiKey
+                      ? "Ключ збережено — введіть новий для заміни"
+                      : "Введіть Gemini API ключ"
+                  }
                   className="min-w-0 flex-1"
                 />
                 <CustomTooltip
@@ -625,6 +673,19 @@ export default function UserProfile() {
                     )}
                   </Button>
                 </CustomTooltip>
+                {userData?.hasGeminiApiKey ? (
+                  <CustomTooltip text="Видалити збережений ключ">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      title="Видалити збережений ключ"
+                      onClick={removeSavedGeminiApiKey}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </CustomTooltip>
+                ) : null}
               </div>
               <p className="text-xs text-gray-500">
                 Потрібен для генерації повідомлень через AI. Отримати ключ

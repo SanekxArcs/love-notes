@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { sanityClient } from "@/lib/sanity";
 import { getAdminUserForDeletion, getAdminUsers } from "@/lib/admin";
+import { deleteUserAndRelatedData } from "@/lib/delete-user";
 
 async function requireAdmin() {
   const session = await auth();
@@ -58,16 +58,7 @@ export async function DELETE(request: Request) {
       );
     }
 
-    const history = await sanityClient.fetch<Array<{ _id: string }>>(
-      `*[_type == "userMessageHistory" && userId == $userId]{ _id }`,
-      { userId },
-    );
-    const transaction = sanityClient.transaction();
-    for (const item of history) {
-      transaction.delete(item._id);
-    }
-    transaction.delete(userId);
-    await transaction.commit();
+    await deleteUserAndRelatedData(userId);
 
     return NextResponse.json({ success: true, userId });
   } catch (error) {

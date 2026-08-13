@@ -1,10 +1,4 @@
-import NextAuth from "next-auth";
-
-export const { handlers, auth } = NextAuth(async (req) => {
- console.log(req) 
- return 
-}
-);
+import "next-auth";
 
 declare module "next-auth" {
   /**
@@ -18,8 +12,6 @@ declare module "next-auth" {
       phone?: string | null;
       image?: string | null;
       role?: string;
-      partnerIdToSend?: string;
-      partnerIdToReceiveFrom?: string;
     };
   }
 
@@ -33,8 +25,6 @@ declare module "next-auth" {
     phone?: string | null;
     image?: string | null;
     role?: string;
-    partnerIdToSend?: string;
-    partnerIdToReceiveFrom?: string;
   }
 }
 
@@ -48,7 +38,6 @@ declare module "next-auth/jwt" {
     role?: string;
     phone?: string | null;
     name?: string | null;
-    partnerIdToSend?: string;
-    partnerIdToReceiveFrom?: string;
+    authorizationValid?: boolean;
   }
 }

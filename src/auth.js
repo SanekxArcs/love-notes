@@ -1,15 +1,17 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { createClient } from "next-sanity";
+import { sanityClient } from "@/lib/sanity";
+import {
+  hashPassword,
+  isPasswordHash,
+  verifyPassword,
+} from "@/lib/password";
+import { getLiveUser } from "@/lib/user-access";
 
-// Create Sanity client for authentication
-const sanityClient = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || "production",
-  apiVersion: "2023-05-03", // Use a current API version
-  useCdn: false, // Don't use CDN for authentication to get latest data
-  token: process.env.SANITY_API_TOKEN, // Only needed if users are not publicly readable
-});
+function clearAuthorizationClaims(token) {
+  token.role = undefined;
+  token.authorizationValid = false;
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
@@ -31,17 +33,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               name,
               login,
               password,
-              role,
-              partnerIdToSend,
-              partnerIdToReceiveFrom
+              role
             }`,
             { login: credentials.login }
           );
 
           const user = users;
 
-          if (!user || user.password !== credentials.password) {
+          if (
+            !user ||
+            !(await verifyPassword(String(credentials.password), user.password))
+          ) {
             return null;
+          }
+
+          // Upgrade legacy plaintext credentials after the first valid login.
+          if (!isPasswordHash(user.password)) {
+            await sanityClient
+              .patch(user._id)
+              .set({ password: await hashPassword(String(credentials.password)) })
+              .commit();
           }
 
           return {
@@ -49,8 +60,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             name: user.name,
             login: user.login,
             role: user.role,
-            partnerIdToSend: user.partnerIdToSend,
-            partnerIdToReceiveFrom: user.partnerIdToReceiveFrom
           };
         } catch (error) {
           console.error("Error authenticating user:", error);
@@ -62,21 +71,54 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role = user.role;
         token.id = user.id;
-        token.login = user.login; // Make sure login is explicitly assigned
-        token.partnerIdToSend = user.partnerIdToSend;
-        token.partnerIdToReceiveFrom = user.partnerIdToReceiveFrom;
       }
+
+      if (!token.id) {
+        clearAuthorizationClaims(token);
+        return token;
+      }
+
+      try {
+        const liveUser = await getLiveUser(String(token.id));
+        if (!liveUser) {
+          clearAuthorizationClaims(token);
+          return token;
+        }
+
+        token.name = liveUser.name;
+        token.login = liveUser.login;
+        token.role = liveUser.role || "user";
+        token.authorizationValid = true;
+
+        const lastActiveAt = liveUser.lastActiveAt
+          ? new Date(liveUser.lastActiveAt).getTime()
+          : 0;
+        if (Date.now() - lastActiveAt > 15 * 60 * 1000) {
+          try {
+            await sanityClient
+              .patch(liveUser._id)
+              .set({ lastActiveAt: new Date().toISOString() })
+              .commit();
+          } catch (error) {
+            console.error("Error recording user activity:", error);
+          }
+        }
+      } catch (error) {
+        console.error("Error refreshing authorization claims:", error);
+        clearAuthorizationClaims(token);
+      }
+
       return token;
     },
     async session({ session, token }) {
-      if (session.user) {
+      if (session.user && token.id && token.authorizationValid) {
         session.user.id = token.id;
-        session.user.login = token.login; // Make sure login is explicitly assigned
+        session.user.name = token.name;
+        session.user.login = token.login;
         session.user.role = token.role;
-        session.user.partnerIdToSend = token.partnerIdToSend;
-        session.user.partnerIdToReceiveFrom = token.partnerIdToReceiveFrom;
+      } else {
+        session.user = undefined;
       }
       return session;
     },

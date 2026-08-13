@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { sanityClient } from '@/lib/sanity';
 import { auth } from "@/auth";
+import { getConnectedPartner } from "@/lib/user-access";
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const session = await auth();
 
@@ -10,21 +11,23 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get partnerId from query parameters
-    const { searchParams } = new URL(request.url);
-    const partnerId = searchParams.get('partnerId');
-
-    if (!partnerId) {
-      return NextResponse.json({ error: 'Partner ID is required' }, { status: 400 });
+    const userId = session.user.id as string;
+    const { partner } = await getConnectedPartner(userId);
+    if (!partner) {
+      return NextResponse.json(
+        { error: "A reciprocal partner connection is required" },
+        { status: 403 },
+      );
     }
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     const messages = await sanityClient.fetch(
-      `*[_type == "user" && partnerIdToSend == $partnerId][0]{
+      `*[_type == "user" && _id == $partnerId][0]{
         "todayMessages": messages[
           isShown == true &&
+          shownBy._ref == $userId &&
           defined(shownAt) &&
           dateTime(shownAt) >= dateTime($today)
         ] | order(shownAt desc) {
@@ -37,6 +40,7 @@ export async function GET(request: Request) {
         },
         "previousMessages": messages[
           isShown == true &&
+          shownBy._ref == $userId &&
           defined(shownAt) &&
           dateTime(shownAt) < dateTime($today)
         ] | order(shownAt desc) {
@@ -49,7 +53,8 @@ export async function GET(request: Request) {
         }
       }`,
       {
-        partnerId,
+        partnerId: partner._id,
+        userId,
         today: today.toISOString()
       }
     );

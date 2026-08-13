@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { sanityClient } from "@/lib/sanity";
 import { auth } from "@/auth";
+import { verifyPassword } from "@/lib/password";
 
 export async function DELETE(request: Request) {
   try {
@@ -27,7 +28,7 @@ export async function DELETE(request: Request) {
       { userId }
     );
 
-    if (!user || user.password !== password) {
+    if (!user || !(await verifyPassword(password, user.password))) {
       return NextResponse.json({ error: "Invalid password" }, { status: 403 });
     }
 

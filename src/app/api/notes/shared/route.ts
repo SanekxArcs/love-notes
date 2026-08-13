@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { sanityClient } from "@/lib/sanity";
+import { getConnectedPartner } from "@/lib/user-access";
 
 export async function GET() {
   try {
@@ -13,14 +14,15 @@ export async function GET() {
       );
     }
 
-    const partnerId = session.user.partnerIdToReceiveFrom;
+    const { partner: connectedPartner } = await getConnectedPartner(session.user.id);
+    const partnerId = connectedPartner?._id;
 
     if (!partnerId) {
       return NextResponse.json({ notes: [] });
     }
 
-    const partner = await sanityClient.fetch(
-      `*[_type == "user" && partnerIdToSend == $partnerId][0]{
+    const partnerData = await sanityClient.fetch(
+      `*[_type == "user" && _id == $partnerId][0]{
         name,
         "notes": partnerNotes[isShared == true]{
           _key,
@@ -36,8 +38,8 @@ export async function GET() {
     );
 
     return NextResponse.json({
-      notes: partner?.notes ?? [],
-      partnerName: partner?.name ?? "Партнер",
+      notes: partnerData?.notes ?? [],
+      partnerName: partnerData?.name ?? "Партнер",
     });
   } catch (error) {
     console.error("Error fetching partner's shared notes:", error);

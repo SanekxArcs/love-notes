@@ -1,41 +1,33 @@
-import { NextResponse } from 'next/server';
-import { sanityClient } from '@/lib/sanity';
+import { NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { getConnectedPartner } from "@/lib/user-access";
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const session = await auth();
-    
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    
-    const { searchParams } = new URL(request.url);
-    const partnerId = searchParams.get('partnerId');
-    
-    if (!partnerId) {
-      return NextResponse.json({ error: 'Partner ID is required' }, { status: 400 });
+
+    const { partner } = await getConnectedPartner(session.user.id);
+    if (!partner) {
+      return NextResponse.json(
+        { error: "Connected partner not found" },
+        { status: 404 },
+      );
     }
-    
-    const partnerData = await sanityClient.fetch(
-      `
-      *[_type == "user" && partnerIdToSend == $partnerId][0] {
-        _id,
-        name,
-        dayMessageLimit,
-        phone
-      }
-      `,
-      { partnerId }
-    );
-    
-    if (!partnerData) {
-      return NextResponse.json({ error: 'Partner not found' }, { status: 404 });
-    }
-    
-    return NextResponse.json(partnerData);
+
+    return NextResponse.json({
+      _id: partner._id,
+      name: partner.name,
+      dayMessageLimit: partner.dayMessageLimit,
+      phone: partner.phone,
+    });
   } catch (error) {
-    console.error('Error fetching partner data:', error);
-    return NextResponse.json({ error: 'Failed to fetch partner data' }, { status: 500 });
+    console.error("Error fetching partner data:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch partner data" },
+      { status: 500 },
+    );
   }
 }

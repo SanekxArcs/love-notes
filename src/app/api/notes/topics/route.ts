@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { GEMINI_MODEL, getValidatedGeminiApiKey } from "@/lib/gemini";
 import { sanityClient } from "@/lib/sanity";
+import { getConnectedPartner } from "@/lib/user-access";
 
 interface TopicSourceNote {
   title?: string;
@@ -92,24 +93,20 @@ export async function POST(request: Request) {
           .slice(-12)
       : [];
 
-    const me = await sanityClient.fetch<{
-      partnerIdToReceiveFrom?: string;
-      notes?: TopicSourceNote[];
-    } | null>(
+    const me = await sanityClient.fetch<{ notes?: TopicSourceNote[] } | null>(
       `*[_type == "user" && _id == $userId][0]{
-        partnerIdToReceiveFrom,
         "notes": partnerNotes[!defined(perspective) || perspective == "partner"]{ title, tags }
       }`,
       { userId: session.user.id },
     );
 
-    const partnerId = me?.partnerIdToReceiveFrom?.trim();
-    const partner = partnerId
+    const { partner: connectedPartner } = await getConnectedPartner(session.user.id);
+    const partner = connectedPartner
       ? await sanityClient.fetch<{ notes?: TopicSourceNote[] } | null>(
-          `*[_type == "user" && partnerIdToSend == $partnerId][0]{
+          `*[_type == "user" && _id == $partnerId][0]{
             "notes": partnerNotes[isShared == true && (!defined(perspective) || perspective == "partner")]{ title, tags }
           }`,
-          { partnerId },
+          { partnerId: connectedPartner._id },
         )
       : null;
 

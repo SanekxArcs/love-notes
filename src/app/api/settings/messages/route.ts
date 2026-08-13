@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { arrayKey, sanityClient } from "@/lib/sanity";
+import { isValidArrayKey } from "@/lib/user-access";
 
 const SPECIFIC_DATE_PATTERN = /^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
 
@@ -112,7 +113,7 @@ export async function DELETE(request: Request) {
     const { searchParams } = new URL(request.url);
     const key = searchParams.get("key");
 
-    if (!key) {
+    if (!isValidArrayKey(key)) {
       return NextResponse.json(
         { error: "Message key is required" },
         { status: 400 }
@@ -148,7 +149,7 @@ export async function PUT(request: Request) {
     const { searchParams } = new URL(request.url);
     const key = searchParams.get("key");
 
-    if (!key) {
+    if (!isValidArrayKey(key)) {
       return NextResponse.json(
         { error: "Message key is required" },
         { status: 400 }

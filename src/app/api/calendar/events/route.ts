@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { arrayKey, sanityClient } from "@/lib/sanity";
+import { getConnectedPartner, isValidArrayKey } from "@/lib/user-access";
 
 const EVENT_PROJECTION = `{
   _key,
@@ -74,14 +75,17 @@ export async function GET() {
       );
     }
 
-    const partnerId = session.user.partnerIdToReceiveFrom;
+    const { partner } = await getConnectedPartner(session.user.id);
+    const partnerId = partner?._id;
 
     const users = await sanityClient.fetch(
-      `*[_type == "user" && (_id == $myId || (defined($partnerId) && partnerIdToSend == $partnerId))]{
+      `*[_type == "user" && (_id == $myId || _id == $partnerId)]{
         _id,
         name,
         "calendarEvents": calendarEvents[] ${EVENT_PROJECTION},
-        "shownMessages": messages[isShown == true && defined(shownAt)]{
+        "shownMessages": messages[
+          isShown == true && defined(shownAt) && shownBy._ref == $myId
+        ]{
           _key,
           text,
           shownAt
@@ -205,7 +209,7 @@ export async function PUT(request: Request) {
     const { searchParams } = new URL(request.url);
     const key = searchParams.get("key");
 
-    if (!key) {
+    if (!isValidArrayKey(key)) {
       return NextResponse.json(
         { error: "Event key is required" },
         { status: 400 }
@@ -276,7 +280,7 @@ export async function DELETE(request: Request) {
     const { searchParams } = new URL(request.url);
     const key = searchParams.get("key");
 
-    if (!key) {
+    if (!isValidArrayKey(key)) {
       return NextResponse.json(
         { error: "Event key is required" },
         { status: 400 }

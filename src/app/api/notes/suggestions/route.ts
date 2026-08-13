@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { sanityClient } from "@/lib/sanity";
+import { getConnectedPartner } from "@/lib/user-access";
 import { ONBOARDING_QUESTIONS } from "@/app/(dashboard)/notes/data/onboarding-questions";
 
 interface SourceNote {
@@ -33,7 +34,8 @@ export async function GET() {
       );
     }
 
-    const partnerId = session.user.partnerIdToReceiveFrom;
+    const { partner: connectedPartner } = await getConnectedPartner(session.user.id);
+    const partnerId = connectedPartner?._id;
     if (!partnerId) return NextResponse.json({ suggestions: [] });
 
     const [me, partner] = await Promise.all([
@@ -48,7 +50,7 @@ export async function GET() {
         { userId: session.user.id },
       ),
       sanityClient.fetch<{ name?: string; notes?: SourceNote[] } | null>(
-        `*[_type == "user" && partnerIdToSend == $partnerId][0]{
+        `*[_type == "user" && _id == $partnerId][0]{
           name,
           "notes": partnerNotes[isShared != true && (!defined(perspective) || perspective == "partner")]{
             _key,

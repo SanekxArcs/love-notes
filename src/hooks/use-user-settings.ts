@@ -34,10 +34,8 @@ export function useUserSettings() {
           throw new Error("No user login found in session");
         }
 
-        const userLogin = sessionData.user.login;
-
         const userProfileResponse = await fetch(
-          `/api/users/profile?login=${userLogin}`
+          "/api/users/profile"
         );
         if (!userProfileResponse.ok) {
           throw new Error("Не вдалося отримати профіль користувача");
@@ -65,7 +63,7 @@ export function useUserSettings() {
         }
 
         const partnerResponse = await fetch(
-          `/api/users/partner?partnerId=${partnerIdToReceiveFrom}`
+          "/api/users/partner"
         );
         if (!partnerResponse.ok) {
           throw new Error("Не вдалося отримати профіль користувача");
