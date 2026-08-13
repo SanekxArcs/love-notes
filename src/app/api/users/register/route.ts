@@ -7,8 +7,17 @@ import {
   validateNewPassword,
 } from "@/lib/password";
 import { sanityClient } from "@/lib/sanity";
+import { guardRequest } from "@/lib/request-guard";
 
 export async function POST(request: Request) {
+  const rejected = await guardRequest(request, {
+    scope: "register",
+    limit: 5,
+    windowMs: 60 * 60 * 1000,
+    checkBot: true,
+  });
+  if (rejected) return rejected;
+
   try {
     const { name, login, password, phone, partnerIdToReceiveFrom } =
       await request.json();

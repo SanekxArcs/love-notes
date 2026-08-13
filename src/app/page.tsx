@@ -17,7 +17,7 @@ import Link from "next/link";
 import { ModeToggle } from "@/components/ModeToggle";
 import { AuthState } from "@/components/auth/auth-state";
 import { HelpDialog } from "@/components/HelpDialog";
-import Aurora from "@/components/reactbits/Aurora";
+import { AmbientBackground } from "@/components/ambient-background";
 
 const features = [
   {
@@ -64,13 +64,7 @@ const toneClasses = {
 export default function LandingPage() {
   return (
     <>
-      <Aurora
-        colorStops={["#FFB2D1", "#F45B9A", "#8B7CFF"]}
-        blend={0.65}
-        amplitude={0.85}
-        speed={0.35}
-      />
-      <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_50%_15%,rgba(255,255,255,.7),transparent_48%)] dark:bg-[radial-gradient(circle_at_50%_15%,rgba(75,32,61,.35),transparent_48%)]" />
+      <AmbientBackground />
 
       <div className="min-h-svh px-4 pb-10 pt-4 sm:px-6 lg:px-8">
         <header className="mx-auto flex w-full max-w-3xl items-center justify-between">

@@ -7,7 +7,7 @@ import { useSession } from "next-auth/react";
 import { Check, HeartHandshake, Loader2, UserPlus } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import Aurora from "@/components/reactbits/Aurora";
+import { AmbientBackground } from "@/components/ambient-background";
 import { ModeToggle } from "@/components/ModeToggle";
 import { Button } from "@/components/ui/button";
 
@@ -63,8 +63,7 @@ function InvitePageContent() {
 
   return (
     <>
-      <Aurora colorStops={["#FFB2D1", "#F45B9A", "#8B7CFF"]} blend={0.65} amplitude={0.85} speed={0.35} />
-      <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_50%_15%,rgba(255,255,255,.7),transparent_48%)] dark:bg-[radial-gradient(circle_at_50%_15%,rgba(75,32,61,.35),transparent_48%)]" />
+      <AmbientBackground />
       <main className="relative flex min-h-svh items-center justify-center px-4 py-12">
         <header className="fixed right-3 top-[max(.75rem,env(safe-area-inset-top))] z-20">
           <ModeToggle />

@@ -1,74 +1,88 @@
-import { NextResponse } from 'next/server';
-import { sanityClient } from '@/lib/sanity';
+import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { getConnectedPartner } from "@/lib/user-access";
+import { sanityClient } from "@/lib/sanity";
+
+interface DashboardData {
+  user: {
+    name?: string;
+    phone?: string;
+    partnerIdToSend?: string;
+    partnerIdToReceiveFrom?: string;
+  } | null;
+  partner: {
+    phone?: string;
+    dayMessageLimit?: number;
+    todayMessages?: unknown[];
+    previousMessages?: unknown[];
+  } | null;
+}
 
 export async function GET() {
   try {
     const session = await auth();
-
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = session.user.id as string;
-    const { partner } = await getConnectedPartner(userId);
-    if (!partner) {
-      return NextResponse.json(
-        { error: "A reciprocal partner connection is required" },
-        { status: 403 },
-      );
-    }
-
+    const userId = session.user.id;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const messages = await sanityClient.fetch(
-      `*[_type == "user" && _id == $partnerId][0]{
-        "todayMessages": messages[
-          isShown == true &&
-          shownBy._ref == $userId &&
-          defined(shownAt) &&
-          dateTime(shownAt) >= dateTime($today)
-        ] | order(shownAt desc) {
-          _key,
-          text,
-          category,
-          like,
-          shownAt,
-          userName
+    const data = await sanityClient.fetch<DashboardData>(
+      `{
+        "user": *[_type == "user" && _id == $userId][0]{
+          name, phone, partnerIdToSend, partnerIdToReceiveFrom
         },
-        "previousMessages": messages[
-          isShown == true &&
-          shownBy._ref == $userId &&
-          defined(shownAt) &&
-          dateTime(shownAt) < dateTime($today)
-        ] | order(shownAt desc) {
-          _key,
-          text,
-          category,
-          like,
-          shownAt,
-          userName
+        "partner": *[
+          _type == "user" &&
+          partnerIdToSend == *[_type == "user" && _id == $userId][0].partnerIdToReceiveFrom &&
+          partnerIdToReceiveFrom == *[_type == "user" && _id == $userId][0].partnerIdToSend
+        ][0]{
+          phone,
+          dayMessageLimit,
+          "todayMessages": messages[
+            isShown == true &&
+            shownBy._ref == $userId &&
+            defined(shownAt) &&
+            dateTime(shownAt) >= dateTime($today)
+          ] | order(shownAt desc) {
+            _key, text, category, like, shownAt, userName
+          },
+          "previousMessages": messages[
+            isShown == true &&
+            shownBy._ref == $userId &&
+            defined(shownAt) &&
+            dateTime(shownAt) < dateTime($today)
+          ] | order(shownAt desc) {
+            _key, text, category, like, shownAt, userName
+          }
         }
       }`,
-      {
-        partnerId: partner._id,
-        userId,
-        today: today.toISOString()
-      }
+      { userId, today: today.toISOString() },
     );
 
-    if (!messages) {
-      return NextResponse.json({ error: 'Partner not found for the provided ID' }, { status: 404 });
+    if (!data.user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     return NextResponse.json({
-      todayMessages: messages.todayMessages ?? [],
-      previousMessages: messages.previousMessages ?? [],
+      settings: {
+        dailyMessageLimit: data.partner?.dayMessageLimit ?? 0,
+        contactNumber: data.partner?.phone ?? data.user.phone ?? "",
+        partnerIdToReceiveFrom: data.partner
+          ? data.user.partnerIdToReceiveFrom ?? ""
+          : "",
+        partnerIdToSend: data.user.partnerIdToSend ?? "",
+        userName: data.user.name ?? "",
+      },
+      todayMessages: data.partner?.todayMessages ?? [],
+      previousMessages: data.partner?.previousMessages ?? [],
     });
   } catch (error) {
-    console.error('Error fetching message history:', error);
-    return NextResponse.json({ error: 'Failed to fetch message history' }, { status: 500 });
+    console.error("Error fetching dashboard data:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch dashboard data" },
+      { status: 500 },
+    );
   }
 }

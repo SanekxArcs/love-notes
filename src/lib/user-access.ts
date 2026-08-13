@@ -32,21 +32,33 @@ export async function getLiveUser(userId: string) {
 }
 
 export async function getConnectedPartner(userId: string) {
-  const user = await getLiveUser(userId);
-  const partnerId = user?.partnerIdToReceiveFrom?.trim();
-  if (!user || !partnerId) return { user, partner: null };
-
-  const partner = await sanityClient.fetch<ConnectedPartner | null>(
-    `*[_type == "user" && partnerIdToSend == $partnerId][0]{
-      _id, _rev, name, phone, dayMessageLimit,
-      partnerIdToSend, partnerIdToReceiveFrom
+  const result = await sanityClient.fetch<{
+    user: LiveUser | null;
+    partner: ConnectedPartner | null;
+  }>(
+    `{
+      "user": *[_type == "user" && _id == $userId][0]{
+        _id, _rev, name, login, role, lastActiveAt,
+        partnerIdToSend, partnerIdToReceiveFrom
+      },
+      "partner": *[
+        _type == "user" &&
+        partnerIdToSend == *[_type == "user" && _id == $userId][0].partnerIdToReceiveFrom
+      ][0]{
+        _id, _rev, name, phone, dayMessageLimit,
+        partnerIdToSend, partnerIdToReceiveFrom
+      }
     }`,
-    { partnerId },
+    { userId },
   );
 
   const reciprocal =
-    partner?.partnerIdToReceiveFrom?.trim() === user.partnerIdToSend?.trim();
-  return { user, partner: reciprocal ? partner : null };
+    result.partner?.partnerIdToReceiveFrom?.trim() ===
+    result.user?.partnerIdToSend?.trim();
+  return {
+    user: result.user,
+    partner: reciprocal ? result.partner : null,
+  };
 }
 
 export async function connectPartner(userId: string, partnerId: string) {

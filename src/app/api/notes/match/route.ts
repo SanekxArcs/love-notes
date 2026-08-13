@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { guardRequest } from "@/lib/request-guard";
 import { sanityClient } from "@/lib/sanity";
 import { getConnectedPartner } from "@/lib/user-access";
 import { GEMINI_MODEL, getValidatedGeminiApiKey } from "@/lib/gemini";
@@ -55,6 +56,8 @@ function buildPrompt(
   ].join("\n");
 }
 
+export const maxDuration = 30;
+
 export async function GET() {
   try {
     const session = await auth();
@@ -89,7 +92,15 @@ export async function GET() {
   }
 }
 
-export async function POST() {
+export async function POST(request: Request) {
+  const rejected = await guardRequest(request, {
+    scope: "ai",
+    limit: 20,
+    windowMs: 10 * 60 * 1000,
+    checkBot: true,
+  });
+  if (rejected) return rejected;
+
   try {
     const session = await auth();
 
@@ -168,6 +179,7 @@ export async function POST() {
       `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
       {
         method: "POST",
+        signal: AbortSignal.timeout(25_000),
         headers: {
           "Content-Type": "application/json",
           "x-goog-api-key": apiKey,

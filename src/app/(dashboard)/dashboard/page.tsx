@@ -6,7 +6,6 @@ import { Heart, Clock, Phone, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { SpinnerIcon } from "@sanity/icons/Spinner";
 import { MessageList } from "@/components/ui-app/message-list";
-import { useUserSettings } from "@/hooks/use-user-settings";
 import { useMessages } from "@/hooks/use-messages";
 import { useCountdown } from "@/hooks/use-countdown";
 import {
@@ -19,28 +18,21 @@ import { FirstVisitTour } from "@/components/onboarding/FirstVisitTour";
 import { InvitePartnerDialog } from "@/components/partner/InvitePartnerDialog";
 
 export default function Dashboard() {
-  const { settings, isLoading: isSettingsLoading } = useUserSettings();
-
   const {
+    settings,
     todayMessages,
     previousMessages,
     messageCount,
-    fetchMessages,
     getNewMessage,
     handleLikeChange,
     isLoading: isMessageLoading,
     noMessagesAvailable,
-  } = useMessages(settings.partnerIdToReceiveFrom, settings.dailyMessageLimit);
+  } = useMessages();
+  const isSettingsLoading = isMessageLoading;
 
   const remainingTime = useCountdown();
   const canGetMessage = messageCount < settings.dailyMessageLimit && !noMessagesAvailable;
   const hasPartner = Boolean(settings.partnerIdToReceiveFrom);
-
-  useEffect(() => {
-    if (settings.partnerIdToReceiveFrom) {
-      fetchMessages();
-    }
-  }, [settings.partnerIdToReceiveFrom, fetchMessages]);
 
   useEffect(() => {
     document.documentElement.classList.add("hide-scrollbar");

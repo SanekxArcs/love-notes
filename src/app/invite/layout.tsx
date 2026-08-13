@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { getInvitationDetails } from "@/lib/invitations";
+import { auth } from "@/auth";
+import { AuthSessionProvider } from "@/components/auth/session-provider";
 
 type InviteLayoutProps = Readonly<{ children: React.ReactNode }>;
 type InviteMetadataProps = { searchParams: Promise<{ from?: string; to?: string }> };
@@ -38,6 +40,7 @@ export async function generateMetadata(
   };
 }
 
-export default function InviteLayout({ children }: InviteLayoutProps) {
-  return children;
+export default async function InviteLayout({ children }: InviteLayoutProps) {
+  const session = await auth();
+  return <AuthSessionProvider session={session}>{children}</AuthSessionProvider>;
 }

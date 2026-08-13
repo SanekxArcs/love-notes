@@ -1,39 +1,34 @@
-import { auth } from "@/auth"
-import { NextResponse } from "next/server"
- 
+import { auth } from "@/auth";
+import { NextResponse } from "next/server";
+
 export default auth((req) => {
-
   const isLoggedIn = Boolean(req.auth?.user?.id);
-  const isAuthPage =
-    req.nextUrl.pathname === "/login" || req.nextUrl.pathname === "/register";
-  const isHomePage = req.nextUrl.pathname === "/";
-  const isInvitePage = req.nextUrl.pathname === "/invite" || req.nextUrl.pathname.startsWith("/invite/");
-  const isLegalPage = req.nextUrl.pathname === "/privacy" || req.nextUrl.pathname === "/terms";
-  const isOpenGraphAsset = req.nextUrl.pathname === "/og-love-notes.png";
+  const isAuthPage = ["/login", "/register"].includes(req.nextUrl.pathname);
   const isAdminPage = req.nextUrl.pathname.startsWith("/admin");
-  const isAdminUser = req.auth?.user?.role === "admin";
 
-  // Redirect unauthenticated users to login
-  if (!isLoggedIn && !isAuthPage && !isHomePage && !isInvitePage && !isLegalPage && !isOpenGraphAsset) {
-    console.log("Not logged in, redirecting to login");
+  if (!isLoggedIn && !isAuthPage) {
     return NextResponse.redirect(new URL("/login", req.nextUrl.origin));
   }
-
-  // Redirect authenticated users away from auth pages
   if (isLoggedIn && isAuthPage) {
-    console.log("Already logged in, redirecting to dashboard");
     return NextResponse.redirect(new URL("/dashboard", req.nextUrl.origin));
   }
-
-  // Protect admin routes
-  if (isLoggedIn && isAdminPage && !isAdminUser) {
-    console.log("Non-admin accessing admin page, redirecting");
+  if (isAdminPage && req.auth?.user?.role !== "admin") {
     return NextResponse.redirect(new URL("/dashboard", req.nextUrl.origin));
   }
-
   return NextResponse.next();
 });
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|invite|join|privacy|terms|og-love-notes.png).*)"],
-}
+  matcher: [
+    "/login",
+    "/register",
+    "/dashboard/:path*",
+    "/messages/:path*",
+    "/history/:path*",
+    "/notes/:path*",
+    "/calendar/:path*",
+    "/profile/:path*",
+    "/help/:path*",
+    "/admin/:path*",
+  ],
+};

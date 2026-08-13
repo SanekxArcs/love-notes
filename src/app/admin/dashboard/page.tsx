@@ -13,8 +13,6 @@ import {
   UsersRound,
 } from "lucide-react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { auth } from "@/auth";
 import { getAdminMetrics } from "@/lib/admin";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,9 +51,6 @@ function MetricCard({
 }
 
 export default async function AdminDashboardPage() {
-  const session = await auth();
-  if (session?.user?.role !== "admin") redirect("/dashboard");
-
   const metrics = await getAdminMetrics();
 
   return (
