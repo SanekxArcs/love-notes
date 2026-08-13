@@ -103,6 +103,7 @@ export type User = {
   login?: string;
   password?: string;
   role?: "user" | "admin";
+  lastActiveAt?: string;
   partnerIdToSend?: string;
   phone?: string;
   dayMessageLimit?: number;

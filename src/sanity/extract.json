@@ -665,6 +665,13 @@
         },
         "optional": true
       },
+      "lastActiveAt": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "string"
+        },
+        "optional": true
+      },
       "partnerIdToSend": {
         "type": "objectAttribute",
         "value": {
