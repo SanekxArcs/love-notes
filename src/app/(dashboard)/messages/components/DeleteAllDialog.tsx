@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useCallback, useId, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -17,6 +17,8 @@ interface DeleteAllDialogProps {
   setIsOpen: (isOpen: boolean) => void;
   onConfirm: (password: string) => Promise<boolean>;
   isLoading?: boolean;
+  title?: string;
+  description?: string;
 }
 
 export default function DeleteAllDialog({
@@ -24,10 +26,17 @@ export default function DeleteAllDialog({
   setIsOpen,
   onConfirm,
   isLoading = false,
+  title = "Видалити всі неопубліковані повідомлення",
+  description = "Ця дія видалить всі повідомлення, які ще не було показано. Для підтвердження введіть пароль.",
 }: DeleteAllDialogProps) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const passwordId = useId();
+  const handlePasswordChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => setPassword(event.target.value),
+    [],
+  );
+  const handleCancel = useCallback(() => setIsOpen(false), [setIsOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,11 +60,8 @@ export default function DeleteAllDialog({
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="rounded-[1.75rem] border-white/65 bg-white/75 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_20px_60px_rgba(71,40,62,.18)] backdrop-blur-2xl sm:max-w-md dark:border-white/15 dark:bg-zinc-950/80">
         <DialogHeader>
-          <DialogTitle>Видалити всі неопубліковані повідомлення</DialogTitle>
-          <DialogDescription>
-            Ця дія видалить всі повідомлення, які ще не було показано. Для
-            підтвердження введіть пароль.
-          </DialogDescription>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
@@ -65,7 +71,7 @@ export default function DeleteAllDialog({
                 id={passwordId}
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={handlePasswordChange}
                 placeholder="Введіть пароль для підтвердження"
                 autoComplete="off"
                 disabled={isLoading}
@@ -78,7 +84,7 @@ export default function DeleteAllDialog({
             <Button
               type="button"
               variant="outline"
-              onClick={() => setIsOpen(false)}
+              onClick={handleCancel}
               disabled={isLoading}
             >
               Скасувати

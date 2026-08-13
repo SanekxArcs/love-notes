@@ -70,6 +70,7 @@ export type Message = {
   _type: "message";
   text?: string;
   createdAt?: string;
+  updatedAt?: string;
   isShown?: boolean;
   userName?: string;
   category?: "unknown" | "daily" | "extra";

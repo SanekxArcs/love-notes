@@ -4,9 +4,16 @@ import { type ChangeEvent, useCallback, useEffect, useMemo, useState } from "rea
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { History, Mail, Search, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, CalendarClock, History, ListChecks, Mail, Search, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import MessageList from "./components/MessageList";
 import AddMessageDialog from "./components/AddMessageDialog";
@@ -24,14 +31,23 @@ interface NewMessage {
   specificDate?: string;
 }
 
+type SortField = "createdAt" | "updatedAt";
+type SortDirection = "asc" | "desc";
+
 export default function AdminMessages() {
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isDeletingAll, setIsDeletingAll] = useState(false);
+  const [isDeleteSelectedDialogOpen, setIsDeleteSelectedDialogOpen] = useState(false);
+  const [isDeletingMessages, setIsDeletingMessages] = useState(false);
   const [search, setSearch] = useState("");
+  const [isManageMode, setIsManageMode] = useState(false);
+  const [selectedMessageKeys, setSelectedMessageKeys] = useState<string[]>([]);
+  const [sort, setSort] = useState<{ field: SortField; direction: SortDirection }>({
+    field: "createdAt",
+    direction: "desc",
+  });
 
   const fetchMessages = useCallback(async () => {
     try {
@@ -52,7 +68,10 @@ export default function AdminMessages() {
     fetchMessages();
   }, [fetchMessages]);
 
-  const openDeleteDialog = useCallback(() => setIsDeleteDialogOpen(true), []);
+  const openDeleteSelectedDialog = useCallback(
+    () => setIsDeleteSelectedDialogOpen(true),
+    [],
+  );
   const handleSearchChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => setSearch(event.target.value),
     [],
@@ -100,10 +119,12 @@ export default function AdminMessages() {
 
       if (response.ok) {
         const updatedMessage = await response.json();
-        setMessages(
-          messages.map((msg) =>
-            msg._key === editedMessage._key ? updatedMessage.message : msg
-          )
+        setMessages((previous) =>
+          previous.map((msg) =>
+            msg._key === editedMessage._key
+              ? { ...msg, ...updatedMessage.message }
+              : msg,
+          ),
         );
         toast.success("Повідомлення успішно оновлено!");
         return true;
@@ -128,7 +149,10 @@ export default function AdminMessages() {
       });
 
       if (response.ok) {
-        setMessages(messages.filter((msg) => msg._key !== key));
+        setMessages((previous) => previous.filter((msg) => msg._key !== key));
+        setSelectedMessageKeys((previous) =>
+          previous.filter((selectedKey) => selectedKey !== key),
+        );
         toast.success("Повідомлення успішно видалено!");
         return true;
       } else {
@@ -145,20 +169,34 @@ export default function AdminMessages() {
     }
   };
 
-  const handleDeleteAllUnshown = async (password: string): Promise<boolean> => {
+  const handleDeleteMessages = useCallback(async (
+    password: string,
+    keys?: string[],
+  ): Promise<boolean> => {
     try {
-      setIsDeletingAll(true);
+      setIsDeletingMessages(true);
       
       const response = await fetch("/api/settings/messages/delete-unshown", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ password, ...(keys ? { keys } : {}) }),
       });
 
       if (response.ok) {
         const data = await response.json();
-        setMessages(messages.filter(msg => msg.isShown));
-        toast.success(`Успішно видалено ${data.count || ''} неопублікованих повідомлень!`);
+        setMessages((previous) =>
+          keys
+            ? previous.filter((message) => !keys.includes(message._key))
+            : previous.filter((message) => message.isShown),
+        );
+        setSelectedMessageKeys((previous) =>
+          keys ? previous.filter((key) => !keys.includes(key)) : [],
+        );
+        toast.success(
+          keys
+            ? `Успішно видалено ${data.count || ""} вибраних повідомлень!`
+            : `Успішно видалено ${data.count || ""} неопублікованих повідомлень!`,
+        );
         return true;
       } else {
         const error = await response.json();
@@ -170,20 +208,69 @@ export default function AdminMessages() {
       toast.error("Сталася помилка під час видалення повідомлень");
       return false;
     } finally {
-      setIsDeletingAll(false);
+      setIsDeletingMessages(false);
     }
-  };
+  }, []);
+
+  const handleDeleteSelected = useCallback(
+    (password: string) => handleDeleteMessages(password, selectedMessageKeys),
+    [handleDeleteMessages, selectedMessageKeys],
+  );
+
+  const handleToggleSelection = useCallback((key: string) => {
+    setSelectedMessageKeys((previous) =>
+      previous.includes(key)
+        ? previous.filter((selectedKey) => selectedKey !== key)
+        : [...previous, key],
+    );
+  }, []);
+
+  const enterManageMode = useCallback(() => {
+    setSelectedMessageKeys([]);
+    setIsManageMode(true);
+  }, []);
+
+  const exitManageMode = useCallback(() => {
+    setSelectedMessageKeys([]);
+    setIsManageMode(false);
+  }, []);
+
+  const selectAllMessages = useCallback(() => {
+    setSelectedMessageKeys(
+      messages.filter((message) => !message.isShown).map((message) => message._key),
+    );
+  }, [messages]);
+
+  const deselectAllMessages = useCallback(() => {
+    setSelectedMessageKeys([]);
+  }, []);
 
   const unshownCount = messages.filter(msg => !msg.isShown).length;
 
   const filteredMessages = useMemo(() => {
     const query = search.trim().toLowerCase();
-    if (!query) return messages;
+    const filtered = query
+      ? messages.filter((message) => message.text.toLowerCase().includes(query))
+      : messages;
 
-    return messages.filter((message) =>
-      message.text.toLowerCase().includes(query)
-    );
-  }, [messages, search]);
+    return [...filtered].sort((a, b) => {
+      const aTime = Date.parse(a[sort.field] ?? a.createdAt ?? "") || 0;
+      const bTime = Date.parse(b[sort.field] ?? b.createdAt ?? "") || 0;
+      const comparison = aTime - bTime;
+      return sort.direction === "asc" ? comparison : -comparison;
+    });
+  }, [messages, search, sort]);
+
+  const handleSortField = useCallback((field: SortField) => {
+    setSort((current) => ({ ...current, field }));
+  }, []);
+
+  const toggleSortDirection = useCallback(() => {
+    setSort((current) => ({
+      ...current,
+      direction: current.direction === "asc" ? "desc" : "asc",
+    }));
+  }, []);
 
   return (
     <PageContainer>
@@ -233,23 +320,56 @@ export default function AdminMessages() {
               <History className="h-4 w-4" /> Історія
             </Link>
           </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={openDeleteDialog}
-            disabled={unshownCount === 0}
-            className="col-span-2 h-11 rounded-[1rem] border-red-200/70 bg-red-50/45 text-red-600 shadow-[inset_0_1px_0_rgba(255,255,255,.8)] hover:bg-red-100/60 hover:text-red-700 dark:border-red-900/30 dark:bg-red-950/20 dark:text-red-300"
-          >
-            <Trash2 className="h-4 w-4" /> Очистити
-          </Button>
+          {!isManageMode ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={enterManageMode}
+              disabled={unshownCount === 0}
+              className="col-span-2 h-11 rounded-[1rem] border-white/70 bg-white/45 shadow-[inset_0_1px_0_rgba(255,255,255,.8)] dark:border-white/10 dark:bg-white/8"
+            >
+              <ListChecks className="h-4 w-4" /> Керувати повідомленнями
+            </Button>
+          ) : (
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={selectedMessageKeys.length > 0 ? deselectAllMessages : selectAllMessages}
+                disabled={unshownCount === 0}
+                className="h-11 rounded-[1rem] border-white/70 bg-white/45 shadow-[inset_0_1px_0_rgba(255,255,255,.8)] dark:border-white/10 dark:bg-white/8"
+              >
+                {selectedMessageKeys.length > 0 ? "Зняти вибір" : "Вибрати всі"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={openDeleteSelectedDialog}
+                disabled={selectedMessageKeys.length === 0 || isDeletingMessages}
+                className="h-11 rounded-[1rem] border-red-200/70 bg-red-50/45 text-red-600 shadow-[inset_0_1px_0_rgba(255,255,255,.8)] hover:bg-red-100/60 hover:text-red-700 dark:border-red-900/30 dark:bg-red-950/20 dark:text-red-300"
+              >
+                <Trash2 className="h-4 w-4" /> Видалити вибрані
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={exitManageMode}
+                className="col-span-2 h-10 rounded-[1rem] text-muted-foreground"
+              >
+                <X className="h-4 w-4" /> Завершити керування
+              </Button>
+            </>
+          )}
         </div>
       </motion.section>
 
       <DeleteAllDialog
-        isOpen={isDeleteDialogOpen}
-        setIsOpen={setIsDeleteDialogOpen}
-        onConfirm={handleDeleteAllUnshown}
-        isLoading={isDeletingAll}
+        isOpen={isDeleteSelectedDialogOpen}
+        setIsOpen={setIsDeleteSelectedDialogOpen}
+        onConfirm={handleDeleteSelected}
+        isLoading={isDeletingMessages}
+        title="Видалити вибрані повідомлення"
+        description="Ця дія видалить вибрані неопубліковані повідомлення. Для підтвердження введіть пароль."
       />
 
       <div className="relative mb-4 rounded-[1.25rem] border border-white/60 bg-white/50 shadow-[inset_0_1px_1px_rgba(255,255,255,.85),0_8px_24px_rgba(71,40,62,.08)] backdrop-blur-xl dark:border-white/12 dark:bg-zinc-950/45">
@@ -267,11 +387,37 @@ export default function AdminMessages() {
         ) : null}
       </div>
 
+      <div className="mb-4 flex items-center gap-2">
+        <CalendarClock className="ml-1 h-4 w-4 shrink-0 text-pink-700 dark:text-pink-200" />
+        <Select value={sort.field} onValueChange={handleSortField}>
+          <SelectTrigger aria-label="Сортувати повідомлення" className="h-10 flex-1 rounded-[1rem] border-white/70 bg-white/45 dark:border-white/10 dark:bg-white/8">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="createdAt">За датою створення</SelectItem>
+            <SelectItem value="updatedAt">За датою редагування</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={toggleSortDirection}
+          aria-label={sort.direction === "asc" ? "Від старих до нових" : "Від нових до старих"}
+          className="h-10 w-10 shrink-0 rounded-[1rem] border border-white/70 bg-white/45 text-pink-700 shadow-[inset_0_1px_0_rgba(255,255,255,.8)] dark:border-white/10 dark:bg-white/8 dark:text-pink-200"
+        >
+          {sort.direction === "asc" ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
+        </Button>
+      </div>
+
       <MessageList
         messages={filteredMessages}
         isLoading={isLoading}
         onEdit={handleEditMessage}
         onDelete={handleDeleteMessage}
+        isManageMode={isManageMode}
+        selectedKeys={selectedMessageKeys}
+        onToggleSelection={handleToggleSelection}
       />
     </PageContainer>
   );

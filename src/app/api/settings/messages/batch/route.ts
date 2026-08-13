@@ -40,6 +40,7 @@ export async function POST(request: Request) {
       like: like || false,
       shownAt: null,
       createdAt: now,
+      updatedAt: now,
     }));
 
     await sanityClient

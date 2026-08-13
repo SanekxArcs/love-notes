@@ -2,9 +2,12 @@
 
 import { useCallback, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { CalendarHeart, Inbox, LoaderCircle, Pencil, Trash2 } from "lucide-react";
+import { CalendarClock, CalendarHeart, Inbox, LoaderCircle, Pencil, Trash2 } from "lucide-react";
+import { format } from "date-fns";
+import { uk } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import EditMessageDialog from "./EditMessageDialog";
 import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
 import type { EditMessagePayload, Message } from "../types";
@@ -14,17 +17,34 @@ interface MessageListProps {
   isLoading: boolean;
   onEdit: (message: EditMessagePayload) => Promise<boolean>;
   onDelete: (key: string) => Promise<boolean>;
+  isManageMode: boolean;
+  selectedKeys: string[];
+  onToggleSelection: (key: string) => void;
 }
 
 interface MessageCardProps {
   message: Message;
   onEdit: (message: Message) => void;
   onDelete: (message: Message) => void;
+  isManageMode: boolean;
+  isSelected: boolean;
+  onToggleSelection: (key: string) => void;
 }
 
-function MessageCard({ message, onEdit, onDelete }: MessageCardProps) {
+function MessageCard({
+  message,
+  onEdit,
+  onDelete,
+  isManageMode,
+  isSelected,
+  onToggleSelection,
+}: MessageCardProps) {
   const handleEdit = useCallback(() => onEdit(message), [message, onEdit]);
   const handleDelete = useCallback(() => onDelete(message), [message, onDelete]);
+  const handleToggle = useCallback(
+    () => onToggleSelection(message._key),
+    [message._key, onToggleSelection],
+  );
 
   return (
     <motion.article
@@ -33,12 +53,22 @@ function MessageCard({ message, onEdit, onDelete }: MessageCardProps) {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, scale: 0.96, y: -8 }}
       transition={{ type: "spring", stiffness: 320, damping: 28 }}
-      className="relative overflow-hidden rounded-[1.5rem] border border-white/60 bg-white/52 p-4 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_10px_28px_rgba(71,40,62,.09)] backdrop-blur-2xl dark:border-white/12 dark:bg-zinc-950/48"
+      className={`relative overflow-hidden rounded-[1.5rem] border border-white/60 bg-white/52 p-4 pb-16 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_10px_28px_rgba(71,40,62,.09)] backdrop-blur-2xl dark:border-white/12 dark:bg-zinc-950/48 ${isSelected ? "ring-2 ring-pink-400/45" : ""}`}
     >
       <div className="pointer-events-none absolute -right-12 -top-14 h-28 w-28 rounded-full bg-pink-300/20 blur-3xl dark:bg-pink-700/12" />
       <div className="relative flex items-start gap-3">
-        <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-[.9rem] border border-white/65 bg-white/55 text-pink-700 shadow-[inset_0_1px_0_rgba(255,255,255,.85)] dark:border-white/12 dark:bg-white/8 dark:text-pink-200">
-          <Inbox className="h-4 w-4" />
+        <div className="mt-0.5 flex w-9 shrink-0 flex-col items-center gap-2">
+          <div className="flex h-9 w-9 items-center justify-center rounded-[.9rem] border border-white/65 bg-white/55 text-pink-700 shadow-[inset_0_1px_0_rgba(255,255,255,.85)] dark:border-white/12 dark:bg-white/8 dark:text-pink-200">
+            <Inbox className="h-4 w-4" />
+          </div>
+          {isManageMode ? (
+            <Checkbox
+              checked={isSelected}
+              onCheckedChange={handleToggle}
+              aria-label="Вибрати повідомлення"
+              className="border-pink-300/80 data-[state=checked]:bg-pink-600 data-[state=checked]:text-white dark:border-pink-800/70"
+            />
+          ) : null}
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-[15px] font-medium leading-6 text-zinc-800 dark:text-zinc-100">
@@ -57,10 +87,21 @@ function MessageCard({ message, onEdit, onDelete }: MessageCardProps) {
               </Badge>
             ) : null}
           </div>
+          <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px] font-medium text-muted-foreground">
+            {message.createdAt ? (
+              <span className="flex items-center gap-1">
+                <CalendarClock className="h-3 w-3" />
+                Створено {format(new Date(message.createdAt), "d MMM yyyy, HH:mm", { locale: uk })}
+              </span>
+            ) : null}
+            {message.updatedAt && message.updatedAt !== message.createdAt ? (
+              <span>Редаговано {format(new Date(message.updatedAt), "d MMM yyyy, HH:mm", { locale: uk })}</span>
+            ) : null}
+          </div>
         </div>
       </div>
 
-      <div className="relative mt-3 flex justify-end gap-2 border-t border-white/50 pt-3 dark:border-white/8">
+      <div className="absolute bottom-4 right-4 flex gap-2">
         <Button
           type="button"
           variant="ghost"
@@ -91,6 +132,9 @@ export default function MessageList({
   isLoading,
   onEdit,
   onDelete,
+  isManageMode,
+  selectedKeys,
+  onToggleSelection,
 }: MessageListProps) {
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -131,9 +175,16 @@ export default function MessageList({
   return (
     <section>
       <div className="mb-3 flex items-center justify-between px-1">
-        <h2 className="text-[13px] font-semibold uppercase tracking-[.12em] text-zinc-600 dark:text-zinc-300">
-          Майбутні листи
-        </h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-[13px] font-semibold uppercase tracking-[.12em] text-zinc-600 dark:text-zinc-300">
+            Майбутні листи
+          </h2>
+          {isManageMode && selectedKeys.length > 0 ? (
+            <span className="text-[11px] font-semibold text-pink-700 dark:text-pink-200">
+              ({selectedKeys.length} вибрано)
+            </span>
+          ) : null}
+        </div>
         <span className="rounded-full border border-white/60 bg-white/50 px-2 py-0.5 text-[11px] font-semibold text-pink-700 backdrop-blur-xl dark:border-white/10 dark:bg-white/8 dark:text-pink-200">
           {isLoading ? "…" : unshownMessages.length}
         </span>
@@ -162,6 +213,9 @@ export default function MessageList({
                 message={message}
                 onEdit={handleEditClick}
                 onDelete={handleDeleteClick}
+                isManageMode={isManageMode}
+                isSelected={selectedKeys.includes(message._key)}
+                onToggleSelection={onToggleSelection}
               />
             ))}
           </AnimatePresence>

@@ -23,6 +23,13 @@ export const messageType = defineType({
     }),
 
     defineField({
+      name: "updatedAt",
+      title: "Коли оновлено",
+      type: "datetime",
+      description: "Коли це повідомлення востаннє редагували",
+    }),
+
+    defineField({
       name: "isShown",
       title: "Показано?",
       type: "boolean",

@@ -4,6 +4,8 @@ export interface Message {
   isShown: boolean;
   userName?: string;
   category: 'daily' | 'extra' | 'unknown'; // Required field, removed undefined option
+  createdAt?: string;
+  updatedAt?: string;
   shownAt?: string | Date;
   like?: boolean;
   specificDate?: string; // MM-DD, year-independent priority date

@@ -18,7 +18,7 @@ export async function GET() {
 
     const user = await sanityClient.fetch(
       `*[_type == "user" && _id == $userId][0]{
-        "messages": messages | order(createdAt desc) {
+        "messages": messages | order(updatedAt desc, createdAt desc) {
           _key,
           text,
           category,
@@ -27,6 +27,7 @@ export async function GET() {
           like,
           shownAt,
           createdAt,
+          updatedAt,
           specificDate
         }
       }`,
@@ -71,6 +72,7 @@ export async function POST(request: Request) {
     }
 
     const userId = session.user.id;
+    const now = new Date().toISOString();
     const newMessage = {
       _type: "message" as const,
       _key: arrayKey(),
@@ -79,7 +81,8 @@ export async function POST(request: Request) {
       isShown: false,
       like: false,
       shownAt: null,
-      createdAt: new Date().toISOString(),
+      createdAt: now,
+      updatedAt: now,
       specificDate: specificDate || undefined,
     };
 
@@ -177,6 +180,7 @@ export async function PUT(request: Request) {
       category,
       isShown: isShown || false,
       like: like || false,
+      updatedAt: new Date().toISOString(),
     };
 
     let patch = sanityClient.patch(session.user.id).set({
@@ -184,6 +188,7 @@ export async function PUT(request: Request) {
       [`messages[_key=="${key}"].category`]: updatedFields.category,
       [`messages[_key=="${key}"].isShown`]: updatedFields.isShown,
       [`messages[_key=="${key}"].like`]: updatedFields.like,
+      [`messages[_key=="${key}"].updatedAt`]: updatedFields.updatedAt,
     });
 
     patch = specificDate
