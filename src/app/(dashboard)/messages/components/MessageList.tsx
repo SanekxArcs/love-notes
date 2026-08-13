@@ -53,7 +53,7 @@ function MessageCard({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, scale: 0.96, y: -8 }}
       transition={{ type: "spring", stiffness: 320, damping: 28 }}
-      className={`relative overflow-hidden rounded-[1.5rem] border border-white/60 bg-white/52 p-4 pb-16 shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_10px_28px_rgba(71,40,62,.09)] backdrop-blur-2xl dark:border-white/12 dark:bg-zinc-950/48 ${isSelected ? "ring-2 ring-pink-400/45" : ""}`}
+      className={`relative overflow-hidden rounded-[1.5rem] border border-white/60 bg-white/52 p-4  shadow-[inset_0_1px_1px_rgba(255,255,255,.9),0_10px_28px_rgba(71,40,62,.09)] backdrop-blur-2xl dark:border-white/12 dark:bg-zinc-950/48 ${isSelected ? "ring-2 ring-pink-400/45" : ""}`}
     >
       <div className="pointer-events-none absolute -right-12 -top-14 h-28 w-28 rounded-full bg-pink-300/20 blur-3xl dark:bg-pink-700/12" />
       <div className="relative flex items-start gap-3">
