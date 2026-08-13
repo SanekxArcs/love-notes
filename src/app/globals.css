@@ -237,4 +237,35 @@
     color: transparent;
     animation: shimmer 1.8s linear infinite;
   }
+
+
+  @keyframes ambient-float-a {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    50% {
+      transform: translate3d(28px, -34px, 0) scale(1.08);
+    }
+  }
+
+  @keyframes ambient-float-b {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    50% {
+      transform: translate3d(-24px, 30px, 0) scale(0.94);
+    }
+  }
+
+  .ambient-float-a {
+    animation: ambient-float-a 14s ease-in-out infinite;
+    will-change: transform;
+  }
+
+  .ambient-float-b {
+    animation: ambient-float-b 17s ease-in-out infinite;
+    will-change: transform;
+  }
 }
